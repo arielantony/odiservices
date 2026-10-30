@@ -49,7 +49,7 @@ are updated in the same change.
 | Draft | Written, but its prototype or its spec is not approved |
 | Ready | Prototype (frontend) and spec approved, dependencies known. Can be started |
 | In progress | Being implemented |
-| Pending validation | Implemented, unit tests and every other check pass; some checks wait for real data the owner provides (the note under the item says which) |
+| Pending validation | Implemented, unit tests and every other check pass; some checks wait for real data the owner provides (the note under the item says which). Never used for checks that wait on a later item: those belong in that item's spec |
 | Done | Implemented and verified: unit tests pass and, for stories, every scenario passes |
 
 **Types:** *Story* means user-facing behavior with a Gherkin `.feature` file.
@@ -113,11 +113,11 @@ the states and layouts that apply to all screens.
 
 | ID | Type | Item | Spec | Status | Depends on |
 |---|---|---|---|---|---|
-| BE-01 | Task | Serve the built React app from FastAPI (SPA fallback, `/api` JSON 404, headers) | [Approved](specs/shell/BE-01-serve-portal-pages.md) | Ready | BE-17, BE-18, BE-21 |
+| BE-01 | Task | Serve the built React app from FastAPI (SPA fallback, `/api` JSON 404, headers) | [Approved](specs/shell/BE-01-serve-portal-pages.md) | Ready | BE-17, BE-18, BE-21, FE-23 |
 | BE-02 | Task | Return a portal summary for the landing card | — | Draft | BE-23, BE-28, BE-29 |
 
 Notes:
-- FE-01: the two board checks (highlight on the board, board → "Categorizador") stay *Pending validation* until the owner provides a real statement **and** BE-03 to BE-12 are Done. The real statement is never committed, turned into a fixture or kept in screenshots (`docs/TESTING_GUIDELINES.md`). The rest of FE-01 can reach that status earlier.
+- FE-01: the two board checks (highlight on the board, board → "Categorizador") run on the placeholder board route `/categorizer/abc-123`. Their real-statement version is part of FE-06's verification, *Pending validation* with the owner's real statement. The real statement is never committed, turned into a fixture or kept in screenshots (`docs/TESTING_GUIDELINES.md`).
 - BE-01: the board moves from `kanban/` into the portal as the categorizer service, behind the same Cloudflare Access app. Pages rely on Access at the edge in this slice; app-side JWT verification (BE-23) is required before BE-02 (BE-01 spec, Q1).
 - BE-02: FE-02 shows the last statement period, how many transactions are pending review and how many statements were sent. Open question: does "pending review" count all statements or only the latest one?
 
@@ -177,7 +177,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 
 | ID | Type | Item | Spec | Status | Depends on |
 |---|---|---|---|---|---|
-| FE-06 | Story | [Statement summary](stories/board/FE-06-statement-summary.feature) | — | Draft | BE-10, BE-09 |
+| FE-06 | Story | [Statement summary](stories/board/FE-06-statement-summary.feature) | — | Draft | BE-10, BE-09, FE-01 |
 | FE-07 | Story | [Spending distribution](stories/board/FE-07-spending-distribution.feature) | — | Draft | BE-12 |
 | FE-08 | Story | [Category lanes and cards](stories/board/FE-08-category-lanes.feature) | — | Draft | BE-10, BE-13, BE-16 |
 | FE-09 | Story | [Move a transaction by dragging](stories/board/FE-09-move-by-drag.feature) | — | Draft | BE-11 |
@@ -191,6 +191,8 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | FE-18 | Story | Delete a statement with confirmation | — | Needs prototype | BE-15 |
 | FE-21 | Task | Decide whether localStorage (`categorizador-kanban-v1`) stays as an offline cache | — | Draft | — |
 | FE-22 | Task | Retire `build_standalone.py`, or keep it only as an offline export | — | Draft | — |
+
+- FE-06: its verification includes FE-01's two board checks on a real statement's board (highlight on "Categorizador", and board → "Categorizador"), *Pending validation* with the owner's real statement.
 
 ### Backend
 

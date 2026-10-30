@@ -160,10 +160,10 @@ is checked by hand in Chrome (Chrome DevTools MCP or a person), with
 | Top bar shows the brand and navigation | On `/` and `/categorizer`: the wordmark has `alt="Odisseia Viagens"`, "Serviços" follows it, the nav contains exactly "Início" and "Categorizador" in that order, and the bar's computed `border-bottom` is `3px solid rgb(238, 94, 39)` |
 | Highlighted — Landing | On `/`: exactly one `[aria-current="page"]`, with the text "Início", and its computed background is `rgb(8, 27, 89)` |
 | Highlighted — Categorizer home | On `/categorizer`: exactly one current item, "Categorizador" |
-| Highlighted — Categorizer board | On the board of a real statement: exactly one current item, "Categorizador". **Pending validation:** needs the owner's real statement and BE-03 to BE-12 (Q5). No screenshot is kept. The route-level behavior is already covered by the unit tests |
+| Highlighted — Categorizer board | On the board route `/categorizer/abc-123` (the FE-23 placeholder): exactly one current item, "Categorizador". The same check on a real statement's board moves to FE-06 (Q5) |
 | Navigate Landing → Categorizador | Click "Categorizador" on `/`: the URL is `/categorizer` with no full reload (the network panel shows no new document request) |
 | Navigate Categorizer home → Início | Click "Início": the URL is `/` |
-| Navigate Categorizer board → Categorizador | On a real statement's board, click "Categorizador": the URL is `/categorizer` and the home renders. **Pending validation**, same as above |
+| Navigate Categorizer board → Categorizador | On `/categorizer/abc-123`, click "Categorizador": the URL is `/categorizer` and the home renders, with no full reload. The same check on a real statement's board moves to FE-06 (Q5) |
 | Direct visit | Reload on `/categorizer`: the top bar renders, and "Categorizador" is current |
 
 Also required for **Done** (`FRONTEND_GUIDELINES.md`, step 7):
@@ -199,12 +199,17 @@ Answers so far (2026-10-30):
   was approved with this amendment (see the version log). The next prototype
   version carries it, and `v3.html` is not edited.
 - **Q2 to Q4:** no specific answer. Their recommendations are assumptions.
-- **Q5:** the two board checks stay **Pending validation** in the backlog. The
+- **Q5 (superseded 2026-10-30, see below):** the two board checks stay **Pending validation** in the backlog. The
   owner will provide a real statement. They can run only when that statement
   exists **and** BE-03 to BE-12 are Done, because the board needs the upload,
   extraction and board endpoints. The real statement follows the rules in
   `docs/TESTING_GUIDELINES.md` ("Real data in manual validation"). It is
   never committed or turned into a fixture, and no screenshot of it is kept.
+- **Q5, revised (2026-10-30):** a check must be runnable when the item
+  merges (`docs/specs/README.md`, section 4). FE-01 checks the two board
+  scenarios on the placeholder board route that FE-23 provides. Their
+  real-statement version moves to FE-06, the first story that renders the
+  board, which depends on FE-01. Assumption 5 is replaced by this answer.
 - **React:** approved (`docs/proposals/monorepo-and-react.md`), with the
   categorizer migrated one story at a time. Sections 2 and 4 to 8 reflect it.
   Q2's targets lose the trailing slash (`/categorizer`), because the router

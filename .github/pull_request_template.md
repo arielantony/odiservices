@@ -43,4 +43,4 @@ Use fictitious data only (the canonical fixture, "Fatura Cartão Exemplo, set/20
 ### Verification (spec section <N>)
 
 - [x] <check that was run and passed>
-- [ ] <check not run yet>: <why, and when it will be>
+- [ ] Pending validation: <check> (needs the owner's real data; the only box that may stay unchecked)

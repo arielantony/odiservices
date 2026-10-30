@@ -145,6 +145,11 @@ following `docs/specs/README.md`:
 - one verification check per scenario;
 - open questions with a recommended option.
 
+Before asking for approval, check the Verification section against the
+Depends on line: every check runs with only this item and its dependencies,
+when the item merges (`docs/specs/README.md`, section 4). Move any check that
+needs a later item to that item's spec.
+
 The product owner approves it explicitly ("spec FE-01 approved"). A story
 becomes **Ready** when its prototype is approved, its scenarios have been
 reviewed and its spec is approved. Backend tasks follow their own process
