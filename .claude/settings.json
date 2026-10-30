@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command' | grep -q 'gh pr merge' && \"$CLAUDE_PROJECT_DIR\"/scripts/after-merge.sh || true",
+            "timeout": 120,
+            "statusMessage": "Cleaning up merged PRs"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.prompt' | grep -qiE 'merg|#[0-9]+' && \"$CLAUDE_PROJECT_DIR\"/scripts/after-merge.sh || true",
+            "timeout": 120,
+            "statusMessage": "Cleaning up merged PRs"
+          }
+        ]
+      }
+    ]
+  }
+}
