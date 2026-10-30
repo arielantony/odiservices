@@ -103,9 +103,9 @@ the states and layouts that apply to all screens.
 | FE-02 | Story | [Categorizer service card](stories/landing/FE-02-categorizer-service-card.feature) | — | Draft | BE-02 |
 | FE-19 | Story | Loading, error and session-expired states on every screen | — | Needs prototype | BE-23 |
 | FE-20 | Story | Small screens, for every screen (v3 is desktop only) | — | Needs prototype | — |
-| FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` (git-ignored, backed up to `~/odiservices-backups/`). Two PRs: scaffold, then API client | [Approved](specs/shell/FE-23-react-app.md) | In progress | — |
+| FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` (git-ignored, backed up to `~/odiservices-backups/`). Two PRs: scaffold, then API client | [Approved](specs/shell/FE-23-react-app.md) | Done | — |
 
-- FE-23: `app/portal/` was archived to `~/odiservices-backups/portal-pre-react-2026-10-30.tar.gz` and moved to `app/web/legacy/` (git-ignored, deleted after FE-13). Step 1 (scaffold) and step 2 (API client) are separate PRs.
+- FE-23: `app/portal/` was archived to `~/odiservices-backups/portal-pre-react-2026-10-30.tar.gz` and moved to `app/web/legacy/` (git-ignored, deleted after FE-13). Step 1 (scaffold) and step 2 (API client) are separate PRs. Done 2026-10-30. The spec's `make dev` and `make serve` checks need the backend, so they are verified in BE-17 and BE-01.
 
 ### Backend
 
