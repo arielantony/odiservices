@@ -136,6 +136,10 @@ directly on `main`.
 - **Keep the feature branch current.** When `main` changes, merge `main`
   into the feature branch through a PR. Never rebase or force-push a feature
   branch, because other branches start from it.
+  - Exception: while the feature branch has no commits of its own (no step
+    merged yet), move it to `main` with a fast-forward push
+    (`git push origin origin/main:<feature-branch>`), with no PR. Nothing is
+    rewritten, so open step PRs are not affected.
 - **An item with a single step needs no feature branch.** Its branch starts
   from `origin/main` and its PR targets `main`. The same applies to changes
   that are not backlog items, such as docs or process changes.

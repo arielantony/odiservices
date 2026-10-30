@@ -53,6 +53,9 @@ before changing anything:
     `origin/main` and targets `main`.
   - Never stack a branch on another step's branch, and never rebase or
     force-push a feature branch.
+  - Bring `main` into a feature branch through a PR. While the feature
+    branch has no commits of its own, fast-forward it instead, with no PR:
+    `git push origin origin/main:<feature-branch>`.
 - **Worktrees.** Work on every branch in its own worktree:
   `git fetch origin && git worktree add .worktrees/<branch> -b <branch> origin/<base>`.
   Run all commands inside it.
