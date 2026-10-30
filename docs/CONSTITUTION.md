@@ -156,9 +156,9 @@ directly on `main`.
   `.worktrees/` is git-ignored.
 - **After a merge, clean up with `scripts/after-merge.sh`.** For every
   worktree whose branch has a merged PR, it removes the worktree and deletes
-  the local branch, then rebases the local `main` on `origin/main`. It skips
+  the local and the remote branch, then rebases the local `main` on `origin/main`. It skips
   a worktree with uncommitted changes or with commits that are not in the
-  merged PR, and says why. Claude Code runs it through two hooks in
+  merged PR, and keeps a remote branch with such commits, and says why. Claude Code runs it through two hooks in
   `.claude/settings.json`: after any `gh pr merge`, and when a prompt
   mentions a merge or a PR number (`#N`). Run it by hand after merging on
   GitHub, or with `--dry-run` to see what it would do.
