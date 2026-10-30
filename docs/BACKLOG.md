@@ -106,7 +106,7 @@ the states and layouts that apply to all screens.
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| FE-01 | Story | [Top bar and navigation](stories/shell/FE-01-top-bar-navigation.feature) | [Approved](specs/shell/FE-01-top-bar-navigation.md) | Ready | FE-23, BE-01 |
+| FE-01 | Story | [Top bar and navigation](stories/shell/FE-01-top-bar-navigation.feature) | [Approved](specs/shell/FE-01-top-bar-navigation.md) | Done | FE-23, BE-01 | [#23] |
 | FE-02 | Story | [Categorizer service card](stories/landing/FE-02-categorizer-service-card.feature) | — | Draft | BE-02 |
 | FE-19 | Story | Loading, error and session-expired states on every screen | — | Needs prototype | BE-23 |
 | FE-20 | Story | Small screens, for every screen (v3 is desktop only) | — | Needs prototype | — |
@@ -357,3 +357,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec).
 [#16]: https://github.com/arielantony/odiservices/pull/16
 [#18]: https://github.com/arielantony/odiservices/pull/18
 [#21]: https://github.com/arielantony/odiservices/pull/21
+[#23]: https://github.com/arielantony/odiservices/pull/23
