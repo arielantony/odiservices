@@ -5,7 +5,7 @@
 | **Backlog** | Platform › Project foundation › BE-17 |
 | **Needed by** | BE-01, and every later backend item |
 | **Depends on** | — |
-| **Spec status** | Approved, 2026-10-30. Sections 3.1 to 3.4 were updated the same day for the approved monorepo/React proposal |
+| **Spec status** | Approved, 2026-10-30. Sections 3.1 to 3.4 were updated the same day for the approved monorepo/React proposal. Amended in #21 (no module-level `app`; uvicorn `--factory`), approved by the owner, 2026-10-30 |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
@@ -50,7 +50,7 @@ app/
     ├── requirements-dev.in / requirements-dev.txt    # BE-19, test harness
     ├── server/           # Python package
     │   ├── __init__.py
-    │   ├── main.py       # create_app() and the module-level `app`
+    │   ├── main.py       # create_app(), run with uvicorn --factory
     │   ├── settings.py   # BE-18
     │   ├── request_log.py  # BE-21
     │   └── routes/
@@ -66,8 +66,9 @@ Commands run from `app/` through the Makefile. Python commands run with
 ### 3.2 Application factory
 
 `server/main.py` exposes `create_app(settings: Settings | None = None) ->
-FastAPI` and a module-level `app = create_app()`. Tests build their own app
-with explicit settings. The factory registers, in this order:
+FastAPI`, and no module-level `app`: uvicorn runs it with `--factory`, and
+importing the module builds nothing (BE-01 needs `web/dist/` only when the
+app is created). Tests build their own app with explicit settings. The factory registers, in this order:
 
 1. middleware (request log, security headers);
 2. API routers (`/healthz`, then `/api/...` as items land);
@@ -85,7 +86,7 @@ with explicit settings. The factory registers, in this order:
 
 | Command (in `app/`) | Runs |
 |---|---|
-| `make dev` | `uvicorn server.main:app --host 127.0.0.1 --port 8000 --reload --no-access-log`, in `api/`. FE-23 adds Vite on port 5173, which proxies `/api` and `/healthz` to it |
+| `make dev` | `uvicorn server.main:create_app --factory --host 127.0.0.1 --port 8000 --reload --no-access-log`, in `api/`. FE-23 adds Vite on port 5173, which proxies `/api` and `/healthz` to it |
 | `make serve` | uvicorn without `--reload`, serving the built frontend (`web/dist/`, BE-01), so the setup is close to production |
 | `make test-api` | pytest in `api/` |
 

@@ -100,7 +100,7 @@ app/api/
 ├── requirements.in / requirements.txt
 ├── requirements-dev.in / requirements-dev.txt
 ├── server/
-│   ├── main.py          # create_app() and the module-level app
+│   ├── main.py          # create_app(), run with uvicorn --factory
 │   ├── settings.py      # Settings, get_settings()
 │   ├── request_log.py   # request log middleware
 │   └── routes/          # one module per area, each with an APIRouter

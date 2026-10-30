@@ -6,17 +6,18 @@ from fastapi.testclient import TestClient
 
 from server.main import create_app
 from server.settings import Settings
+from tests.conftest import add_get
 
 
 @pytest.fixture
 def app(test_settings):
     app = create_app(test_settings)
 
-    @app.get("/api/things/{thing_id}")
+    @add_get(app, "/api/things/{thing_id}")
     def thing(thing_id: str):
         return {"id": thing_id}
 
-    @app.get("/api/boom")
+    @add_get(app, "/api/boom")
     def boom():
         raise RuntimeError("Papelaria Fictícia")
 
@@ -110,7 +111,7 @@ def test_every_request_logged_whatever_the_log_level(capsys):
 def test_level_by_status(app, capsys):
     client = TestClient(app, raise_server_exceptions=False)
 
-    client.get("/nao-existe")
+    client.get("/api/nao-existe")
     response = client.get("/api/boom")
 
     not_found, error = log_lines(capsys)
@@ -124,11 +125,12 @@ def test_level_by_status(app, capsys):
     assert "Papelaria" not in response.text
 
 
-def test_traceback_only_in_dev(capsys):
+def test_traceback_only_in_dev(capsys, tmp_path):
+    (tmp_path / "index.html").write_text("<title>Portal Fictício</title>")
     for env, expected in (("dev", True), ("prod", False)):
-        app = create_app(Settings(env=env))
+        app = create_app(Settings(env=env), frontend_dir=tmp_path)
 
-        @app.get("/boom")
+        @add_get(app, "/boom")
         def boom():
             raise RuntimeError("falha")
 
