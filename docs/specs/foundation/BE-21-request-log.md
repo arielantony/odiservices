@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Project foundation › BE-21 |
 | **Depends on** | BE-17, BE-18, BE-20 (its checks call `/healthz`) |
-| **Spec status** | Approved, 2026-10-30. Amended in the BE-21 PR (route `unmatched`, `Cf-Ray` format, always one line per request, two more tests), pending the owner's approval |
+| **Spec status** | Approved, 2026-10-30. Amended in #18 (route `unmatched`, `Cf-Ray` format, always one line per request, three more tests) and approved by the owner, 2026-10-30 |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
