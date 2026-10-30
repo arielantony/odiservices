@@ -12,9 +12,10 @@ One Markdown file per backlog ID, in a folder per backlog area:
 |---|---|
 | `shell/` | Feature: Portal shell (frontend and backend) |
 | `foundation/` | Platform: Project foundation |
+| `deploy/` | Platform: Packaging and deployment |
 
 New folders follow the same pattern (`upload/`, `board/`, `auth/`,
-`database/`, `deploy/`, `quality/`) and are created with their first spec.
+`database/`, `quality/`) and are created with their first spec.
 
 File name: `<ID>-<slug>.md`, for example `FE-01-top-bar-navigation.md` or
 `BE-17-fastapi-project.md`. Written in English. UI strings are quoted in pt-BR.
