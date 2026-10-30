@@ -120,6 +120,13 @@ before changing anything:
   writes to it, so changes to the backlog's table format, headings or ID
   prefixes have to be mirrored in `generate.py`.
 
+## Browser checks
+
+When you open Chrome through the Chrome DevTools MCP, close it when the check
+is done (`docs/CONSTITUTION.md`, Article 4): close the pages, quit the
+instance that holds `chrome-devtools-mcp/chrome-profile`, and stop any server
+you started. A browser left open blocks the next agent.
+
 ## Language
 
 - English for code, identifiers, comments, docs, file names and commit

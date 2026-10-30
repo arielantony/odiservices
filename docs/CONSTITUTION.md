@@ -87,6 +87,23 @@ Chrome DevTools MCP. At minimum, check that:
 A prototype with a known visual defect is not presented unless the defect has
 been fixed or is explicitly called out.
 
+**Release the browser when done.** The Chrome DevTools MCP keeps one Chrome
+instance on a shared profile (`~/.cache/chrome-devtools-mcp/chrome-profile`).
+If it stays open, the next agent fails with "The browser is already running".
+Whoever opens it closes it as soon as the check is finished:
+
+1. Close every page opened for the check (`close_page`). The last page cannot
+   be closed through the tool.
+2. Quit the Chrome instance that holds the profile:
+   `pkill -f "chrome-devtools-mcp/chrome-profile"`. The pattern matches only
+   that profile, so a person's own Chrome is not touched.
+3. Stop the dev or preview server started for the check.
+4. If a later launch still reports a running browser, remove the stale locks:
+   `rm ~/.cache/chrome-devtools-mcp/chrome-profile/Singleton*`.
+
+Never kill a browser that was already open before the check started, and
+never leave the profile locked at the end of a session.
+
 ## Article 5 — Presentation
 
 The review delivery contains:
