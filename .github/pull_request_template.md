@@ -32,8 +32,10 @@ the commands, the URLs to open, what to do and what should happen.
 Use fictitious data only (the canonical fixture, "Fatura Cartão Exemplo, set/2026").
 -->
 
-1. `git fetch && git worktree add .worktrees/<branch> <branch>`
-2. `cd .worktrees/<branch>/app && make <target>`
+1. Check out the branch, in place or in its own worktree:
+   - `gh pr checkout <N>`, then `cd app`
+   - `git fetch && git worktree add .worktrees/<branch> <branch>`, then `cd .worktrees/<branch>/app`
+2. `make <target>`
 3. Open <URL> and <action>. Expected: <result>.
 
 ### Tests
