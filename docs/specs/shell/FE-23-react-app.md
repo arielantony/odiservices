@@ -62,7 +62,7 @@ The lockfile decides the final pins.
 ```
 app/web/
 ├── .nvmrc  .yarnrc.yml  package.json  yarn.lock  tsconfig.json  vite.config.ts
-├── index.html                 # lang="pt-BR", Montserrat + Gilda Display link (FE-01, Q3)
+├── index.html                 # lang="pt-BR", Montserrat + Gilda Display link (FE-01, Q3), placeholder icon
 ├── legacy/                    # the former app/portal/: git-ignored, not served, deleted after FE-13
 └── src/
     ├── main.tsx
@@ -180,14 +180,14 @@ a step of their own, before the API client.
 
 | Check | Expected |
 |---|---|
-| `make setup-web` on a clean clone | Installs without changing `yarn.lock` |
+| `make setup-web` on a clean clone | Installs without changing `yarn.lock` (step 2) |
 | `node --version` inside the targets | v24.x |
-| `make dev`, open `http://127.0.0.1:5173/` | Landing placeholder, no console errors |
+| `make dev`, open `http://127.0.0.1:5173/` | Landing placeholder, no console errors (BE-17 provides `api.main`; in step 1, `yarn dev` alone) |
 | Visit `/categorizer` and `/categorizer/abc-123` directly | The right placeholder for each |
 | `/nao-existe` | "Página não encontrada." |
-| `make build-web && make serve`, open `http://127.0.0.1:8000/categorizer` | The same as in dev, served by FastAPI (BE-01) |
+| `make build-web && make serve`, open `http://127.0.0.1:8000/categorizer` | The same as in dev, served by FastAPI (verified in BE-01) |
 | `make test-web` | All green |
-| `document.fonts.check('500 14px Montserrat')` | true |
+| `[...document.fonts].some(f => f.family === 'Montserrat' && f.status === 'loaded')` | true (`check()` is not used: faces load lazily, so it is false for weights the page doesn't render) |
 | `app/portal/` | Gone. `app/web/legacy/` holds the same files, `git status` doesn't list it, `dist/` doesn't contain it, and the backup tarball lists its files |
 
 ## 5. Tests
