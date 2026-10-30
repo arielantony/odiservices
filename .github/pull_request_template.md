@@ -1,6 +1,7 @@
 <!--
 Format required by docs/CONSTITUTION.md, Article 6. Remove these comments.
-Title: "<ID>, step N of M: <short title>" for a backlog item,
+Title: "<ID>, step N of M: <short title>" for a step PR (base: the feature branch),
+"<ID>: <short title>" for a single-step item or the final feature → main PR,
 or "docs: <summary>" for a change with no backlog item.
 -->
 
@@ -8,7 +9,13 @@ or "docs: <summary>" for a change with no backlog item.
 
 Backlog: <Feature> › <Area> › <ID>. Spec: [`docs/specs/<area>/<ID>-<name>.md`](../blob/main/docs/specs/<area>/<ID>-<name>.md) (<sections>).
 
-<!-- Only if it applies: stacking, base branch, or anything the reviewer must know first. -->
+Base: `feature/<id>-<slug>` (step N of M) | `main`.
+
+<!--
+Final feature → main PR only: list the merged step PRs (#.., #..), and write
+How to test and Verification for the whole item.
+Add anything else the reviewer must know first.
+-->
 
 ### What changed
 
