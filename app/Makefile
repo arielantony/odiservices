@@ -15,11 +15,14 @@ setup-web:
 	corepack enable
 	. "$$HOME/.nvm/nvm.sh" && cd web && nvm install && corepack enable && yarn install --immutable
 
+# nvm use runs before the jobs start: sourced inside a background job, nvm
+# can't find the installed versions.
 dev:
-	@trap 'kill 0' INT TERM EXIT; \
+	@$(NVM) >/dev/null && cd .. && { \
+	trap 'kill 0' INT TERM EXIT; \
 	(cd api && .venv/bin/uvicorn server.main:app --host 127.0.0.1 --port $(PORT) --reload --no-access-log) & \
-	$(NVM) >/dev/null && yarn dev & \
-	wait
+	(cd web && yarn dev) & \
+	wait; }
 
 serve:
 	cd api && .venv/bin/uvicorn server.main:app --host 127.0.0.1 --port $(PORT) --no-access-log
