@@ -2,12 +2,14 @@
 # Clean up after merged pull requests (docs/CONSTITUTION.md, Article 6).
 #
 # For every worktree under .worktrees/ whose branch has a merged PR:
-# remove the worktree and delete the local branch. Then bring the local
-# main up to date with origin/main (git pull --rebase).
+# remove the worktree, delete the local branch and delete the branch on
+# origin if GitHub has not already done it. Then bring the local main up to
+# date with origin/main (git pull --rebase).
 #
 # Safe to run at any time, from the repo root or any worktree. It skips a
 # worktree with uncommitted changes, or whose branch has commits that are
-# not in the merged PR, and says why.
+# not in the merged PR, and says why. It keeps the remote branch if it has
+# commits that are not in the merged PR.
 #
 # Usage: scripts/after-merge.sh [--dry-run]
 # Also run by the Claude Code hooks in .claude/settings.json.
@@ -54,6 +56,20 @@ git worktree list --porcelain | awk '
   fi
   run git worktree prune
   run git branch -D --quiet "$branch"
+
+  # The fetch --prune above dropped the remote-tracking ref if GitHub already
+  # deleted the branch. Otherwise delete it, unless someone pushed to it
+  # after the merge.
+  remote_oid=$(git rev-parse --verify --quiet "refs/remotes/origin/$branch" || true)
+  if [ -z "$remote_oid" ]; then
+    :
+  elif [ "$remote_oid" = "$merged_oid" ] ||
+    git merge-base --is-ancestor "$remote_oid" "$merged_oid"; then
+    echo "#$pr $branch: deleting origin/$branch"
+    run git push --quiet origin --delete "$branch"
+  else
+    echo "#$pr $branch: kept origin/$branch, it has commits that are not in the merged PR"
+  fi
 done
 
 # Bring local main up to date. It has no commits of its own (nobody pushes
