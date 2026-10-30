@@ -98,6 +98,27 @@ The review delivery contains:
    why;
 4. open questions that need a decision from the team.
 
+## Article 6 — Pull requests
+
+**Every implementation of a story or task results in a pull request on
+GitHub,** opened with the GitHub CLI (`gh pr create`). Nothing is implemented
+directly on `main`.
+
+- **One unit of work per PR.** A PR implements one backlog item, or one step
+  of an item. It never mixes unrelated items.
+- **Small and concise.** A PR changes fewer than 500 lines, so it can be
+  reviewed properly. Lockfiles (`yarn.lock`, compiled `requirements*.txt`)
+  and binary assets don't count toward the limit.
+- **Complex work is split.** An item that would exceed the limit is broken
+  into smaller steps, each delivered in its own PR. The steps are listed in
+  the item's spec, and each step leaves the app working and its tests
+  passing.
+- **The PR description** names the backlog item (and the step, if any),
+  links the spec, summarizes what changed, and includes the test output and
+  the results of the spec's verification checks.
+- **The product owner reviews and merges.** The author never merges their
+  own PR.
+
 ## Note on Figma
 
 The previous flow used Figma through its MCP server. It was suspended because

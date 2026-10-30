@@ -38,6 +38,9 @@ dependencies, spec status and date. Then:
    gets no answer becomes an assumption with the recommended option, and is
    recorded as such.
 
+If the item would change more than 500 lines, the Design section also lists
+the **steps**, one pull request each (`docs/CONSTITUTION.md`, Article 6).
+
 Specs are short. A small task (a health endpoint, a pinned requirements file)
 fits in a few lines per section.
 

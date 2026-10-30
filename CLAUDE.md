@@ -9,7 +9,7 @@ before changing anything:
 
 | Document | What it governs |
 |---|---|
-| `docs/CONSTITUTION.md` | Language, HTML prototype before any frontend change |
+| `docs/CONSTITUTION.md` | Language, HTML prototype before any frontend change, pull requests |
 | `docs/BACKLOG.md` | Items, status, dependencies and the order of work |
 | `docs/specs/README.md` | What a spec is and how it is approved |
 | `docs/specs/<area>/<ID>-*.md` | How each item is built |
@@ -34,10 +34,15 @@ before changing anything:
 - **Tests come with the code.** Write the tests listed in the spec's Tests
   section. An item is Done only when they pass and the spec's verification
   table has been checked.
-- **When an item is done,** report what was built, the test output and the
-  verification results, and update its status in `docs/BACKLOG.md`. Don't
-  start the next item until the owner says so.
-- **Don't commit or push unless asked.**
+- **Every item ends in a pull request** (`docs/CONSTITUTION.md`, Article 6):
+  a branch per item or step, pushed, and a PR opened with `gh pr create`.
+  Under 500 changed lines (lockfiles and binaries excluded). If an item
+  would be larger, propose the steps in its spec before coding. Never push
+  to `main` and never merge; the owner reviews and merges.
+- **The PR description** names the item and step, links the spec, and
+  includes the test output and the verification results. Update the item's
+  status in `docs/BACKLOG.md` in the same PR. Don't start the next item until
+  the owner says so.
 
 ## Stack and commands
 
