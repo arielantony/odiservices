@@ -113,9 +113,23 @@ directly on `main`.
   into smaller steps, each delivered in its own PR. The steps are listed in
   the item's spec, and each step leaves the app working and its tests
   passing.
-- **The PR description** names the backlog item (and the step, if any),
-  links the spec, summarizes what changed, and includes the test output and
-  the results of the spec's verification checks.
+- **Every branch starts from `main`, in its own worktree.** Each branch is
+  created from the latest `origin/main` with
+  `git worktree add ../odiservices-worktrees/<branch> -b <branch> origin/main`,
+  and the work happens in that worktree. Branches are never created from
+  another feature branch. A step that needs an earlier step waits until that
+  step is merged. The worktree is removed with `git worktree remove` once the
+  PR is merged.
+- **The PR description follows `.github/pull_request_template.md`.** It has
+  these sections:
+  - the title line: the backlog item and the step, if any;
+  - the backlog path and the link to the spec;
+  - **What changed**: a summary, plus the changed line count;
+  - **How to test**: steps the reviewer can follow to see the change working,
+    with fictitious data only;
+  - **Tests**: the test output;
+  - **Verification**: the results of the spec's verification checks, with
+    any unchecked items explained.
 - **The product owner reviews and merges.** The author never merges their
   own PR.
 

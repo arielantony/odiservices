@@ -42,10 +42,14 @@ before changing anything:
   Under 500 changed lines (lockfiles and binaries excluded). If an item
   would be larger, propose the steps in its spec before coding. Never push
   to `main` and never merge; the owner reviews and merges.
-- **The PR description** names the item and step, links the spec, and
-  includes the test output and the verification results. Update the item's
-  status in `docs/BACKLOG.md` in the same PR. Don't start the next item until
-  the owner says so.
+- **Branches always start from `main`, each in its own worktree:**
+  `git fetch origin && git worktree add ../odiservices-worktrees/<branch> -b <branch> origin/main`.
+  Work and run commands inside that worktree, and never branch from another
+  feature branch.
+- **The PR description follows `.github/pull_request_template.md`.** Its
+  sections are What changed, How to test, Tests and Verification. Update
+  the item's status in `docs/BACKLOG.md` in the same PR. Don't start the
+  next item until the owner says so.
 
 ## Stack and commands
 
