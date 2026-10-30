@@ -13,7 +13,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # so nothing shadows a route.
     app.add_middleware(
         RequestLogMiddleware,
-        min_level=app.state.settings.log_level,
         traceback=app.state.settings.env == "dev",
     )
     app.include_router(health.router)

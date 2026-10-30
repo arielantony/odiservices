@@ -96,6 +96,15 @@ def test_unsafe_cf_ray_is_replaced(client, capsys):
 
     out = capsys.readouterr().out
     assert "fulano" not in out
+    assert uuid.UUID(json.loads(out)["request_id"]).version == 4
+
+
+def test_every_request_logged_whatever_the_log_level(capsys):
+    client = TestClient(create_app(Settings(env="dev", log_level="ERROR")))
+
+    client.get("/healthz")
+
+    assert len(log_lines(capsys)) == 1
 
 
 def test_level_by_status(app, capsys):

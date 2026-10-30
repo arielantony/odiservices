@@ -55,6 +55,10 @@ Registered in this order, after the API routers (BE-17, 3.2):
 The fallback replaces the trailing-slash redirect. `/categorizer` and
 `/categorizer/` both return `index.html`, and the router treats them the same.
 
+The request log (BE-21) logs a static file by its path without the query
+string, because a file path carries no ids. A request that matches no route and
+no file logs `unmatched` (BE-21).
+
 ### 3.2 Frontend directory
 
 `dist` is resolved from the package location
@@ -127,6 +131,7 @@ These checks run with `make serve`, after `make build-web` (FE-23):
 | `test_unknown_api_path_is_json_404` | GET and POST to `/api/nao-existe` are 404 with `{"error":{"code":"not_found",…}}` |
 | `test_traversal_is_blocked` | `/../.env`, `/%2e%2e/.env` and `/../secret.txt` are 404, and the body never contains their content |
 | `test_security_headers_on_every_response` | The three headers are on HTML, assets, JSON and 404 responses |
+| `test_static_file_logged_by_path` | `GET /assets/app-abc123.js?x=fulano@exemplo.com` logs `route` `/assets/app-abc123.js`, with no query string |
 | `test_healthz_not_shadowed` | `/healthz` still returns the JSON from BE-20 |
 | `test_missing_dist_fails_in_prod` | `create_app(prod settings, frontend_dir=<missing>)` raises |
 | `test_missing_dist_is_503_in_dev` | In dev, `/` is 503 and `/healthz` is 200 |

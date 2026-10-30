@@ -10,7 +10,6 @@ from starlette.datastructures import MutableHeaders
 from starlette.responses import PlainTextResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
-LEVELS = {"DEBUG": 10, "INFO": 20, "WARNING": 30, "ERROR": 40}
 # A Cf-Ray value is hex plus an airport code. Anything else is not trusted
 # as an id, so a client can't put arbitrary text in the log.
 SAFE_REQUEST_ID = re.compile(r"^[A-Za-z0-9-]{1,64}$")
@@ -41,9 +40,8 @@ class RequestLogMiddleware:
     reach this module's output.
     """
 
-    def __init__(self, app: ASGIApp, *, min_level: str = "INFO", traceback: bool = False):
+    def __init__(self, app: ASGIApp, *, traceback: bool = False):
         self.app = app
-        self.min_level = LEVELS[min_level]
         self.traceback = traceback
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
@@ -91,8 +89,6 @@ class RequestLogMiddleware:
         error: BaseException | None,
     ) -> None:
         level = "ERROR" if error else level_for(status)
-        if LEVELS[level] < self.min_level:
-            return
         route = scope.get("route")
         entry = {
             "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
