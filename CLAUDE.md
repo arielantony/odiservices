@@ -1,4 +1,6 @@
-# OdiServices — instructions for Claude Code
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 OdiServices Portal is Odisseia's internal portal. Its first service is the
 categorizer: it reads a credit card statement (PDF), extracts the
@@ -58,9 +60,35 @@ before changing anything:
   `yarn install --immutable`, exact versions, `nodeLinker: node-modules`.
 - **Installing packages** is authorized only for the packages a Ready item's
   spec lists. Ask before installing anything else, including global tools.
-- The Makefile targets (`make dev`, `make serve`, `make test`,
-  `make test-api`, `make test-web`, `make build-web`, `make setup-web`) are
-  created by BE-17 and FE-23. Use them once they exist.
+- `app/Makefile` is the entry point; run it from `app/`. FE-23 created
+  `setup-web`, `build-web`, `test-web` and `test`, and these work today.
+  `dev` and `test-api` already exist, but they target `app/api/`, which
+  doesn't exist until BE-17. `serve` comes with BE-17.
+- To run a single web test: `cd app/web && nvm use && yarn test --run
+  src/app/router.test.tsx`. Add `-t "<name>"` to run one case.
+
+## Architecture
+
+- **Web (`app/web/`)**
+  - `src/app/` holds the entry router and layout (`router.tsx`,
+    `Layout.tsx`).
+  - Each service gets a folder under `src/features/<service>/`, for
+    example `landing/` and `categorizer/`.
+  - The brand tokens are in `src/styles/tokens.css`.
+  - Tests are `*.test.ts(x)` files placed next to the code they test.
+  - Vitest is configured inside `vite.config.ts`: jsdom, globals, and the
+    setup file `src/test/setup.ts`.
+- **Dev setup.** Vite serves on 127.0.0.1:5173 and proxies `/api` and
+  `/healthz` to uvicorn on 127.0.0.1:8000. In prod, FastAPI serves
+  `web/dist/` with an SPA fallback (BE-01).
+- **Routes.** `/`, `/categorizer` and `/categorizer/:id`. The categorizer
+  screens are placeholders until FE-03 to FE-13 migrate them, per option A
+  in the monorepo proposal.
+- **`project-tracker/`** builds a visual status page from
+  `docs/BACKLOG.md`. Run `python3 project-tracker/generate.py --open`; the
+  output goes to `project-tracker/dist/`. It reads the backlog and never
+  writes to it, so changes to the backlog's table format, headings or ID
+  prefixes have to be mirrored in `generate.py`.
 
 ## Language
 
