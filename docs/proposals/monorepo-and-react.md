@@ -100,8 +100,9 @@ rewrite of the categorizer.
   - The categorizer route shows only the top bar and a placeholder, "Em
     migração", until FE-03 to FE-13 rebuild its screens in React, one story at
     a time.
-  - The vanilla code stays in the repo (`web/legacy/`) as a behavior
-    reference, is not served, and is deleted when FE-13 is done.
+  - The vanilla code stays on disk (`web/legacy/`, git-ignored and backed
+    up, decided 2026-10-30) as a behavior reference, is not served, and is
+    deleted when FE-13 is done.
   - Cost: the categorizer is unusable until FE-03 lands. Its backend doesn't
     exist yet (BE-03 to BE-12), so nothing that works today is lost.
 - **Option B: keep the vanilla page alive.** It is served as a separate page

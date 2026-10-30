@@ -9,6 +9,9 @@ outputs/
 *.pdf
 !docs/BrandGuidelines.pdf
 
+# Old vanilla portal: local reference only, deleted after FE-13 (FE-23 spec)
+app/web/legacy/
+
 # Python
 .venv/
 __pycache__/

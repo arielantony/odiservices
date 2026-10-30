@@ -92,8 +92,9 @@ before changing anything:
 
 ## Things that are easy to get wrong
 
-- The vanilla categorizer moves to `app/web/legacy/` (FE-23). It is a
-  behavior reference only: it is not served and is deleted after FE-13.
+- The vanilla categorizer moves to `app/web/legacy/` (FE-23), which is
+  git-ignored and backed up first. It is a behavior reference only: it is
+  not served and is deleted after FE-13.
 - `kanban/` is removed by BE-17, after the backup tarball in
   `~/odiservices-backups/` described in its spec.
 - The standard screen width is 1360 px. FE-01 is checked at 1280 px and

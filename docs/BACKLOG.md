@@ -103,7 +103,7 @@ the states and layouts that apply to all screens.
 | FE-02 | Story | [Categorizer service card](stories/landing/FE-02-categorizer-service-card.feature) | — | Draft | BE-02 |
 | FE-19 | Story | Loading, error and session-expired states on every screen | — | Needs prototype | BE-23 |
 | FE-20 | Story | Small screens, for every screen (v3 is desktop only) | — | Needs prototype | — |
-| FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` | [Approved](specs/shell/FE-23-react-app.md) | Ready | — |
+| FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` (git-ignored, backed up to `~/odiservices-backups/`). Two PRs: scaffold, then API client | [Approved](specs/shell/FE-23-react-app.md) | Ready | — |
 
 ### Backend
 

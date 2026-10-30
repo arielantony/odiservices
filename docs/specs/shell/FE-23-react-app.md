@@ -5,7 +5,7 @@
 | **Backlog** | Portal shell › Frontend › FE-23 (Task) |
 | **Needed by** | FE-01 and every later frontend story |
 | **Depends on** | — (BE-01 is only needed for `make serve`) |
-| **Spec status** | Approved, 2026-10-30 |
+| **Spec status** | Approved, 2026-10-30. Updated the same day: `legacy/` stays out of git, and the item ships in two PRs (3.8) |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
@@ -24,7 +24,7 @@ builds on. It replaces the static portal, following the approved proposal
 - Routes and layout, with temporary placeholders on each route.
 - `tokens.css` and the font link.
 - An API client with the same error contract as the current `api.js`.
-- Moving the static portal to `web/legacy/`.
+- Moving the static portal to `web/legacy/`, kept out of git (3.2).
 - The web targets in the Makefile.
 
 **Out of scope:**
@@ -63,7 +63,7 @@ The lockfile decides the final pins.
 app/web/
 ├── .nvmrc  .yarnrc.yml  package.json  yarn.lock  tsconfig.json  vite.config.ts
 ├── index.html                 # lang="pt-BR", Montserrat + Gilda Display link (FE-01, Q3)
-├── legacy/                    # the former app/portal/, not served, deleted after FE-13
+├── legacy/                    # the former app/portal/: git-ignored, not served, deleted after FE-13
 └── src/
     ├── main.tsx
     ├── app/
@@ -83,8 +83,16 @@ app/web/
         └── setup.ts           # jest-dom matchers
 ```
 
-`app/portal/` moves, unchanged, to `app/web/legacy/`. `app/` is untracked
-today, so this is a plain move, and the backlog records it.
+`app/portal/` moves, unchanged, to `app/web/legacy/`. It is a behavior
+reference only, so it never enters git (owner's decision, 2026-10-30):
+
+1. archive `app/portal/` to `~/odiservices-backups/portal-pre-react-2026-10-30.tar.gz`
+   (the same place as the bootstrap backup);
+2. move it to `app/web/legacy/`, which the root `.gitignore` already ignores;
+3. record both steps in the backlog.
+
+Committing it would add about 1,400 lines of old code to a PR
+(`docs/CONSTITUTION.md`, Article 6) without anything to review.
 
 ### 3.3 Routes
 
@@ -155,6 +163,19 @@ methods arrive with their stories.
 | `make test-web` | `yarn test --run` |
 | `make test` | `test-api` and `test-web` |
 
+### 3.8 Pull requests
+
+The item is delivered in two steps, each a PR under 500 changed lines
+(`yarn.lock` excluded), each leaving the app working and its tests passing:
+
+| Step | Contents | Tests |
+|---|---|---|
+| 1. App scaffold | Toolchain (3.1), layout and routes (3.2, 3.3), tokens and global styles (3.4), Vite (3.6), Makefile targets (3.7), the `legacy/` move | `router.test.tsx`, `tokens.test.ts` |
+| 2. API client | `src/api/client.ts` (3.5) | `client.test.ts` |
+
+If step 1 still goes over the limit, the tokens and global styles move into
+a step of their own, before the API client.
+
 ## 4. Verification
 
 | Check | Expected |
@@ -167,7 +188,7 @@ methods arrive with their stories.
 | `make build-web && make serve`, open `http://127.0.0.1:8000/categorizer` | The same as in dev, served by FastAPI (BE-01) |
 | `make test-web` | All green |
 | `document.fonts.check('500 14px Montserrat')` | true |
-| `app/portal/` | Gone. `app/web/legacy/` holds the same files, and `dist/` doesn't contain them |
+| `app/portal/` | Gone. `app/web/legacy/` holds the same files, `git status` doesn't list it, `dist/` doesn't contain it, and the backup tarball lists its files |
 
 ## 5. Tests
 
