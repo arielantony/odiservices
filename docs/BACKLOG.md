@@ -120,7 +120,7 @@ the states and layouts that apply to all screens.
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| BE-01 | Task | Serve the built React app from FastAPI (SPA fallback, `/api` JSON 404, headers) | [Approved](specs/shell/BE-01-serve-portal-pages.md) | In progress | BE-17, BE-18, BE-21, FE-23 | [#21] |
+| BE-01 | Task | Serve the built React app from FastAPI (SPA fallback, `/api` JSON 404, headers) | [Approved](specs/shell/BE-01-serve-portal-pages.md) | Done | BE-17, BE-18, BE-21, FE-23 | [#21] |
 | BE-02 | Task | Return a portal summary for the landing card | — | Draft | BE-23, BE-28, BE-29 |
 
 Notes:
