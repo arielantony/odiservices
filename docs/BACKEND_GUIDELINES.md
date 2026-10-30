@@ -69,6 +69,11 @@ to the contract after approval means both specs are updated and re-approved.
 If the item would change more than 500 lines, the spec lists the steps, one
 pull request each (`docs/CONSTITUTION.md`, Article 6).
 
+Before asking for approval, check the Verification section against the
+Depends on line: every check runs with only this item and its dependencies,
+when the item merges (`docs/specs/README.md`, section 4). Move any check that
+needs a later item to that item's spec.
+
 ## Step 4 — Implementation
 
 - Implement only **Ready** items, exactly as the spec says, with the tests

@@ -157,8 +157,11 @@ directly on `main`.
   - **How to test**: steps the reviewer can follow to see the change working,
     with fictitious data only;
   - **Tests**: the test output;
-  - **Verification**: the results of the spec's verification checks, with
-    any unchecked items explained.
+  - **Verification**: the results of the spec's verification checks. Every
+    box is checked. The only exception is a *Pending validation* check
+    (the owner's real data), labeled as such. A check that waits on a later
+    item means the spec is wrong: stop and fix the spec before opening the
+    PR.
 - **The product owner reviews and merges.** The author never merges their
   own PR.
 

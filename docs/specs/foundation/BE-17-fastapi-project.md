@@ -104,7 +104,7 @@ backup), then delete it, and record both steps in the backlog.
 
 | Check | Expected |
 |---|---|
-| `make dev`, then `curl -i http://127.0.0.1:8000/healthz` | 200 |
+| `make dev`, then `curl -i http://127.0.0.1:8000/nao-existe` | 404 from FastAPI: the server runs. `/healthz` returning 200 is checked in BE-20 |
 | Server bind address | `127.0.0.1` only |
 | `create_app()` called twice in one process | Two independent apps, no shared global state |
 | `kanban/` | Gone, and the backup tarball lists its files |

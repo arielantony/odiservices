@@ -30,7 +30,12 @@ dependencies, spec status and date. Then:
 3. **Design:** behavior, contracts (routes, payloads, settings, files) and the
    changes per file.
 4. **Verification:** one concrete check per acceptance criterion or Gherkin
-   scenario.
+   scenario. Every check must be runnable when the item's last PR merges,
+   with only the item itself and its **Depends on** items. A check that
+   needs a later item belongs in that item's spec, which then lists this
+   item in its Depends on. The same applies to commands: a Makefile target
+   or script the item adds must work when it merges. *Pending validation*
+   (the owner's real data) is the only kind of check that may wait.
 5. **Tests:** the unit tests this item ships with, given as test name, what it
    asserts and the fixture it uses. They follow `docs/TESTING_GUIDELINES.md`:
    fictitious data only, and an item is Done only when they pass.

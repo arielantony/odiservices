@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Backlog** | Platform › Project foundation › BE-21 |
-| **Depends on** | BE-17, BE-18 |
+| **Depends on** | BE-17, BE-18, BE-20 (its checks call `/healthz`) |
 | **Spec status** | Approved, 2026-10-30 |
 | **Date** | 2026-10-30 |
 

@@ -37,6 +37,11 @@ before changing anything:
 - **Tests come with the code.** Write the tests listed in the spec's Tests
   section. An item is Done only when they pass and the spec's verification
   table has been checked.
+- **Every verification check runs when the item merges,** with only the item
+  and its dependencies. A check that needs a later item belongs in that
+  item's spec; if you find one, the spec is wrong (stop and propose the
+  fix). Only *Pending validation* checks (the owner's real data) may stay
+  unchecked in a PR.
 - **Every item ends in a pull request** (`docs/CONSTITUTION.md`, Article 6),
   opened with `gh pr create`. Under 500 changed lines (lockfiles and
   binaries excluded). If an item would be larger, propose the steps in its
