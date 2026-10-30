@@ -14,6 +14,7 @@ before changing anything:
 | `docs/specs/README.md` | What a spec is and how it is approved |
 | `docs/specs/<area>/<ID>-*.md` | How each item is built |
 | `docs/FRONTEND_GUIDELINES.md` | Brief → prototype → stories → spec → implementation |
+| `docs/BACKEND_GUIDELINES.md` | Need → spec with the contract → implementation, and the backend conventions (errors, settings, logging, auth, data) |
 | `docs/TESTING_GUIDELINES.md` | Unit tests, fictitious data, the canonical fixture |
 | `docs/proposals/monorepo-and-react.md` | The monorepo layout and the React stack (approved) |
 | `docs/stories/` | Gherkin stories for frontend items |

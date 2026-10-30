@@ -147,8 +147,9 @@ following `docs/specs/README.md`:
 
 The product owner approves it explicitly ("spec FE-01 approved"). A story
 becomes **Ready** when its prototype is approved, its scenarios have been
-reviewed and its spec is approved. Backend tasks follow the same spec step
-(see `docs/specs/README.md`).
+reviewed and its spec is approved. Backend tasks follow their own process
+(`docs/BACKEND_GUIDELINES.md`). When a story needs an endpoint, the backend
+spec defines the contract and the story's spec links to it.
 
 ## Step 7 — Implementation
 
