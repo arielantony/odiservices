@@ -37,15 +37,29 @@ before changing anything:
 - **Tests come with the code.** Write the tests listed in the spec's Tests
   section. An item is Done only when they pass and the spec's verification
   table has been checked.
-- **Every item ends in a pull request** (`docs/CONSTITUTION.md`, Article 6):
-  a branch per item or step, pushed, and a PR opened with `gh pr create`.
-  Under 500 changed lines (lockfiles and binaries excluded). If an item
-  would be larger, propose the steps in its spec before coding. Never push
-  to `main` and never merge; the owner reviews and merges.
-- **The PR description** names the item and step, links the spec, and
-  includes the test output and the verification results. Update the item's
-  status in `docs/BACKLOG.md` in the same PR. Don't start the next item until
-  the owner says so.
+- **Every item ends in a pull request** (`docs/CONSTITUTION.md`, Article 6),
+  opened with `gh pr create`. Under 500 changed lines (lockfiles and
+  binaries excluded). If an item would be larger, propose the steps in its
+  spec before coding. Never push to `main` and never merge; the owner
+  reviews and merges.
+- **Branches.**
+  - An item with steps gets a feature branch `feature/<id>-<slug>` from
+    `origin/main`.
+  - Each step is a branch `<type>/<id>-step-<n>-<slug>` from the latest
+    feature branch, and its PR targets the feature branch.
+  - When all steps are merged, a final PR takes the feature branch to
+    `main`.
+  - A single-step item, or a change that isn't a backlog item, branches from
+    `origin/main` and targets `main`.
+  - Never stack a branch on another step's branch, and never rebase or
+    force-push a feature branch.
+- **Worktrees.** Work on every branch in its own worktree:
+  `git fetch origin && git worktree add .worktrees/<branch> -b <branch> origin/<base>`.
+  Run all commands inside it.
+- **The PR description follows `.github/pull_request_template.md`.** Its
+  sections are What changed, How to test, Tests and Verification. Update
+  the item's status in `docs/BACKLOG.md` in the same PR. Don't start the
+  next item until the owner says so.
 
 ## Stack and commands
 
