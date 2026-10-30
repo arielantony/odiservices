@@ -20,7 +20,7 @@ Add anything else the reviewer must know first.
 ### What changed
 
 - `<path>`: <what changed and why>.
-- `docs/BACKLOG.md`: <ID> set to <status>.
+- `docs/BACKLOG.md`: <ID> set to <status>, and this PR linked in its PRs column.
 
 About <N> changed lines, excluding lockfiles and binaries.
 

@@ -61,6 +61,9 @@ before changing anything:
   - Bring `main` into a feature branch through a PR. While the feature
     branch has no commits of its own, fast-forward it instead, with no PR:
     `git push origin origin/main:<feature-branch>`.
+  - Right after `gh pr create`, push a commit `docs: link #N in backlog`
+    that adds `[#N]` to the item's PRs column and `[#N]: <PR URL>` to the
+    PR links block at the end of `docs/BACKLOG.md`.
 - **Worktrees.** Work on every branch in its own worktree:
   `git fetch origin && git worktree add .worktrees/<branch> -b <branch> origin/<base>`.
   Run all commands inside it.
