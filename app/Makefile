@@ -33,12 +33,12 @@ setup-web:
 dev: $(VENV_STAMP)
 	@$(NVM) >/dev/null && cd .. && { \
 	trap 'kill 0' INT TERM EXIT; \
-	(cd api && .venv/bin/uvicorn server.main:app --host 127.0.0.1 --port $(PORT) --reload --no-access-log) & \
+	(cd api && .venv/bin/uvicorn server.main:create_app --factory --host 127.0.0.1 --port $(PORT) --reload --no-access-log) & \
 	(cd web && yarn dev) & \
 	wait; }
 
 serve: $(VENV_STAMP)
-	cd api && .venv/bin/uvicorn server.main:app --host 127.0.0.1 --port $(PORT) --no-access-log
+	cd api && .venv/bin/uvicorn server.main:create_app --factory --host 127.0.0.1 --port $(PORT) --no-access-log
 
 build-web:
 	$(NVM) && yarn build

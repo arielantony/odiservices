@@ -26,13 +26,3 @@ def create_app(
     app.include_router(health.router)
     install_frontend(app, frontend_dir, app.state.settings.env)
     return app
-
-
-def __getattr__(name: str) -> FastAPI:
-    # Built on first access (uvicorn's `server.main:app`), so importing this
-    # module never needs web/dist/ (BE-01 spec 3.2).
-    if name == "app":
-        global app
-        app = create_app()
-        return app
-    raise AttributeError(name)
