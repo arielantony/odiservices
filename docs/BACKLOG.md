@@ -60,6 +60,13 @@ own.
 implementation (see `docs/specs/README.md`). The **Item** column links to the
 story, and the **Spec** column to its spec.
 
+**Pull requests.** The **PRs** column lists every pull request for the item,
+in the order they were opened: step PRs, follow-ups and the final feature →
+`main` PR. Each one is a reference link, `[#N]`, defined in the **PR links**
+block at the end of this file. Right after `gh pr create`, the same branch
+gets a commit that adds `[#N]` to the row and its definition to that block
+(`docs/CONSTITUTION.md`, Article 6). Rows with no PRs leave the cell empty.
+
 **Tests.** Every item ships with unit tests on fictitious data, listed in its
 spec (see `docs/TESTING_GUIDELINES.md`).
 
@@ -97,13 +104,13 @@ the states and layouts that apply to all screens.
 
 *Stage: Planned*
 
-| ID | Type | Item | Spec | Status | Depends on |
-|---|---|---|---|---|---|
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
 | FE-01 | Story | [Top bar and navigation](stories/shell/FE-01-top-bar-navigation.feature) | [Approved](specs/shell/FE-01-top-bar-navigation.md) | Ready | FE-23, BE-01 |
 | FE-02 | Story | [Categorizer service card](stories/landing/FE-02-categorizer-service-card.feature) | — | Draft | BE-02 |
 | FE-19 | Story | Loading, error and session-expired states on every screen | — | Needs prototype | BE-23 |
 | FE-20 | Story | Small screens, for every screen (v3 is desktop only) | — | Needs prototype | — |
-| FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` (git-ignored, backed up to `~/odiservices-backups/`). Two PRs: scaffold, then API client | [Approved](specs/shell/FE-23-react-app.md) | Done | — |
+| FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` (git-ignored, backed up to `~/odiservices-backups/`). Two PRs: scaffold, then API client | [Approved](specs/shell/FE-23-react-app.md) | Done | — | [#2], [#3], [#9], [#8] |
 
 - FE-23: `app/portal/` was archived to `~/odiservices-backups/portal-pre-react-2026-10-30.tar.gz` and moved to `app/web/legacy/` (git-ignored, deleted after FE-13). Step 1 (scaffold) and step 2 (API client) are separate PRs. Done 2026-10-30. The spec's `make dev` and `make serve` checks need the backend, so they are verified in BE-17 and BE-01.
 
@@ -111,8 +118,8 @@ the states and layouts that apply to all screens.
 
 *Stage: Planned*
 
-| ID | Type | Item | Spec | Status | Depends on |
-|---|---|---|---|---|---|
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
 | BE-01 | Task | Serve the built React app from FastAPI (SPA fallback, `/api` JSON 404, headers) | [Approved](specs/shell/BE-01-serve-portal-pages.md) | Ready | BE-17, BE-18, BE-21, FE-23 |
 | BE-02 | Task | Return a portal summary for the landing card | — | Draft | BE-23, BE-28, BE-29 |
 
@@ -135,8 +142,8 @@ statements already sent (Categorizer home screen).
 
 *Stage: Planned*
 
-| ID | Type | Item | Spec | Status | Depends on |
-|---|---|---|---|---|---|
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
 | FE-03 | Story | [Upload a card statement](stories/categorizer-home/FE-03-upload-statement.feature) | — | Draft | BE-03 |
 | FE-04 | Story | [List sent statements](stories/categorizer-home/FE-04-statement-list.feature) | — | Draft | BE-06, BE-07 |
 | FE-05 | Story | [Retry a failed statement](stories/categorizer-home/FE-05-retry-failed-statement.feature) | — | Draft | BE-08 |
@@ -175,8 +182,8 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 
 *Stage: Planned*
 
-| ID | Type | Item | Spec | Status | Depends on |
-|---|---|---|---|---|---|
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
 | FE-06 | Story | [Statement summary](stories/board/FE-06-statement-summary.feature) | — | Draft | BE-10, BE-09, FE-01 |
 | FE-07 | Story | [Spending distribution](stories/board/FE-07-spending-distribution.feature) | — | Draft | BE-12 |
 | FE-08 | Story | [Category lanes and cards](stories/board/FE-08-category-lanes.feature) | — | Draft | BE-10, BE-13, BE-16 |
@@ -223,9 +230,9 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 
 *Stage: Planned*
 
-| ID | Type | Item | Spec | Status | Depends on |
-|---|---|---|---|---|---|
-| BE-17 | Task | Create the FastAPI project in `app/api/` (monorepo root `app/`), replacing `kanban/` | [Approved](specs/foundation/BE-17-fastapi-project.md) | Done | — |
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
+| BE-17 | Task | Create the FastAPI project in `app/api/` (monorepo root `app/`), replacing `kanban/` | [Approved](specs/foundation/BE-17-fastapi-project.md) | Done | — | [#10] |
 | BE-18 | Task | Load settings from environment variables | [Approved](specs/foundation/BE-18-settings.md) | Ready | BE-17 |
 | BE-19 | Task | Pin runtime dependencies in `requirements.txt` | [Approved](specs/foundation/BE-19-pinned-requirements.md) | Ready | BE-17 |
 | BE-20 | Task | Expose a `/healthz` endpoint | [Approved](specs/foundation/BE-20-healthz.md) | Ready | BE-17 |
@@ -338,3 +345,10 @@ its new place.
 
 New items that came from writing the stories: BE-02, BE-07, BE-08, BE-09, BE-13,
 BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec).
+
+<!-- PR links: one definition per PR listed in the PRs column, sorted by number. -->
+[#2]: https://github.com/arielantony/odiservices/pull/2
+[#3]: https://github.com/arielantony/odiservices/pull/3
+[#8]: https://github.com/arielantony/odiservices/pull/8
+[#9]: https://github.com/arielantony/odiservices/pull/9
+[#10]: https://github.com/arielantony/odiservices/pull/10

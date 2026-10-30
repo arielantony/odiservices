@@ -140,6 +140,12 @@ directly on `main`.
     merged yet), move it to `main` with a fast-forward push
     (`git push origin origin/main:<feature-branch>`), with no PR. Nothing is
     rewritten, so open step PRs are not affected.
+- **Link every PR in the backlog.** Right after `gh pr create`, push one
+  commit to the same branch, `docs: link #N in backlog`. It adds `[#N]` to
+  the item's PRs column in `docs/BACKLOG.md` and the definition
+  `[#N]: <PR URL>` to the PR links block at the end of that file. This
+  covers step PRs, follow-ups and the final feature → `main` PR. A change
+  with no backlog item has no row to link.
 - **An item with a single step needs no feature branch.** Its branch starts
   from `origin/main` and its PR targets `main`. The same applies to changes
   that are not backlog items, such as docs or process changes.
