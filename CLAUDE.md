@@ -81,7 +81,9 @@ before changing anything:
   TypeScript), `fixtures/` (shared fictitious test data), one `Makefile`.
 - **Python:** a uv-managed venv in `app/api/.venv`. Dependencies are pinned
   with `==` in `requirements*.txt`, compiled from `requirements*.in`
-  (BE-19).
+  (BE-19). `make dev`, `serve` and `test-api` create the venv and sync it
+  when a requirements file changes (`make setup-api` does it alone), so every
+  worktree builds its own.
 - **Node:** version 24 through nvm (`app/web/.nvmrc`). This machine defaults
   to Node 25, so run `nvm use` first.
 - **Yarn 4** through corepack (`corepack enable`). Never npm or pnpm.
