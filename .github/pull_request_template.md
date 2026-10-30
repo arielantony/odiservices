@@ -25,8 +25,8 @@ the commands, the URLs to open, what to do and what should happen.
 Use fictitious data only (the canonical fixture, "Fatura Cartão Exemplo, set/2026").
 -->
 
-1. `git fetch && git worktree add ../odiservices-worktrees/<branch> <branch>`
-2. `cd ../odiservices-worktrees/<branch>/app && make <target>`
+1. `git fetch && git worktree add .worktrees/<branch> <branch>`
+2. `cd .worktrees/<branch>/app && make <target>`
 3. Open <URL> and <action>. Expected: <result>.
 
 ### Tests

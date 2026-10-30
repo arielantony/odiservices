@@ -12,6 +12,9 @@ outputs/
 # Old vanilla portal: local reference only, deleted after FE-13 (FE-23 spec)
 app/web/legacy/
 
+# Local git worktrees, one per branch (docs/CONSTITUTION.md, Article 6)
+.worktrees/
+
 # Python
 .venv/
 __pycache__/

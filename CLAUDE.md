@@ -43,7 +43,7 @@ before changing anything:
   would be larger, propose the steps in its spec before coding. Never push
   to `main` and never merge; the owner reviews and merges.
 - **Branches always start from `main`, each in its own worktree:**
-  `git fetch origin && git worktree add ../odiservices-worktrees/<branch> -b <branch> origin/main`.
+  `git fetch origin && git worktree add .worktrees/<branch> -b <branch> origin/main`.
   Work and run commands inside that worktree, and never branch from another
   feature branch.
 - **The PR description follows `.github/pull_request_template.md`.** Its

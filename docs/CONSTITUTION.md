@@ -115,8 +115,9 @@ directly on `main`.
   passing.
 - **Every branch starts from `main`, in its own worktree.** Each branch is
   created from the latest `origin/main` with
-  `git worktree add ../odiservices-worktrees/<branch> -b <branch> origin/main`,
-  and the work happens in that worktree. Branches are never created from
+  `git worktree add .worktrees/<branch> -b <branch> origin/main`,
+  from the repository root, and the work happens in that worktree.
+  `.worktrees/` is git-ignored. Branches are never created from
   another feature branch. A step that needs an earlier step waits until that
   step is merged. The worktree is removed with `git worktree remove` once the
   PR is merged.
