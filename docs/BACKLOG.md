@@ -235,7 +235,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-17 | Task | Create the FastAPI project in `app/api/` (monorepo root `app/`), replacing `kanban/` | [Approved](specs/foundation/BE-17-fastapi-project.md) | Done | — | [#10] |
 | BE-18 | Task | Load settings from environment variables | [Approved](specs/foundation/BE-18-settings.md) | Done | BE-17 | [#13] |
 | BE-19 | Task | Pin runtime dependencies in `requirements.txt` | [Approved](specs/foundation/BE-19-pinned-requirements.md) | Done | BE-17 | [#14] |
-| BE-20 | Task | Expose a `/healthz` endpoint | [Approved](specs/foundation/BE-20-healthz.md) | Ready | BE-17 |
+| BE-20 | Task | Expose a `/healthz` endpoint | [Approved](specs/foundation/BE-20-healthz.md) | Done | BE-17 | [#16] |
 | BE-21 | Task | Log requests without PII | [Approved](specs/foundation/BE-21-request-log.md) | Ready | BE-17, BE-18, BE-20 |
 | BE-22 | Task | Publish OpenAPI documentation behind Access | — | Draft | BE-17, BE-23 |
 | BE-32 | Task | Add a Content-Security-Policy to every response (BE-01 spec, Q3, confirmed by the owner 2026-10-30). Due before OPS-03, preferably before FE-03 | — | Draft | BE-01 |
@@ -354,3 +354,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec).
 [#10]: https://github.com/arielantony/odiservices/pull/10
 [#13]: https://github.com/arielantony/odiservices/pull/13
 [#14]: https://github.com/arielantony/odiservices/pull/14
+[#16]: https://github.com/arielantony/odiservices/pull/16

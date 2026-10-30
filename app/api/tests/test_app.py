@@ -12,8 +12,8 @@ def test_create_app_returns_independent_instances():
         return {}
 
     assert first is not second
-    assert "/only-first" in {route.path for route in first.routes}
-    assert "/only-first" not in {route.path for route in second.routes}
+    assert "/only-first" in {getattr(route, "path", None) for route in first.routes}
+    assert "/only-first" not in {getattr(route, "path", None) for route in second.routes}
 
 
 def test_create_app_accepts_explicit_settings(monkeypatch):
