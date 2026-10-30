@@ -1,0 +1,54 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  height: 64px;
+  padding: 0 32px;
+  background: #fff;
+  border-bottom: 3px solid var(--orange);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.svc {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1.5px solid var(--line);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 19.5px;
+  color: var(--muted);
+}
+
+.nav {
+  display: flex;
+  flex: 1;
+  gap: 4px;
+}
+
+.nav a {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 21px;
+  color: var(--navy);
+  text-decoration: none;
+  opacity: 0.75;
+}
+
+.nav a[aria-current="page"] {
+  background: var(--navy);
+  color: #fff;
+  opacity: 1;
+}
+
+.who {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
