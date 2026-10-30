@@ -26,12 +26,12 @@ htmlcov/
 # Node and Yarn 4
 node_modules/
 dist/
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/sdks
-!.yarn/versions
+**/.yarn/*
+!**/.yarn/patches
+!**/.yarn/plugins
+!**/.yarn/releases
+!**/.yarn/sdks
+!**/.yarn/versions
 
 # OS and editors
 .DS_Store

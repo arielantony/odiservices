@@ -1,0 +1,20 @@
+:root {
+  /* Brand colors */
+  --navy: #081b59;
+  --ink: #0f1f33;
+  --orange: #ee5e27;
+  --amber: #f79829;
+  --peach: #f6d4b1;
+  --paper: #f5f4f2;
+
+  /* UI colors */
+  --muted: #4f5b70;
+  --line: #e2ded8;
+  --amber-bg: #fde9cc;
+  --amber-ink: #6b3a00;
+  --pos: #2f7a55;
+
+  /* Fonts */
+  --font-sans: Montserrat, system-ui, sans-serif;
+  --font-display: "Gilda Display", serif;
+}
