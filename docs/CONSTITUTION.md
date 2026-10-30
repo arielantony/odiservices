@@ -113,18 +113,42 @@ directly on `main`.
   into smaller steps, each delivered in its own PR. The steps are listed in
   the item's spec, and each step leaves the app working and its tests
   passing.
-- **Every branch starts from `main`, in its own worktree.** Each branch is
-  created from the latest `origin/main` with
-  `git worktree add .worktrees/<branch> -b <branch> origin/main`,
-  from the repository root, and the work happens in that worktree.
-  `.worktrees/` is git-ignored. Branches are never created from
-  another feature branch. A step that needs an earlier step waits until that
-  step is merged. The worktree is removed with `git worktree remove` once the
-  PR is merged.
+- **Each backlog item gets a feature branch from `main`.** An item split
+  into steps gets a feature branch, `feature/<id>-<slug>` (for example
+  `feature/fe-23-react-app`). It is created from the latest `origin/main`
+  and pushed before the first step starts. Nobody commits to it directly: it
+  changes only through merged step PRs and through merges of `main`.
+- **Each step is a branch from the feature branch, merged back by a PR.** A
+  step branch, `<type>/<id>-step-<n>-<slug>` (for example
+  `feat/fe-23-step-2-api-client`), starts from the latest feature branch,
+  and its PR targets the feature branch. The owner reviews and merges each
+  step PR. The next step starts from the feature branch after the previous
+  step has been merged into it, so steps never stack on each other's
+  branches.
+- **The feature branch reaches `main` only when the item is complete.**
+  When every step is merged and the spec's verification is done, a final PR
+  from the feature branch to `main` closes the item.
+  - Its description lists the step PRs and repeats the How to test and
+    Verification sections for the whole item.
+  - The 500-line limit applies to the step PRs, not to this final PR,
+    because each step has already been reviewed.
+  - The feature branch is deleted after the merge.
+- **Keep the feature branch current.** When `main` changes, merge `main`
+  into the feature branch through a PR. Never rebase or force-push a feature
+  branch, because other branches start from it.
+- **An item with a single step needs no feature branch.** Its branch starts
+  from `origin/main` and its PR targets `main`. The same applies to changes
+  that are not backlog items, such as docs or process changes.
+- **Every branch is worked on in its own worktree.** Create it from the
+  repository root with
+  `git worktree add .worktrees/<branch> -b <branch> origin/<base>`, where
+  `<base>` is the feature branch for a step and `main` otherwise.
+  `.worktrees/` is git-ignored. Remove the worktree with
+  `git worktree remove` once its PR is merged.
 - **The PR description follows `.github/pull_request_template.md`.** It has
   these sections:
   - the title line: the backlog item and the step, if any;
-  - the backlog path and the link to the spec;
+  - the backlog path, the link to the spec and the base branch;
   - **What changed**: a summary, plus the changed line count;
   - **How to test**: steps the reviewer can follow to see the change working,
     with fictitious data only;
