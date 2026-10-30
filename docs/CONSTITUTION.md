@@ -153,8 +153,15 @@ directly on `main`.
   repository root with
   `git worktree add .worktrees/<branch> -b <branch> origin/<base>`, where
   `<base>` is the feature branch for a step and `main` otherwise.
-  `.worktrees/` is git-ignored. Remove the worktree with
-  `git worktree remove` once its PR is merged.
+  `.worktrees/` is git-ignored.
+- **After a merge, clean up with `scripts/after-merge.sh`.** For every
+  worktree whose branch has a merged PR, it removes the worktree and deletes
+  the local branch, then rebases the local `main` on `origin/main`. It skips
+  a worktree with uncommitted changes or with commits that are not in the
+  merged PR, and says why. Claude Code runs it through two hooks in
+  `.claude/settings.json`: after any `gh pr merge`, and when a prompt
+  mentions a merge or a PR number (`#N`). Run it by hand after merging on
+  GitHub, or with `--dry-run` to see what it would do.
 - **The PR description follows `.github/pull_request_template.md`.** It has
   these sections:
   - the title line: the backlog item and the step, if any;

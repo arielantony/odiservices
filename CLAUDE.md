@@ -66,7 +66,10 @@ before changing anything:
     PR links block at the end of `docs/BACKLOG.md`.
 - **Worktrees.** Work on every branch in its own worktree:
   `git fetch origin && git worktree add .worktrees/<branch> -b <branch> origin/<base>`.
-  Run all commands inside it.
+  Run all commands inside it. After a merge, `scripts/after-merge.sh`
+  removes merged worktrees and their local branches and rebases the local
+  `main`; the hooks in `.claude/settings.json` run it after `gh pr merge`
+  and when a prompt mentions a merge or `#N`.
 - **The PR description follows `.github/pull_request_template.md`.** Its
   sections are What changed, How to test, Tests and Verification. Update
   the item's status in `docs/BACKLOG.md` in the same PR. Don't start the
