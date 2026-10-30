@@ -225,7 +225,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 
 | ID | Type | Item | Spec | Status | Depends on |
 |---|---|---|---|---|---|
-| BE-17 | Task | Create the FastAPI project in `app/api/` (monorepo root `app/`), replacing `kanban/` | [Approved](specs/foundation/BE-17-fastapi-project.md) | Ready | — |
+| BE-17 | Task | Create the FastAPI project in `app/api/` (monorepo root `app/`), replacing `kanban/` | [Approved](specs/foundation/BE-17-fastapi-project.md) | Done | — |
 | BE-18 | Task | Load settings from environment variables | [Approved](specs/foundation/BE-18-settings.md) | Ready | BE-17 |
 | BE-19 | Task | Pin runtime dependencies in `requirements.txt` | [Approved](specs/foundation/BE-19-pinned-requirements.md) | Ready | BE-17 |
 | BE-20 | Task | Expose a `/healthz` endpoint | [Approved](specs/foundation/BE-20-healthz.md) | Ready | BE-17 |
@@ -234,7 +234,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-32 | Task | Add a Content-Security-Policy to every response (BE-01 spec, Q3, confirmed by the owner 2026-10-30). Due before OPS-03, preferably before FE-03 | — | Draft | BE-01 |
 
 Notes:
-- BE-17: the portal will house multiple client services, and the categorizer board is the first one. The owner chose FastAPI. `kanban/serve.py` is a 54-line static file server, so nothing of it is reused. The spec proposes `app/` as the project root instead of a top-level `portal/` (Q1).
+- BE-17: the portal will house multiple client services, and the categorizer board is the first one. The owner chose FastAPI. `kanban/serve.py` is a 54-line static file server, so nothing of it is reused. The spec proposes `app/` as the project root instead of a top-level `portal/` (Q1). `kanban/` was backed up to `~/odiservices-backups/kanban-pre-fastapi-2026-10-30.tar.gz` and deleted. Done 2026-10-30. The `/healthz` check waits for BE-20.
 - BE-18: Supabase and Cloudflare Access values differ per environment and must never be committed. `.env.example` lists the variable names only.
 - BE-19: the owner requested it. Exact pins give reproducible builds on Lightsail.
 - BE-20: used by the Docker healthcheck and the Lightsail or uptime monitoring. It needs no auth.
