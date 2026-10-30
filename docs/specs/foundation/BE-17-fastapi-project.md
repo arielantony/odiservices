@@ -5,7 +5,7 @@
 | **Backlog** | Platform › Project foundation › BE-17 |
 | **Needed by** | BE-01, and every later backend item |
 | **Depends on** | — |
-| **Spec status** | Approved, 2026-10-30. Sections 3.1 to 3.4 were updated the same day for the approved monorepo/React proposal. Amended in #21 (no module-level `app`; uvicorn `--factory`), **pending the owner's approval** |
+| **Spec status** | Approved, 2026-10-30. Sections 3.1 to 3.4 were updated the same day for the approved monorepo/React proposal. Amended in #21 (no module-level `app`; uvicorn `--factory`), approved by the owner, 2026-10-30 |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
