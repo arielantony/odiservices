@@ -1,0 +1,146 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>OdiServices Portal v2</title><style>
+:root{--egeu:#0E3A53;--egeu-2:#174B69;--mist:#EEF2F1;--paper:#FFFFFF;--ink:#13212B;--muted:#5B6B75;--line:#D5DEDE;--ochre:#C8922B;--ochre-bg:#FBF1DC;--ochre-ink:#6B4A0E;--pos:#2F7A55}
+*{box-sizing:border-box}
+body{margin:0;padding:40px;background:#9aa;display:flex;flex-direction:column;gap:80px;font:15px/1.5 "Schibsted Grotesk",system-ui,sans-serif;color:var(--ink);font-variant-numeric:tabular-nums}
+.screen{width:1280px;min-height:800px;background:var(--mist);display:flex;flex-direction:column}
+.bar{height:56px;background:var(--egeu);color:#fff;display:flex;align-items:center;gap:24px;padding:0 32px}
+.brand{font-weight:800;font-size:18px;letter-spacing:-.01em}
+.brand span{font-weight:400;opacity:.7;margin-left:6px}
+.nav{display:flex;gap:4px;flex:1}
+.nav a{color:#fff;opacity:.72;text-decoration:none;padding:6px 12px;border-radius:999px;font-size:14px}
+.nav a.on{opacity:1;background:var(--egeu-2)}
+.who{font-size:14px;opacity:.8}
+.page{padding:48px 64px;flex:1}
+h1{font-size:34px;line-height:1.15;letter-spacing:-.02em;margin:0 0 8px;font-weight:700}
+.lede{color:var(--muted);margin:0 0 36px;max-width:56ch}
+.btn{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 18px;border-radius:999px;background:var(--egeu);color:#fff;font-weight:600;font-size:14px;border:1.5px solid var(--egeu)}
+.btn.sec{background:transparent;color:var(--egeu)}
+.btn.sm{height:32px;padding:0 14px;font-size:13px}
+.btn.warn{background:var(--ochre);border-color:var(--ochre);color:#fff}
+.btn.danger{background:transparent;border-color:transparent;color:#A3362B}
+/* ticket */
+.ticket{display:flex;background:var(--paper);border-radius:14px;box-shadow:0 1px 0 var(--line),0 12px 30px -18px rgba(14,58,83,.45);position:relative}
+.stub{width:250px;padding:24px 28px;background:var(--egeu);color:#fff;border-radius:14px 0 0 14px;display:flex;flex-direction:column;gap:6px}
+.perf{width:0;border-left:2px dashed var(--line);position:relative}
+.notch{position:absolute;width:24px;height:24px;border-radius:50%;background:var(--mist);left:-13px}
+.notch.t{top:-12px}.notch.b{bottom:-12px}
+.tmain{flex:1;padding:24px 32px;display:flex;flex-direction:column;gap:14px}
+.k{font-size:12.5px;color:var(--muted)}
+.stub .k{color:#fff;opacity:.65}
+.big{font-size:30px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+/* landing */
+.svc{max-width:760px}
+.svc .stub .big{font-size:24px}
+.svc .tmain p{margin:0;color:var(--muted);max-width:52ch}
+.facts{display:flex;gap:40px}
+.facts div{display:flex;flex-direction:column}
+.facts b{font-size:20px}
+.facts b.o{color:var(--ochre-ink)}
+.row{display:flex;gap:12px;align-items:center}
+/* home */
+.grid{display:grid;grid-template-columns:360px 1fr;gap:32px;align-items:start}
+.drop{background:var(--paper);border:2px dashed #A9BFC8;border-radius:14px;padding:36px 28px;display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.drop h2,.hist h2{font-size:18px;margin:0}
+.drop p{margin:0;color:var(--muted);font-size:14px}
+.pdf{width:56px;height:68px;border-radius:6px;background:var(--mist);border:1.5px solid #A9BFC8;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font-weight:700;font-size:12px;color:var(--egeu)}
+.note-sec{font-size:12.5px;color:var(--muted)}
+.hist{background:var(--paper);border-radius:14px;padding:24px 28px}
+.hh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.list{list-style:none;margin:0;padding:0}
+.list li{display:grid;grid-template-columns:1fr 150px 130px 150px;gap:16px;align-items:center;padding:14px 0;border-top:1px solid var(--line)}
+.list li:first-child{border-top:0}
+.list .n{font-weight:600;color:var(--egeu)}
+.list .m{color:var(--muted);font-size:14px}
+.list .val{text-align:right;font-weight:600}
+.st{display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.st i{width:9px;height:9px;border-radius:50%}
+.ok i{background:var(--pos)}.dv i{background:var(--ochre)}.pr i{background:#6E8FA3}.fl i{background:#A3362B}
+.fl{color:#A3362B}
+/* board */
+.bpage{padding:24px 32px;display:flex;flex-direction:column;gap:20px}
+.crumbs{display:flex;align-items:center;gap:12px}
+.crumbs a{color:var(--egeu);text-decoration:none;font-weight:600;font-size:14px}
+.crumbs .sp{flex:1}
+.dist{display:flex;height:12px;border-radius:999px;overflow:hidden;gap:2px}
+.leg{list-style:none;margin:0;padding:0;display:flex;gap:24px;font-size:13.5px;color:var(--muted)}
+.leg li{display:flex;gap:8px;align-items:center}.leg i{width:10px;height:10px;border-radius:3px}.leg b{color:var(--ink)}
+.tools{display:flex;gap:10px;align-items:center}
+.search{flex:1;max-width:360px;height:40px;border-radius:999px;background:var(--paper);border:1.5px solid var(--line);padding:0 18px;display:flex;align-items:center;color:var(--muted);font-size:14px;justify-content:space-between}
+kbd{font:600 11px "Schibsted Grotesk",sans-serif;border:1.5px solid currentColor;border-radius:5px;padding:0 5px;opacity:.7}
+.btn kbd{opacity:.85}
+.board{display:flex;gap:14px;overflow:hidden}
+.lane{flex:0 0 205px;display:flex;flex-direction:column;gap:8px}
+.lane.isempty{opacity:.8}
+.lh{display:flex;align-items:center;gap:8px;font-weight:700;font-size:14.5px}
+.lh i{width:12px;height:12px;border-radius:4px}
+.ln{flex:1}
+.lc{font-weight:500;color:var(--muted);font-size:13px}
+.lsum{font-size:13px;color:var(--muted);display:flex;gap:8px;align-items:center;min-height:22px}
+.pend{background:var(--ochre-bg);color:var(--ochre-ink);border-radius:999px;padding:1px 9px;font-weight:600;font-size:12px}
+.lcards{display:flex;flex-direction:column;gap:6px}
+.card{background:var(--paper);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr auto;gap:4px 10px;border:1px solid transparent;box-shadow:0 1px 0 var(--line)}
+.card .d{font-weight:500;font-size:14px;line-height:1.3;grid-column:1/-1}
+.card .v{font-weight:700;font-size:15px;white-space:nowrap;grid-row:2;grid-column:2}
+.card .v.neg{color:var(--pos)}
+.card .dt{font-size:12.5px;color:var(--muted);grid-row:2;grid-column:1;align-self:center}
+.cfoot{grid-column:1/-1;display:flex;gap:6px;align-items:center;margin-top:6px}
+.note{font-size:12px;color:#5E4B8B}
+.card.doubt{background:var(--ochre-bg);border-color:#E7C77F;box-shadow:inset 4px 0 0 var(--ochre)}
+.card.doubt .q{flex:1;white-space:nowrap;font-size:12px;color:var(--ochre-ink);font-weight:600}
+.mini{font-size:12px;font-weight:600;border:1.5px solid var(--ochre-ink);color:var(--ochre-ink);border-radius:999px;padding:1px 9px}
+.lempty{border:1.5px dashed #B8C6CB;border-radius:8px;padding:14px;font-size:13px;color:var(--muted)}
+.fade{width:60px;flex:0 0 60px;background:linear-gradient(90deg,rgba(238,242,241,0),var(--mist))}
+</style></head><body>
+
+<div class="screen" id="landing">
+<div class="bar"><span class="brand">Odisseia<span>Serviços</span></span><nav class="nav"><a class="on">Início</a><a>Categorizador</a></nav><span class="who">Equipe financeira</span></div>
+<div class="page">
+<h1>Bom dia. O que vamos resolver hoje?</h1>
+<p class="lede">Ferramentas internas da Odisseia Viagens. Cada serviço guarda seu próprio histórico.</p>
+<div class="ticket svc">
+ <div class="stub"><span class="k">Serviço</span><span class="big">Categorizador</span><span class="k" style="margin-top:auto">Faturas de cartão</span></div>
+ <div class="perf"><span class="notch t"></span><span class="notch b"></span></div>
+ <div class="tmain">
+  <p>Envie a fatura em PDF e cada lançamento chega classificado em uma das 10 categorias contábeis. Você só revisa o que ficou em dúvida.</p>
+  <div class="facts"><div><span class="k">Última fatura</span><b>Set/2026</b></div><div><span class="k">Para revisar</span><b class="o">2 lançamentos</b></div><div><span class="k">Faturas enviadas</span><b>4</b></div></div>
+  <div class="row"><span class="btn">Abrir categorizador</span><span class="btn sec">Enviar nova fatura</span></div>
+ </div>
+</div>
+</div></div>
+
+<div class="screen" id="home">
+<div class="bar"><span class="brand">Odisseia<span>Serviços</span></span><nav class="nav"><a>Início</a><a class="on">Categorizador</a></nav><span class="who">Equipe financeira</span></div>
+<div class="page">
+<h1>Categorizador</h1>
+<p class="lede">Envie uma fatura de cartão em PDF. A classificação leva cerca de um minuto.</p>
+<div class="grid">
+ <div class="drop"><div class="pdf">PDF</div><h2>Enviar fatura</h2><p>Arraste o arquivo para cá ou escolha no computador. Até 10 MB.</p><span class="btn">Escolher arquivo</span><span class="note-sec">O PDF fica restrito à equipe financeira.</span></div>
+ <div class="hist"><div class="hh"><h2>Faturas enviadas</h2><span class="k">Mais recentes primeiro</span></div>
+ <ul class="list">
+  <li><span class="n">Fatura Cartão Exemplo, set/2026</span><span class="m">02/10/2026 14:12</span><span class="st dv"><i></i>2 para revisar</span><span class="val">R$ 11.906,35</span></li>
+  <li><span class="n">Fatura Cartão Exemplo, ago/2026</span><span class="m">03/09/2026 09:40</span><span class="st ok"><i></i>Concluída</span><span class="val">R$ 9.412,80</span></li>
+  <li><span class="n">Fatura Cartão Demo, jul/2026</span><span class="m">04/08/2026 18:05</span><span class="st pr"><i></i>Classificando</span><span class="val m">—</span></li>
+  <li><span class="n">Fatura Teste, jun/2026</span><span class="m">05/07/2026 11:22</span><span class="st fl"><i></i>Falhou: PDF ilegível</span><span class="val"><span class="btn sec sm">Tentar de novo</span></span></li>
+ </ul>
+ <div style="margin-top:12px"><span class="btn sec sm">Mostrar faturas anteriores</span></div>
+ </div>
+</div>
+</div></div>
+
+<div class="screen" id="board">
+<div class="bar"><span class="brand">Odisseia<span>Serviços</span></span><nav class="nav"><a>Início</a><a class="on">Categorizador</a></nav><span class="who">Equipe financeira</span></div>
+<div class="bpage">
+<div class="crumbs"><a>Faturas enviadas</a><span class="k">/</span><span style="font-weight:600">Fatura Cartão Exemplo, set/2026</span><span class="sp"></span><span class="btn sec sm">Exportar JSON</span><span class="btn danger sm">Excluir fatura</span></div>
+<div class="ticket">
+ <div class="stub"><span class="k">Período</span><span class="big">Set/2026</span><span class="k" style="margin-top:8px">Cartão Exemplo final 0000</span></div>
+ <div class="perf"><span class="notch t"></span><span class="notch b"></span></div>
+ <div class="tmain">
+  <div class="facts"><div><span class="k">Total da fatura</span><b>{{TOTAL}}</b></div><div><span class="k">Lançamentos</span><b>17</b></div><div><span class="k">Para revisar</span><b class="o">2</b></div><div style="margin-left:auto;justify-content:center"><span class="btn warn">Revisar 2 dúvidas <kbd>R</kbd></span></div></div>
+  <div class="dist">{{BARS}}</div>
+  <ul class="leg">{{LEG}}<li>e mais 5 categorias</li></ul>
+ </div>
+</div>
+<div class="tools"><span class="search">Filtrar por descrição <kbd>/</kbd></span><span class="btn sec sm">Desfazer</span><span class="btn sec sm">Atalhos <kbd>?</kbd></span></div>
+<div class="board">{{LANES}}</div>
+</div></div>
+</body></html>

@@ -1,0 +1,95 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>OdiServices Portal — Protótipo</title><style>
+body{margin:0;background:#888;font:14px/1.4 Inter,system-ui,sans-serif;display:flex;flex-direction:column;gap:80px;padding:40px}
+.screen{width:1280px;box-sizing:border-box}
+/* casca (shell.css) */
+.shellscreen{background:#f9fafb;min-height:720px;color:#101828}
+.shell{max-width:56rem;margin:0 auto;padding:1rem}
+.shell-head h1{margin:0 0 1rem;font-size:1.4rem}
+.shell-card{border:1px solid #d0d5dd;border-radius:8px;padding:1rem;margin-bottom:1rem;background:#fff}
+.shell-card h2{margin:0 0 .75rem;font-size:1.05rem}
+.shell-empty{color:#667085;margin:0}
+.history{list-style:none;margin:0;padding:0}
+.history li{display:flex;align-items:center;gap:.75rem;padding:.5rem 0;border-top:1px solid #eaecf0}
+.history li:first-child{border-top:0}
+.row-open{flex:1;color:#1d4ed8;text-decoration:none}
+.history time{color:#667085;font-size:.85rem;white-space:nowrap}
+.badge{font-size:.8rem;padding:.1rem .5rem;border-radius:999px;background:#eaecf0}
+.badge.done{background:#d1fadf}.badge.divergent{background:#fef0c7}.badge.failed{background:#fee4e2}
+.upload{display:flex;gap:.75rem;align-items:center}
+.file{flex:1;border:1px dashed #d0d5dd;border-radius:8px;padding:.6rem .8rem;color:#667085}
+.sbtn{font:inherit;padding:.4rem 1rem;border-radius:8px;border:1px solid #1d4ed8;background:#1d4ed8;color:#fff}
+.sbtn.ghost{background:#fff;color:#344054;border-color:#d0d5dd}
+.more{margin-top:.75rem}
+.svc-desc{color:#667085;font-size:.85rem}
+/* quadro (style.css, tema claro) */
+.boardscreen{--bg:#e8e0d3;--surface:#f6f1e8;--lane:#ddd3c3;--text:#2b2620;--muted:#5e5549;--border:#c7bba8;--accent:#a8573a;--on-accent:#fff;--warn-bg:#f3dc9a;--warn-border:#c99a14;--warn-text:#5c4300;--neg:#2f6b43;--changed:#7d4a8a;--cs:40%;--cl:42%;--shadow:0 1px 2px rgba(60,40,20,.12);
+ background:var(--bg);color:var(--text);padding:1rem 0 12px}
+.open-bar{display:flex;align-items:center;gap:.75rem;margin:0 12px 10px}
+.open-name{flex:1;font-weight:600}
+.top{display:flex;gap:6px 12px;align-items:center;padding:6px 12px}
+.top h1{font-size:16px;margin:0}
+.summary{color:var(--muted);flex:1}.summary b{color:var(--text)}
+.actions{display:flex;gap:6px}
+.search{width:200px;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--muted)}
+.btn{font:inherit;padding:4px 10px;min-height:28px;box-sizing:border-box;border-radius:8px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);display:inline-flex;align-items:center}
+.btn.ghost{background:transparent;color:var(--accent);border-color:var(--border)}
+.btn.icon{width:28px;justify-content:center;padding:0;font-weight:700;border-radius:50%}
+.btn.danger{color:#b42318}
+kbd{font:11px ui-monospace,monospace;padding:0 5px;border:1px solid currentColor;border-radius:4px;opacity:.65;margin-left:4px}
+.overview{margin:0 12px 8px;padding:6px 10px 8px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow)}
+.ov-head{display:flex;justify-content:space-between}
+.ov-label{font-size:12px;color:var(--muted);font-weight:600}
+.chart-total{font-size:12px;color:var(--muted)}
+.bars{display:flex;height:28px;border-radius:6px;overflow:hidden;gap:2px;margin:8px 0 6px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.lg{display:inline-flex;gap:6px;align-items:center}.lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.board{display:flex;flex-wrap:wrap;gap:8px;padding:0 12px 10px}
+.lane{flex:0 0 302px;box-sizing:border-box;display:flex;flex-direction:column;background:var(--lane);border-radius:12px;border:2px solid transparent;border-top:4px solid hsl(var(--h) var(--cs) var(--cl))}
+.lane.empty{opacity:.75}
+.lane-head{padding:6px 10px 2px;display:flex;flex-direction:column;gap:2px}
+.lane-title{font-weight:700;font-size:13px;display:flex;justify-content:space-between}
+.lane-meta{color:var(--muted);font-size:12px;display:flex;gap:8px}
+.pend{color:var(--warn-text);background:var(--warn-bg);border-radius:99px;padding:0 8px;font-weight:600}
+.count{color:var(--muted);font-weight:500}
+.cards{padding:2px 6px 6px;display:flex;flex-direction:column;gap:4px}
+.lane-empty{color:var(--muted);font-size:12px;text-align:center;padding:12px 8px;border:1px dashed var(--border);border-radius:8px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:5px 8px;box-shadow:var(--shadow)}
+.card.doubt{background:var(--warn-bg);border-color:var(--warn-border);border-left-width:4px;color:var(--warn-text)}
+.card-main{display:flex;justify-content:space-between;gap:8px}
+.desc{font-weight:500}.valor{font-weight:700;white-space:nowrap}.valor.neg{color:var(--neg)}
+.card-meta{display:flex;gap:6px;align-items:center;margin-top:2px;min-height:22px;color:var(--muted);font-size:12px}
+.card.doubt .card-meta{color:inherit}
+.tag{font-size:11px;padding:0 6px;border-radius:99px;border:1px solid currentColor}
+.tag.changed{color:var(--changed)}.tag.review{color:var(--warn-text);border-color:var(--warn-border);font-weight:700}
+.acts{margin-left:auto;display:flex;gap:4px}
+.mini{font:inherit;font-size:12px;padding:0 8px;min-height:22px;border-radius:8px;background:transparent;color:inherit;border:1px solid currentColor}
+</style></head><body>
+
+<div class="screen shellscreen" id="landing"><div class="shell">
+<header class="shell-head"><h1>OdiServices Portal</h1></header>
+<section class="shell-card"><h2>Serviços</h2><ul class="history">
+<li><a class="row-open" href="#">Categorizador</a><span class="svc-desc">Categoriza lançamentos de faturas em PDF</span></li>
+</ul></section></div></div>
+
+<div class="screen shellscreen" id="home"><div class="shell">
+<header class="shell-head"><h1>Categorizador</h1></header>
+<section class="shell-card"><h2>Enviar fatura</h2>
+<div class="upload"><span class="file">Selecionar arquivo PDF… (nenhum arquivo escolhido)</span><button class="sbtn">Enviar</button></div></section>
+<section class="shell-card"><h2>Histórico</h2><ul class="history">
+<li><a class="row-open" href="#">Fatura Cartão Exemplo — Set/2026</a><time>02/10/2026 14:12</time><span class="badge done">concluída</span></li>
+<li><a class="row-open" href="#">Fatura Cartão Exemplo — Ago/2026</a><time>03/09/2026 09:40</time><span class="badge divergent">divergente</span></li>
+<li><a class="row-open" href="#">Fatura Cartão Demo — Jul/2026</a><time>04/08/2026 18:05</time><span class="badge">processando</span></li>
+<li><a class="row-open" href="#">Fatura Teste — Jun/2026</a><time>05/07/2026 11:22</time><span class="badge failed">falhou</span></li>
+</ul><button class="sbtn ghost more">Carregar mais</button></section>
+</div></div>
+
+<div class="screen boardscreen" id="board">
+<div class="open-bar"><span class="btn ghost">← Voltar ao histórico</span><span class="open-name">Fatura Cartão Exemplo — Set/2026</span><span class="btn ghost danger">Excluir</span></div>
+<div class="top"><h1>Categorizador</h1><span class="summary"><b>17</b> lançamentos · <b>R$ 11.906,35</b> · <b>2</b> dúvidas</span>
+<span class="search">Filtrar descrição ( / )</span>
+<div class="actions"><span class="btn">Revisar dúvidas<kbd>R</kbd></span><span class="btn ghost">Desfazer</span><span class="btn ghost">Exportar JSON</span><span class="btn ghost icon">?</span></div></div>
+<div class="overview"><div class="ov-head"><span class="ov-label">Distribuição dos gastos</span><span class="chart-total">Total R$ 11.948,65</span></div>
+<div class="bars"><div style="flex:0.1483;background:hsl(0 40% 42%)"></div><div style="flex:0.0459;background:hsl(36 40% 42%)"></div><div style="flex:0.0594;background:hsl(72 40% 42%)"></div><div style="flex:0.4100;background:hsl(108 40% 42%)"></div><div style="flex:0.0571;background:hsl(144 40% 42%)"></div><div style="flex:0.2511;background:hsl(180 40% 42%)"></div><div style="flex:0.0255;background:hsl(216 40% 42%)"></div><div style="flex:0.0027;background:hsl(252 40% 42%)"></div></div><div class="legend"><span class="lg"><i style="background:hsl(0 40% 42%)"></i>FORNECEDOR</span><span class="lg"><i style="background:hsl(36 40% 42%)"></i>OPERACIONAL</span><span class="lg"><i style="background:hsl(72 40% 42%)"></i>MARKETING/COMERCIAL</span><span class="lg"><i style="background:hsl(108 40% 42%)"></i>INVESTIMENTO</span><span class="lg"><i style="background:hsl(144 40% 42%)"></i>DESPESA ADMINISTRATIVA</span><span class="lg"><i style="background:hsl(180 40% 42%)"></i>FOLHA DE PAGAMENTO</span><span class="lg"><i style="background:hsl(216 40% 42%)"></i>CUSTO DO CARRO</span><span class="lg"><i style="background:hsl(252 40% 42%)"></i>DESPESAS FINANCEIRAS</span></div></div>
+<div class="board"><section class="lane" style="--h:0"><div class="lane-head"><div class="lane-title"><span>FORNECEDOR</span><span class="count">3</span></div><div class="lane-meta"><span>R$ 1.772,00</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Distribuidora Exemplo Ltda</span><span class="valor">R$ 1.250,00</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card"><div class="card-main"><span class="desc">Papelaria Fictícia</span><span class="valor">R$ 89,90</span></div><div class="card-meta"><span>05/09</span><span class="tag changed">alterado</span></div></div><div class="card"><div class="card-main"><span class="desc">Atacado Modelo SA</span><span class="valor">R$ 432,10</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane" style="--h:36"><div class="lane-head"><div class="lane-title"><span>OPERACIONAL</span><span class="count">2</span></div><div class="lane-meta"><span>R$ 548,00</span><span class="pend">1 dúvida</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Hospedagem Servidor Demo</span><span class="valor">R$ 199,00</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card doubt"><div class="card-main"><span class="desc">Software Gestão Teste</span><span class="valor">R$ 349,00</span></div><div class="card-meta"><span>05/09</span><span class="tag review">dúvida</span><span class="acts"><button class="mini">Aceitar</button><button class="mini">Mover…</button></span></div></div></div></section><section class="lane" style="--h:72"><div class="lane-head"><div class="lane-title"><span>MARKETING/COMERCIAL</span><span class="count">2</span></div><div class="lane-meta"><span>R$ 710,00</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Anúncios Online Exemplo</span><span class="valor">R$ 500,00</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card"><div class="card-main"><span class="desc">Gráfica Imaginária</span><span class="valor">R$ 210,00</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane" style="--h:108"><div class="lane-head"><div class="lane-title"><span>INVESTIMENTO</span><span class="count">1</span></div><div class="lane-meta"><span>R$ 4.899,00</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Notebook Loja Fictícia</span><span class="valor">R$ 4.899,00</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane" style="--h:144"><div class="lane-head"><div class="lane-title"><span>DESPESA ADMINISTRATIVA</span><span class="count">2</span></div><div class="lane-meta"><span>R$ 682,40</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Contabilidade Exemplo</span><span class="valor">R$ 650,00</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card"><div class="card-main"><span class="desc">Correios Demo</span><span class="valor">R$ 32,40</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane" style="--h:180"><div class="lane-head"><div class="lane-title"><span>FOLHA DE PAGAMENTO</span><span class="count">1</span></div><div class="lane-meta"><span>R$ 3.000,00</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Pró-labore Fictício</span><span class="valor">R$ 3.000,00</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane" style="--h:216"><div class="lane-head"><div class="lane-title"><span>CUSTO DO CARRO</span><span class="count">2</span></div><div class="lane-meta"><span>R$ 305,00</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Posto Combustível Teste</span><span class="valor">R$ 280,00</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card"><div class="card-main"><span class="desc">Estacionamento Demo</span><span class="valor">R$ 25,00</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane" style="--h:252"><div class="lane-head"><div class="lane-title"><span>DESPESAS FINANCEIRAS</span><span class="count">2</span></div><div class="lane-meta"><span>R$ 32,25</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Tarifa Bancária Exemplo</span><span class="valor">R$ 19,90</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card"><div class="card-main"><span class="desc">IOF Compra Exterior</span><span class="valor">R$ 12,35</span></div><div class="card-meta"><span>05/09</span></div></div></div></section><section class="lane empty" style="--h:288"><div class="lane-head"><div class="lane-title"><span>PESSOA FISICA</span><span class="count">0</span></div><div class="lane-meta"><span>R$ 0,00</span></div></div><div class="cards"><div class="lane-empty">Arraste lançamentos para cá</div></div></section><section class="lane" style="--h:324"><div class="lane-head"><div class="lane-title"><span>OUTROS</span><span class="count">2</span></div><div class="lane-meta"><span>R$ -42,30</span><span class="pend">1 dúvida</span></div></div><div class="cards"><div class="card"><div class="card-main"><span class="desc">Estorno Loja Exemplo</span><span class="valor neg">R$ -120,00</span></div><div class="card-meta"><span>05/09</span></div></div><div class="card doubt"><div class="card-main"><span class="desc">Compra Não Identificada</span><span class="valor">R$ 77,70</span></div><div class="card-meta"><span>05/09</span><span class="tag review">dúvida</span><span class="acts"><button class="mini">Aceitar</button><button class="mini">Mover…</button></span></div></div></div></section></div>
+</div>
+</body></html>
