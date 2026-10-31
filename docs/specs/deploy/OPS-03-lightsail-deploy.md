@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-03 |
 | **Depends on** | OPS-01, OPS-02, BE-32 |
-| **Spec status** | Draft, awaiting the owner's approval. Owner decisions of 2026-10-31 are applied: OpenTofu, `us-east-2` (Ohio), the 4 GB plan, local state first |
+| **Spec status** | Draft, awaiting the owner's approval. Owner decisions of 2026-10-31 are applied: OpenTofu, `us-east-2` (Ohio), the 4 GB plan (dual-stack), local state first, containers, a private repo with a deploy key, and owner-run checks |
 | **Date** | 2026-10-31 |
 
 ## 1. Goal
@@ -83,9 +83,9 @@ Resources:
 3. Creates a non-root `deploy` user in the `docker` group with the owner's
    public key, and disables SSH password login and root login.
 4. Enables unattended upgrades (security only).
-5. Creates `/etc/odiservices/` owned by `root`, mode `0700`, and clones the
-   repository to `/opt/odiservices` over HTTPS (read-only, public or
-   token-free; question 5).
+5. Creates `/etc/odiservices/` owned by `root`, mode `0700`, and an empty
+   `/opt/odiservices` owned by `deploy`. It does **not** clone: the repository
+   is private (3.4).
 
 The `user_data` carries **no secret**. The env file is never passed through
 OpenTofu, because its values would be stored in the state in plain text.
@@ -114,7 +114,12 @@ user needs only Lightsail permissions (the runbook lists the managed policy
 ### 3.4 Files on the host
 
 - `/opt/odiservices`: a checkout of this repository at a tag or a commit. It
-  holds no data.
+  holds no data. The repository is private, so the runbook has the owner,
+  once, on the host as `deploy`: run `ssh-keygen -t ed25519` (no passphrase,
+  since `deploy.sh` runs unattended), add the **public** key as a read-only
+  deploy key in the GitHub repository settings, and `git clone` over SSH. The
+  private key is born on the host, mode `0600`, and never passes through
+  OpenTofu, the state or the repo.
 - `/etc/odiservices/.env`: owned by `root`, mode `0600`. The prod override
   points `env_file` at it. OPS-05 decides its contents. Until then the file
   may be absent or empty and `api` starts on defaults (`prod`). The deploy
@@ -252,21 +257,14 @@ is **not** used: no network, no credentials, no AWS. No Docker.
 
 Answered by the owner on 2026-10-31: **OpenTofu** instead of a manual
 runbook, region **`us-east-2`**, the **4 GB** plan, **local state** now and S3
-later. Still open:
+later, **containers** (3.1), the **dual-stack** bundle, a **private repository**
+reached through a read-only deploy key created by hand on the host (3.4), and
+**owner-run checks 6 to 15** recorded in the final PR as a small exception to
+the rule that only *Pending validation* checks may stay open. Still open, with
+the recommendation applied unless the owner says otherwise:
 
-1. **Container or systemd.** *Recommendation:* containers (3.1).
-2. **Where images are built.** On the host (no registry, no CI), or in a
+1. **Where images are built.** On the host (no registry, no CI), or in a
    registry once CI exists. *Recommendation:* build on the host now.
-3. **The IPv6-only bundle.** The cheapest bundles are IPv6-only on some plans.
-   *Recommendation:* use the dual-stack bundle, because Docker's apt
-   repository and GitHub are reached over IPv4.
-4. **State later.** *Recommendation:* when the S3 item comes, add a bucket
-   with versioning, encryption and a lock table, and migrate with
-   `tofu init -migrate-state`. Nothing in this item blocks it.
-5. **How the host gets the code.** *Recommendation:* HTTPS clone of the
-   repository. If the repo is private, a read-only deploy key is created by
-   the owner by hand and is **not** in OpenTofu or the state. Which is it?
-6. **Owner-run checks.** Checks 6 to 15 need the owner's AWS account.
-   *Recommendation:* accept them as owner-run checks recorded in the final PR,
-   since no one else can run them. This is a small exception to the rule that
-   only *Pending validation* checks may stay open, so the owner must approve it.
+2. **State later.** *Recommendation:* when the S3 item comes, add a bucket
+   with versioning and encryption, use OpenTofu's native state locking, and
+   migrate with `tofu init -migrate-state`. Nothing in this item blocks it.
