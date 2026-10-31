@@ -21,3 +21,14 @@ cd .. && make setup-web
 | `make serve` | API only, serving `web/dist/` once BE-01 lands |
 | `make test` | API and web tests |
 | `make test-api` | pytest in `api/` |
+
+## Docker
+
+| Command | Runs |
+|---|---|
+| `make docker-build` | Builds the portal image, `odiservices-portal:local` (needs Docker) |
+| `make check-image` | Builds it and runs the OPS-01 checks: user, contents, health, routes |
+
+The image holds only `api/server` and `web/dist`. `.dockerignore` lists what
+the build may read, so `.env`, PDFs, `input/` and `outputs/` never enter it.
+

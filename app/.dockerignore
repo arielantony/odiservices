@@ -1,0 +1,16 @@
+*
+!api/requirements.txt
+!api/server/
+!web/package.json
+!web/yarn.lock
+!web/.yarnrc.yml
+!web/.nvmrc
+!web/index.html
+!web/vite.config.ts
+!web/tsconfig.json
+!web/src/
+**/__pycache__/
+**/*.pyc
+**/*.pdf
+**/.env
+**/.env.*

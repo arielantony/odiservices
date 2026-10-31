@@ -6,7 +6,7 @@ VENV := api/.venv
 VENV_STAMP := $(VENV)/.synced
 NVM  := . "$$HOME/.nvm/nvm.sh" && cd web && nvm use
 
-.PHONY: help setup-api setup-web dev serve build-web test-web test-api test
+.PHONY: help setup-api setup-web dev serve build-web test-web test-api test docker-build check-image
 
 help:
 	@echo "make setup-api  Create api/.venv and install the pinned dependencies (uv)"
@@ -16,6 +16,8 @@ help:
 	@echo "make build-web  Build the web app into web/dist/"
 	@echo "make test-web   Run the web tests"
 	@echo "make test       Run the API and web tests"
+	@echo "make docker-build  Build the portal image (odiservices-portal:local)"
+	@echo "make check-image   Build the image and run the OPS-01 checks (needs Docker)"
 
 $(VENV_STAMP): api/requirements.txt api/requirements-dev.txt
 	cd api && { [ -d .venv ] || uv venv --python 3.14 .venv; } \
@@ -50,3 +52,9 @@ test-api: $(VENV_STAMP)
 	cd api && .venv/bin/python -m pytest
 
 test: test-api test-web
+
+docker-build:
+	docker build -t odiservices-portal:local .
+
+check-image:
+	scripts/check-image.sh

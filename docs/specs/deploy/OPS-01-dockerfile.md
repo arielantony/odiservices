@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-01 |
 | **Depends on** | BE-01, BE-19, BE-20 |
-| **Spec status** | In review |
+| **Spec status** | Approved, 2026-10-30 |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
