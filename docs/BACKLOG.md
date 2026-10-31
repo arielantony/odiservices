@@ -295,15 +295,17 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 |---|---|---|---|---|---|---|
 | OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | [#29] |
 | OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [Approved](specs/deploy/OPS-02-docker-compose.md) | Done | OPS-01, BE-18 | [#30] |
-| OPS-03 | Task | Deploy to AWS Lightsail | — | Draft | OPS-01 | |
+| OPS-03 | Task | Create the AWS Lightsail instance with OpenTofu and deploy the images | [Draft](specs/deploy/OPS-03-lightsail-deploy.md) | Draft | OPS-01, OPS-02, BE-32 | [#34] |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
+| OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
 
 Notes:
 - OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
 - OPS-02: the owner requested it to test the setup locally. It points at a dev Supabase project, never production.
-- OPS-03: the owner chose the host. `app/DEPRECATED.md` records a previous Lightsail setup that used systemd rather than Compose, so decide between a container and systemd for this service.
+- OPS-03: the owner chose the host. `app/DEPRECATED.md` records a previous Lightsail setup that used systemd rather than Compose, but the file no longer exists, so the spec records the choice itself: containers (spec 3.1). The owner chose OpenTofu, `us-east-2`, the 4 GB plan and local state first (2026-10-31); the item has two steps.
 - OPS-04: Cloudflare points at the `web` service only; `api` is never exposed. Access only protects traffic that passes through Cloudflare. Use a Cloudflare Tunnel, or a firewall restricted to Cloudflare IPs, so the origin cannot be reached directly and Access cannot be bypassed.
+- OPS-06: the owner asked for it on 2026-10-31. OPS-03 builds the images on the host; this item moves the build off it. Needs a private ECR repository per image (created with OpenTofu), a push step with scoped credentials, and an instance role that can only pull. `deploy.sh` then pulls a tag instead of building, which also lets the instance drop back to a smaller plan. Decide who pushes (the owner's machine now, CI once it exists) and an image retention rule. The images hold no secret, so ECR needs no special handling beyond private access and scan on push.
 - OPS-05: the Supabase service-role key, the Access AUD and the Anthropic key must live outside the repo and the image, either as Lightsail environment variables or a root-only env file.
 
 ## Quality
@@ -345,7 +347,7 @@ its new place.
 | Board frontend › Decide the future of `build_standalone.py` | Statement board › FE-22 |
 | Extraction pipeline › Trigger extraction from the portal | Statement upload and processing › BE-03 |
 | Extraction pipeline › Do not persist uploaded PDFs | Statement upload and processing › BE-04 |
-| Packaging and deployment › all items | Platform › Packaging and deployment (OPS-01 to OPS-05) |
+| Packaging and deployment › all items | Platform › Packaging and deployment (OPS-01 to OPS-06) |
 | Quality › all items | Platform › Quality (QA-01, QA-02) |
 
 New items that came from writing the stories: BE-02, BE-07, BE-08, BE-09, BE-13,
@@ -368,3 +370,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#30]: https://github.com/arielantony/odiservices/pull/30
 [#32]: https://github.com/arielantony/odiservices/pull/32
 [#33]: https://github.com/arielantony/odiservices/pull/33
+[#34]: https://github.com/arielantony/odiservices/pull/34
