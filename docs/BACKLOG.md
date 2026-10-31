@@ -293,17 +293,17 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| OPS-01 | Task | Write a Dockerfile for the portal | [In review](specs/deploy/OPS-01-dockerfile.md) | Draft | BE-01, BE-19, BE-20 | |
-| OPS-02 | Task | Write a docker-compose file for local testing | [In review](specs/deploy/OPS-02-docker-compose.md) | Draft | OPS-01, BE-18 | |
+| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [In review](specs/deploy/OPS-01-dockerfile.md) | Draft | BE-33, BE-19, BE-20 | |
+| OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [In review](specs/deploy/OPS-02-docker-compose.md) | Draft | OPS-01, BE-18 | |
 | OPS-03 | Task | Deploy to AWS Lightsail | — | Draft | OPS-01 | |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 
 Notes:
-- OPS-01: the owner requested it. Use a slim pinned base and a non-root user. The build context is `app/`, built in two stages (`docs/proposals/monorepo-and-react.md`), and `.dockerignore` keeps `.env`, `input/` PDFs and `outputs/` out of the image.
+- OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
 - OPS-02: the owner requested it to test the setup locally. It points at a dev Supabase project, never production.
 - OPS-03: the owner chose the host. `app/DEPRECATED.md` records a previous Lightsail setup that used systemd rather than Compose, so decide between a container and systemd for this service.
-- OPS-04: Access only protects traffic that passes through Cloudflare. Use a Cloudflare Tunnel, or a firewall restricted to Cloudflare IPs, so the origin cannot be reached directly and Access cannot be bypassed.
+- OPS-04: Cloudflare points at the `web` service only; `api` is never exposed. Access only protects traffic that passes through Cloudflare. Use a Cloudflare Tunnel, or a firewall restricted to Cloudflare IPs, so the origin cannot be reached directly and Access cannot be bypassed.
 - OPS-05: the Supabase service-role key, the Access AUD and the Anthropic key must live outside the repo and the image, either as Lightsail environment variables or a root-only env file.
 
 ## Quality
