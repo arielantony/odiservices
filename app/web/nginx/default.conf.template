@@ -30,6 +30,7 @@ server {
 
     location ^~ /assets/ {
         include /etc/nginx/headers.conf;
+        include /etc/nginx/csp-page.conf;
         add_header Cache-Control "public, max-age=31536000, immutable" always;
         try_files $uri =404;
     }
@@ -37,12 +38,14 @@ server {
     # Hidden files are never served.
     location ~ /\. {
         include /etc/nginx/headers.conf;
+        include /etc/nginx/csp-page.conf;
         return 404;
     }
 
     # A path with a file extension is a file or a 404, never index.html.
     location ~ "\.[A-Za-z0-9]+$" {
         include /etc/nginx/headers.conf;
+        include /etc/nginx/csp-page.conf;
         try_files $uri =404;
     }
 
@@ -50,6 +53,7 @@ server {
     # wins over the extension rule above.
     location = /index.html {
         include /etc/nginx/headers.conf;
+        include /etc/nginx/csp-page.conf;
         add_header Cache-Control "no-cache" always;
     }
 

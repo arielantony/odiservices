@@ -167,4 +167,6 @@ you started. A browser left open blocks the next agent.
   1360 px.
 - `ask_pdf.py` at the repo root moves into `app/api/` only when BE-03 needs
   it.
-- CSP is BE-32, a separate item. BE-01 doesn't include it.
+- The CSP lives in two places (BE-32): `web/nginx/csp-page.conf` for pages and
+  `SecurityHeadersMiddleware` for the API. A new outside source or a library
+  that injects inline styles updates it in the same PR.

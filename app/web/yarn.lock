@@ -143,6 +143,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/gilda-display@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/gilda-display@npm:5.3.0"
+  checksum: 10c0/069deac52fcb74173862885dd2890078980463adecb1744ed52dbe12c58350d874059e84dc019bc9b75f2f2bab9acfa2142496185ec7c3641622037e65ba1fe6
+  languageName: node
+  linkType: hard
+
+"@fontsource/montserrat@npm:5.3.0":
+  version: 5.3.0
+  resolution: "@fontsource/montserrat@npm:5.3.0"
+  checksum: 10c0/6670ec471a9ae9cfa89593a11ba62062a9797049d0f93825f106b1bddd0d46f930ace87e79e56ebbd4a56186ff07844f073c2f2f4f1aca85115dde4cc02d8135
+  languageName: node
+  linkType: hard
+
 "@isaacs/fs-minipass@npm:^4.0.0":
   version: 4.0.1
   resolution: "@isaacs/fs-minipass@npm:4.0.1"
@@ -1153,6 +1167,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "odiservices-web@workspace:."
   dependencies:
+    "@fontsource/gilda-display": "npm:5.3.0"
+    "@fontsource/montserrat": "npm:5.3.0"
     "@testing-library/dom": "npm:10.4.2"
     "@testing-library/jest-dom": "npm:7.0.1"
     "@testing-library/react": "npm:16.3.0"

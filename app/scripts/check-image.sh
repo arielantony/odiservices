@@ -133,6 +133,24 @@ headers_ok "web /" "$BASE/"
 headers_ok "web asset" "$BASE$asset"
 headers_ok "web 404" "$BASE/.env"
 headers_ok "web /healthz" "$BASE/healthz"
+PAGE_CSP="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+API_CSP="default-src 'none'; frame-ancestors 'none'"
+csp_is() { # csp_is "<name>" <expected> <url>: exactly one policy, equal to it
+  local v; v=$(curl -si "$3" | tr -d '\r' | grep -i '^content-security-policy:' | sed 's/^[^:]*: //')
+  equals "$1: one CSP, as specified" "$2" "$v"
+}
+csp_is "web /" "$PAGE_CSP" "$BASE/"
+csp_is "web /categorizer" "$PAGE_CSP" "$BASE/categorizer"
+csp_is "web asset" "$PAGE_CSP" "$BASE$asset"
+csp_is "web /.env" "$PAGE_CSP" "$BASE/.env"
+csp_is "web /healthz" "$API_CSP" "$BASE/healthz"
+csp_is "web /api/nope" "$API_CSP" "$BASE/api/nope"
+equals "api: direct /api/nope carries the API CSP" "$API_CSP" "$(docker run --rm --network "$NET" --entrypoint python "$API_IMAGE" -c \
+  "import urllib.request,urllib.error
+try: urllib.request.urlopen('http://api:8000/api/nope')
+except urllib.error.HTTPError as e: print(e.headers['Content-Security-Policy'], end='')")"
+lacks "web: the shell names no outside host" "https://" "$(curl -s "$BASE/")"
+check "web: the build ships woff2 fonts" bash -c "docker run --rm --entrypoint ls '$WEB_IMAGE' /usr/share/nginx/html/assets | grep -q woff2"
 equals "web: GET /healthz is proxied" '{"status":"ok"}' "$(curl -s "$BASE/healthz")"
 equals "web: GET /api/nope is the API's 404" \
   '{"error":{"code":"not_found","message":"Recurso não encontrado."}}' "$(curl -s "$BASE/api/nope")"

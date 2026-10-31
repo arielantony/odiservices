@@ -16,6 +16,7 @@ FROM nginxinc/nginx-unprivileged:stable-bookworm@sha256:cd33960e98e93d4d63385790
 ENV API_UPSTREAM=api:8000 \
     API_RESOLVER=127.0.0.11
 COPY nginx/headers.conf /etc/nginx/headers.conf
+COPY nginx/csp-page.conf /etc/nginx/csp-page.conf
 COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /build/dist /usr/share/nginx/html
 EXPOSE 8080
