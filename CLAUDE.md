@@ -111,8 +111,7 @@ before changing anything:
 - **Dev setup.** Vite serves on 127.0.0.1:5173 and proxies `/api` and
   `/healthz` to uvicorn on 127.0.0.1:8000. In containers, an nginx `web`
   image serves `web/dist/` and proxies those paths to the `api` image
-  (OPS-01); FastAPI becomes API-only with BE-33. Until BE-33 lands, FastAPI
-  still serves `web/dist/` with an SPA fallback (BE-01).
+  (OPS-01). FastAPI is API-only (BE-33), so `make serve` shows no pages.
 - **Routes.** `/`, `/categorizer` and `/categorizer/:id`. The categorizer
   screens are placeholders until FE-03 to FE-13 migrate them, per option A
   in the monorepo proposal.

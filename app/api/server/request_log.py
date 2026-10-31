@@ -90,9 +90,7 @@ class RequestLogMiddleware:
     ) -> None:
         level = "ERROR" if error else level_for(status)
         route = scope.get("route")
-        # A static file is logged by its path (BE-01 spec 3.1): a file path
-        # carries no ids. Every other unmatched request stays "unmatched".
-        logged_route = scope.get("log_route") or getattr(route, "path", None)
+        logged_route = getattr(route, "path", None)
         entry = {
             "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
             "level": level,

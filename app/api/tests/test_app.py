@@ -1,5 +1,3 @@
-from starlette.routing import Mount
-
 from server.main import create_app
 from server.settings import Settings
 
@@ -22,9 +20,3 @@ def test_create_app_accepts_explicit_settings(monkeypatch):
 
     assert create_app(settings).state.settings is settings
 
-
-def test_routes_registered_before_static_mount():
-    routes = create_app().routes
-    mounts = [i for i, route in enumerate(routes) if isinstance(route, Mount)]
-
-    assert all(i == len(routes) - 1 for i in mounts)

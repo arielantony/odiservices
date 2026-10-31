@@ -6,6 +6,7 @@
 | **Needed by** | FE-01 and every frontend story |
 | **Depends on** | BE-17, BE-18, BE-21, FE-23 (`make build-web`) |
 | **Spec status** | Approved, 2026-10-30. Sections 1 to 5 were rewritten the same day for the approved React proposal (static `portal/` → built SPA). Amended in #18 (the request log's rule for static files, and its test), approved by the owner, 2026-10-30 |
+| **Superseded by** | BE-33 and OPS-01: sections 3.1 to 3.4 and the frontend-dir rules no longer apply. The API serves no files; nginx in the `web` image does |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
