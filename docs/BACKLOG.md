@@ -295,14 +295,14 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 |---|---|---|---|---|---|---|
 | OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | [#29] |
 | OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [Approved](specs/deploy/OPS-02-docker-compose.md) | Done | OPS-01, BE-18 | [#30] |
-| OPS-03 | Task | Deploy to AWS Lightsail | — | Draft | OPS-01 | |
+| OPS-03 | Task | Deploy to AWS Lightsail | [Draft](specs/deploy/OPS-03-lightsail-deploy.md) | Draft | OPS-01, OPS-02, BE-32 | |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 
 Notes:
 - OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
 - OPS-02: the owner requested it to test the setup locally. It points at a dev Supabase project, never production.
-- OPS-03: the owner chose the host. `app/DEPRECATED.md` records a previous Lightsail setup that used systemd rather than Compose, so decide between a container and systemd for this service.
+- OPS-03: the owner chose the host. `app/DEPRECATED.md` records a previous Lightsail setup that used systemd rather than Compose, `app/DEPRECATED.md` no longer exists, so the spec records the choice itself: containers (spec 3.1).
 - OPS-04: Cloudflare points at the `web` service only; `api` is never exposed. Access only protects traffic that passes through Cloudflare. Use a Cloudflare Tunnel, or a firewall restricted to Cloudflare IPs, so the origin cannot be reached directly and Access cannot be bypassed.
 - OPS-05: the Supabase service-role key, the Access AUD and the Anthropic key must live outside the repo and the image, either as Lightsail environment variables or a root-only env file.
 
