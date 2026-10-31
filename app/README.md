@@ -18,6 +18,6 @@ cd .. && make setup-web
 | Command | Runs |
 |---|---|
 | `make dev` | API on 127.0.0.1:8000 (reload) and Vite on 127.0.0.1:5173 |
-| `make serve` | API only, serving `web/dist/` once BE-01 lands |
+| `make serve` | API only, no pages (use `make dev` for the app) |
 | `make test` | API and web tests |
 | `make test-api` | pytest in `api/` |

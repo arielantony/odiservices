@@ -5,7 +5,7 @@
 | **Backlog** | Portal shell › Backend › BE-33 |
 | **Needed by** | OPS-01 (the `api` image has no `web/dist`) |
 | **Depends on** | BE-01 |
-| **Spec status** | In review |
+| **Spec status** | Approved, 2026-10-30 |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal

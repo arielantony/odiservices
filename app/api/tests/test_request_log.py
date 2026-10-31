@@ -125,10 +125,9 @@ def test_level_by_status(app, capsys):
     assert "Papelaria" not in response.text
 
 
-def test_traceback_only_in_dev(capsys, tmp_path):
-    (tmp_path / "index.html").write_text("<title>Portal Fictício</title>")
+def test_traceback_only_in_dev(capsys):
     for env, expected in (("dev", True), ("prod", False)):
-        app = create_app(Settings(env=env), frontend_dir=tmp_path)
+        app = create_app(Settings(env=env))
 
         @add_get(app, "/boom")
         def boom():

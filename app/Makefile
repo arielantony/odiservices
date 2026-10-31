@@ -12,7 +12,7 @@ help:
 	@echo "make setup-api  Create api/.venv and install the pinned dependencies (uv)"
 	@echo "make setup-web  Install the web dependencies (Node 24, Yarn 4)"
 	@echo "make dev        Run the API and the web dev server"
-	@echo "make serve      Run the API alone, serving web/dist/ (like prod)"
+	@echo "make serve      Run the API alone (no pages; see make dev)"
 	@echo "make build-web  Build the web app into web/dist/"
 	@echo "make test-web   Run the web tests"
 	@echo "make test       Run the API and web tests"
