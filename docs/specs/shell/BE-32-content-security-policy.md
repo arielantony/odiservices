@@ -6,7 +6,7 @@
 | **Origin** | BE-01 spec, open question 3 (confirmed by the owner, 2026-10-30) |
 | **Depends on** | BE-01, BE-33, OPS-01 |
 | **Needed by** | OPS-03 (due before it), preferably before FE-03 |
-| **Spec status** | In review. Amended 2026-10-31 with the owner's answers: fonts are self-hosted here, no report-only phase, `/docs` left to BE-22 |
+| **Spec status** | Approved, 2026-10-31 (approved by the owner when #32 merged). Amended 2026-10-31 with the owner's answers: fonts are self-hosted here, no report-only phase, `/docs` left to BE-22 |
 | **Date** | 2026-10-31 |
 
 ## 1. Goal

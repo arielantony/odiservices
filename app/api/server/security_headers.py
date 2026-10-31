@@ -5,11 +5,13 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "same-origin",
     "X-Frame-Options": "DENY",
+    # JSON needs nothing; pages get their own policy from nginx (BE-32).
+    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'",
 }
 
 
 class SecurityHeadersMiddleware:
-    """Adds the BE-01 security headers (spec 3.4) to every HTTP response."""
+    """Adds the security headers (BE-01 spec 3.4, BE-32 spec 3.3) to every HTTP response."""
 
     def __init__(self, app: ASGIApp):
         self.app = app
