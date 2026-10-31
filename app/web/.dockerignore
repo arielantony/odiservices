@@ -1,0 +1,13 @@
+*
+!package.json
+!yarn.lock
+!.yarnrc.yml
+!.nvmrc
+!index.html
+!vite.config.ts
+!tsconfig.json
+!src/
+!nginx/
+**/*.pdf
+**/.env
+**/.env.*
