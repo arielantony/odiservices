@@ -1,0 +1,59 @@
+# Rendered by the base image's entrypoint (envsubst). API_UPSTREAM is the
+# api service, host:port. API_RESOLVER is Docker's embedded DNS.
+server {
+    listen 8080;
+    server_name _;
+    root /usr/share/nginx/html;
+
+    server_tokens off;
+    # A query string must never be logged (BE-21 is the record).
+    access_log off;
+    # Error entries carry the client address, so only critical ones are kept.
+    error_log /dev/stderr crit;
+
+    # Resolved per request, so nginx starts and stays up while api is down.
+    resolver ${API_RESOLVER} valid=10s;
+    set $api_upstream http://${API_UPSTREAM};
+    proxy_connect_timeout 2s;
+
+    location = /healthz {
+        include /etc/nginx/headers.conf;
+        proxy_pass $api_upstream;
+        proxy_set_header Host $host;
+    }
+
+    location ^~ /api/ {
+        include /etc/nginx/headers.conf;
+        proxy_pass $api_upstream;
+        proxy_set_header Host $host;
+    }
+
+    location ^~ /assets/ {
+        include /etc/nginx/headers.conf;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+        try_files $uri =404;
+    }
+
+    # Hidden files are never served.
+    location ~ /\. {
+        include /etc/nginx/headers.conf;
+        return 404;
+    }
+
+    # A path with a file extension is a file or a 404, never index.html.
+    location ~ "\.[A-Za-z0-9]+$" {
+        include /etc/nginx/headers.conf;
+        try_files $uri =404;
+    }
+
+    # The shell is never cached, so a deploy shows at once. An exact match
+    # wins over the extension rule above.
+    location = /index.html {
+        include /etc/nginx/headers.conf;
+        add_header Cache-Control "no-cache" always;
+    }
+
+    location / {
+        rewrite ^ /index.html last;
+    }
+}

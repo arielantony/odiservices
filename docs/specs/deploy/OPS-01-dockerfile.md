@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-01 |
 | **Depends on** | BE-33, BE-19, BE-20 |
-| **Spec status** | In review. Rewritten 2026-10-30 after the owner asked for separate `api` and `web` images; replaces the single-image design |
+| **Spec status** | Approved, 2026-10-30 (approved by the owner when #27 merged). Rewritten after the owner asked for separate `api` and `web` images; replaces the single-image design. Implementation notes in 3.2 and 3.3 were settled while building |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
@@ -93,9 +93,10 @@ Rules:
   (`/etc/nginx/templates/default.conf.template`, rendered with `envsubst` by
   the base image's entrypoint). `API_UPSTREAM` defaults to `api:8000`, the
   Compose service name and port.
-- **Healthcheck:** a request to `http://127.0.0.1:8080/` with a tool already
-  in the base image (chosen at implementation; nothing is installed). It does
-  not depend on the API.
+- **Base:** `nginxinc/nginx-unprivileged:stable-bookworm`, pinned by digest
+  (nginx 1.28).
+- **Healthcheck:** `curl -fs` on `http://127.0.0.1:8080/`. curl is already in
+  the base image; nothing is installed. It does not depend on the API.
 
 `app/web/.dockerignore`:
 
@@ -141,6 +142,14 @@ Implementation rules:
 - Proxy headers: no `X-Forwarded-For` is added or logged (no IPs in logs).
   Cloudflare headers are OPS-04's decision.
 - Hidden files are never served, even if one lands in `dist`.
+- The upstream is resolved per request (`resolver ${API_RESOLVER}`, default
+  Docker's `127.0.0.11`, and a variable in `proxy_pass`). nginx therefore
+  starts and stays up while `api` is down, and `/api` and `/healthz` answer
+  `502` until it is back.
+- `index.html` has its own exact-match location (`no-cache`), and `/` rewrites
+  to it, so the extension rule never catches it.
+- `error_log /dev/stderr crit`: nginx's error entries carry the client address,
+  so only critical ones are kept.
 
 ### 3.4 Make targets
 
@@ -198,14 +207,15 @@ container)
 |---|---|
 | `id -u` | `101` |
 | `nginx -t` inside the container | Passes |
-| Content of `/usr/share/nginx/html` | `index.html` and `assets/` only. No source, `.env` or `node_modules` |
+| Content of `/usr/share/nginx/html` | `index.html`, `assets/` and the base image's `50x.html`. No source, `.env` or `node_modules` |
 | `GET /` and `GET /categorizer/abc-123` | 200, `text/html`, `<div id="root">`, `Cache-Control: no-cache` |
 | `GET /assets/<hashed js>` | 200, `Cache-Control: public, max-age=31536000, immutable` |
 | `GET /.env`, `GET /ask_pdf.py`, `GET /assets/missing.js` | 404 |
 | The three security headers | Present on `/`, on an asset, on a 404 and on a proxied `/healthz` |
 | `GET /healthz` and `GET /api/nope` through the web port | 200 `{"status":"ok"}`, and the JSON 404 from the API |
 | Query strings: `GET /healthz?token=abc123`, then both containers' logs | `abc123` appears in neither |
-| `docker inspect` health | `healthy` within 60 seconds, also with the `api` container stopped |
+| With `api` stopped | `/` is 200, `/healthz` is 502 (within 20 seconds), and after a restart of `web` its health is `healthy` within 60 seconds |
+| `docker inspect` health | `healthy` within 60 seconds |
 
 Also required for **Done**: `make test-api` still passes (it includes the
 `.dockerignore` test).

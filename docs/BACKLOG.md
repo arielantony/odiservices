@@ -293,7 +293,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [In review](specs/deploy/OPS-01-dockerfile.md) | Draft | BE-33, BE-19, BE-20 | |
+| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | |
 | OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [In review](specs/deploy/OPS-02-docker-compose.md) | Draft | OPS-01, BE-18 | |
 | OPS-03 | Task | Deploy to AWS Lightsail | — | Draft | OPS-01 | |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
