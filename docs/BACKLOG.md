@@ -239,7 +239,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-21 | Task | Log requests without PII | [Approved](specs/foundation/BE-21-request-log.md) | Done | BE-17, BE-18, BE-20 | [#18] |
 | BE-22 | Task | Publish OpenAPI documentation behind Access | — | Draft | BE-17, BE-23 |
 | BE-32 | Task | Add a Content-Security-Policy to every response (BE-01 spec, Q3, confirmed by the owner 2026-10-30). Pages get it in `web/nginx/headers.conf` (OPS-01), API responses in FastAPI. Due before OPS-03, preferably before FE-03 | [In review](specs/shell/BE-32-content-security-policy.md) | Draft | BE-01, BE-33, OPS-01 | [#32] |
-| BE-33 | Task | Make the FastAPI server API-only: remove the static serving and SPA fallback now done by nginx in the `web` image (owner decision 2026-10-30) | [Approved](specs/shell/BE-33-api-only-server.md) | Done | BE-01 [#28] |
+| BE-33 | Task | Make the FastAPI server API-only: remove the static serving and SPA fallback now done by nginx in the `web` image (owner decision 2026-10-30) | [Approved](specs/shell/BE-33-api-only-server.md) | Done | BE-01 | [#28] |
 
 Notes:
 - BE-17: the portal will house multiple client services, and the categorizer board is the first one. The owner chose FastAPI. `kanban/serve.py` is a 54-line static file server, so nothing of it is reused. The spec proposes `app/` as the project root instead of a top-level `portal/` (Q1). `kanban/` was backed up to `~/odiservices-backups/kanban-pre-fastapi-2026-10-30.tar.gz` and deleted. Done 2026-10-30. The `/healthz` check waits for BE-20.
@@ -293,8 +293,8 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 [#29] |
-| OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [Approved](specs/deploy/OPS-02-docker-compose.md) | Done | OPS-01, BE-18 [#30] |
+| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | [#29] |
+| OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [Approved](specs/deploy/OPS-02-docker-compose.md) | Done | OPS-01, BE-18 | [#30] |
 | OPS-03 | Task | Deploy to AWS Lightsail | — | Draft | OPS-01 | |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
