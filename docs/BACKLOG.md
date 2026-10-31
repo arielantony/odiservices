@@ -293,7 +293,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | |
+| OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 [#29] |
 | OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [In review](specs/deploy/OPS-02-docker-compose.md) | Draft | OPS-01, BE-18 | |
 | OPS-03 | Task | Deploy to AWS Lightsail | — | Draft | OPS-01 | |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
@@ -364,3 +364,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#21]: https://github.com/arielantony/odiservices/pull/21
 [#23]: https://github.com/arielantony/odiservices/pull/23
 [#28]: https://github.com/arielantony/odiservices/pull/28
+[#29]: https://github.com/arielantony/odiservices/pull/29
