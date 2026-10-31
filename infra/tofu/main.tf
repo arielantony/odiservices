@@ -17,7 +17,8 @@ resource "aws_lightsail_instance" "portal" {
 }
 
 resource "aws_lightsail_static_ip" "portal" {
-  name = "odiservices-portal"
+  # Lightsail names are unique across resource types, so this cannot be the instance name.
+  name = "odiservices-portal-ip"
 }
 
 resource "aws_lightsail_static_ip_attachment" "portal" {
