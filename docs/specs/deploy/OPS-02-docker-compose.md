@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-02 |
 | **Depends on** | OPS-01, BE-18 |
-| **Spec status** | In review. Rewritten 2026-10-30 for the separate `api` and `web` images (OPS-01) |
+| **Spec status** | Approved, 2026-10-30 (approved by the owner when #27 merged). Rewritten for the separate `api` and `web` images (OPS-01). Section 3.1 amended while building: `web` needs a `tmpfs` on `/etc/nginx/conf.d` |
 | **Date** | 2026-10-30 |
 
 ## 1. Goal
@@ -72,6 +72,8 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+      # The entrypoint renders default.conf here at start.
+      - /etc/nginx/conf.d:uid=101,gid=101
     cap_drop:
       - ALL
     security_opt:
@@ -92,7 +94,11 @@ Rules:
 - **`web` finds the API by name.** `API_UPSTREAM` keeps its default
   (`api:8000`), the service name and port.
 - **Locked down.** Both have a read-only root filesystem, no capabilities and
-  `no-new-privileges`. `nginx-unprivileged` writes only under `/tmp`. When
+  `no-new-privileges`. `nginx-unprivileged` writes under `/tmp`, and its entrypoint renders the
+  config template into `/etc/nginx/conf.d`, so `web` also gets a `tmpfs` there
+  (owned by uid 101). Without it the entrypoint skips the template, nginx runs
+  the stock config, and the healthcheck still passes while every route is
+  wrong, so the route checks in section 4 are what catches it. When
   BE-03 needs a scratch directory for an upload, that item adds a `tmpfs` or a
   volume to `api` and its spec says so.
 - **No volume for data.** Statements and extracted output never persist on
@@ -202,5 +208,5 @@ Docker, no network:
    covers it, and a bind-mounted source would break the "same images as the
    host" rule.
 4. **Read-only filesystem.** `api` may need a `tmpfs` entry once BE-03 handles
-   uploads, and nginx may need more than `/tmp` (to be confirmed when the
-   check runs). *Recommendation:* keep it now, and add what is proven needed.
+   uploads, and nginx needed a `tmpfs` on `/etc/nginx/conf.d` (confirmed when
+   the checks ran). *Recommendation:* keep it now, and add what is proven needed.

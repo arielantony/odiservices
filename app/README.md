@@ -28,8 +28,13 @@ cd .. && make setup-web
 |---|---|
 | `make docker-build` | Builds `odiservices-api:local` and `odiservices-web:local` (needs Docker) |
 | `make check-image` | Builds both and runs the OPS-01 checks: users, contents, routes, health, headers, logs |
+| `make compose-up` | Runs `api` and `web` the way the host will, on `127.0.0.1:8000` (`PORTAL_HOST_PORT` changes it) |
+| `make compose-down` | Stops and removes them |
 
 `api` is FastAPI only. `web` is nginx: it serves the built app and proxies
 `/api` and `/healthz` to `api:8000` (`API_UPSTREAM` changes the target), so the
 browser sees one origin. Each image's `.dockerignore` lists what its build may
 read, so `.env`, PDFs, `input/` and `outputs/` never enter either image.
+
+Compose is for local testing only: point `.env` at the dev Supabase project,
+never production. `.env` is optional and only `api` reads it.
