@@ -1,0 +1,14 @@
+# Used on the Lightsail host only:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml
+services:
+  api:
+    image: odiservices-api:${DEPLOY_TAG:-current}
+    env_file: !override
+      - /etc/odiservices/.env
+    restart: unless-stopped
+
+  web:
+    image: odiservices-web:${DEPLOY_TAG:-current}
+    ports: !override
+      - "127.0.0.1:8080:8080"
+    restart: unless-stopped

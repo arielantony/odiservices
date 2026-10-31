@@ -69,5 +69,50 @@ Removes the instance and releases the address. Nothing persists on the host.
 
 ## 6. Deploy
 
-Added by step 2 of OPS-03 (deploy key, first deploy, update, rollback and the
-tunnel).
+The portal is not public until OPS-04. You reach it through an SSH tunnel.
+
+### 6.1 Deploy key (once)
+
+The repository is private. On the host, as `deploy`:
+
+```sh
+ssh-keygen -t ed25519 -N '' -f ~/.ssh/id_ed25519
+cat ~/.ssh/id_ed25519.pub
+```
+
+Add the **public** key in the GitHub repository settings, Deploy keys, without
+write access. The private key never leaves the host. Then:
+
+```sh
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+git clone git@github.com:arielantony/odiservices.git /opt/odiservices
+```
+
+### 6.2 Deploy or update
+
+```sh
+/opt/odiservices/app/deploy/deploy.sh <tag-or-commit>
+```
+
+The script refuses a dirty checkout, builds both images on the host, starts
+them with `docker compose ... up --wait`, checks `/healthz` and `/`, and rolls
+back to the previous tag on failure. It keeps the images of the last three
+deploys. `/etc/odiservices/.env` is created empty (root, `0600`) if missing;
+OPS-05 decides what goes in it.
+
+### 6.3 Rollback
+
+Run `deploy.sh` with the previous tag or commit.
+
+### 6.4 Reach the portal
+
+```sh
+ssh -L 8080:127.0.0.1:8080 deploy@<public_ip>
+```
+
+Then open `http://127.0.0.1:8080` on your machine.
+
+### 6.5 After a reboot
+
+Docker starts at boot and `restart: unless-stopped` brings both containers
+back with no step from you.

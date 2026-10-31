@@ -6,7 +6,7 @@ VENV := api/.venv
 VENV_STAMP := $(VENV)/.synced
 NVM  := . "$$HOME/.nvm/nvm.sh" && cd web && nvm use
 
-.PHONY: help setup-api setup-web dev serve build-web test-web test-api test docker-build check-image compose-up compose-down infra-check
+.PHONY: help setup-api setup-web dev serve build-web test-web test-api test docker-build check-image compose-up compose-down infra-check deploy-check
 
 help:
 	@echo "make setup-api  Create api/.venv and install the pinned dependencies (uv)"
@@ -20,6 +20,7 @@ help:
 	@echo "make check-image   Build both images and run the OPS-01 checks (needs Docker)"
 	@echo "make compose-up    Run api and web in Docker on 127.0.0.1:8000 (needs Docker)"
 	@echo "make compose-down  Stop and remove them"
+	@echo "make deploy-check  Test the prod Compose override and deploy.sh (shellcheck when installed)"
 	@echo "make infra-check   Format-check and validate infra/tofu (needs OpenTofu, no AWS credentials)"
 
 $(VENV_STAMP): api/requirements.txt api/requirements-dev.txt
@@ -71,3 +72,7 @@ compose-down:
 
 infra-check:
 	cd ../infra/tofu && tofu fmt -check && tofu init -backend=false -input=false && tofu validate
+
+deploy-check: $(VENV_STAMP)
+	cd api && .venv/bin/python -m pytest tests/test_deploy_files.py
+	@if command -v shellcheck >/dev/null; then shellcheck deploy/deploy.sh; else echo "shellcheck not installed, skipped"; fi
