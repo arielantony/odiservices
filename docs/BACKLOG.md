@@ -238,7 +238,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-20 | Task | Expose a `/healthz` endpoint | [Approved](specs/foundation/BE-20-healthz.md) | Done | BE-17 | [#16] |
 | BE-21 | Task | Log requests without PII | [Approved](specs/foundation/BE-21-request-log.md) | Done | BE-17, BE-18, BE-20 | [#18] |
 | BE-22 | Task | Publish OpenAPI documentation behind Access | — | Draft | BE-17, BE-23 |
-| BE-32 | Task | Add a Content-Security-Policy to every response (BE-01 spec, Q3, confirmed by the owner 2026-10-30). Pages get it in `web/nginx/headers.conf` (OPS-01), API responses in FastAPI. Due before OPS-03, preferably before FE-03 | [In review](specs/shell/BE-32-content-security-policy.md) | Draft | BE-01, BE-33, OPS-01 |
+| BE-32 | Task | Add a Content-Security-Policy to every response (BE-01 spec, Q3, confirmed by the owner 2026-10-30). Pages get it in `web/nginx/headers.conf` (OPS-01), API responses in FastAPI. Due before OPS-03, preferably before FE-03 | [In review](specs/shell/BE-32-content-security-policy.md) | Draft | BE-01, BE-33, OPS-01 | [#32] |
 | BE-33 | Task | Make the FastAPI server API-only: remove the static serving and SPA fallback now done by nginx in the `web` image (owner decision 2026-10-30) | [Approved](specs/shell/BE-33-api-only-server.md) | Done | BE-01 [#28] |
 
 Notes:
@@ -366,3 +366,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#28]: https://github.com/arielantony/odiservices/pull/28
 [#29]: https://github.com/arielantony/odiservices/pull/29
 [#30]: https://github.com/arielantony/odiservices/pull/30
+[#32]: https://github.com/arielantony/odiservices/pull/32
