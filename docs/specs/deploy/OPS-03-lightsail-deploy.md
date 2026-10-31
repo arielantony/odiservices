@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-03 |
 | **Depends on** | OPS-01, OPS-02, BE-32 |
-| **Spec status** | Draft, awaiting the owner's approval. Owner decisions of 2026-10-31 are applied: OpenTofu, `us-east-2` (Ohio), the 4 GB plan (dual-stack), local state first, containers, a private repo with a deploy key, and owner-run checks |
+| **Spec status** | Approved, 2026-10-31 (approved by the owner when #34 merged). Owner decisions of 2026-10-31 are applied: OpenTofu, `us-east-2` (Ohio), the 4 GB plan (dual-stack), local state first, containers, a private repo with a deploy key, and owner-run checks |
 | **Date** | 2026-10-31 |
 
 ## 1. Goal

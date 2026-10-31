@@ -1,0 +1,46 @@
+#cloud-config
+# First boot of the Lightsail instance (OPS-03). No secret goes here.
+package_update: true
+packages:
+  - ca-certificates
+  - curl
+  - git
+  - unattended-upgrades
+
+users:
+  - name: deploy
+    groups: [docker]
+    shell: /bin/bash
+    lock_passwd: true
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/50-odiservices.conf
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      KbdInteractiveAuthentication no
+  - path: /etc/apt/apt.conf.d/20auto-upgrades
+    permissions: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+
+runcmd:
+  # Docker Engine and the Compose plugin from Docker's apt repository.
+  - install -m 0755 -d /etc/apt/keyrings
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  - chmod a+r /etc/apt/keyrings/docker.asc
+  - echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+  - apt-get update
+  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+  - systemctl enable --now docker
+  - usermod -aG docker deploy
+  # Runtime secrets (OPS-05) live here, root-only. The repository is private,
+  # so the owner clones it by hand with a read-only deploy key (OPS-03, 3.4).
+  - install -d -m 0700 -o root -g root /etc/odiservices
+  - install -d -m 0755 -o deploy -g deploy /opt/odiservices
+  - systemctl restart ssh

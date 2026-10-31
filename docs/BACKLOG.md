@@ -295,7 +295,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 |---|---|---|---|---|---|---|
 | OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | [#29] |
 | OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [Approved](specs/deploy/OPS-02-docker-compose.md) | Done | OPS-01, BE-18 | [#30] |
-| OPS-03 | Task | Create the AWS Lightsail instance with OpenTofu and deploy the images | [Draft](specs/deploy/OPS-03-lightsail-deploy.md) | Draft | OPS-01, OPS-02, BE-32 | [#34] |
+| OPS-03 | Task | Create the AWS Lightsail instance with OpenTofu and deploy the images | [Approved](specs/deploy/OPS-03-lightsail-deploy.md) | In progress | OPS-01, OPS-02, BE-32 | [#34] [#35] |
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 | OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
@@ -371,3 +371,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#32]: https://github.com/arielantony/odiservices/pull/32
 [#33]: https://github.com/arielantony/odiservices/pull/33
 [#34]: https://github.com/arielantony/odiservices/pull/34
+[#35]: https://github.com/arielantony/odiservices/pull/35
