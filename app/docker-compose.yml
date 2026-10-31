@@ -1,0 +1,41 @@
+# Local testing only. Point .env at the dev Supabase project, never production.
+name: odiservices
+
+services:
+  api:
+    build:
+      context: api
+    image: odiservices-api:local
+    env_file:
+      - path: .env
+        required: false
+    expose:
+      - "8000"
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
+
+  web:
+    build:
+      context: web
+    image: odiservices-web:local
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${PORTAL_HOST_PORT:-8000}:8080"
+    read_only: true
+    tmpfs:
+      - /tmp
+      # The entrypoint renders default.conf here at start.
+      - /etc/nginx/conf.d:uid=101,gid=101
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: "no"
