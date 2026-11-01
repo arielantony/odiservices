@@ -28,6 +28,10 @@ before changing anything:
   (spec approved). The order is in `docs/BACKLOG.md`. The first slice is
   BE-17 → BE-18, BE-19 → BE-20, BE-21 → BE-01, with FE-23 in parallel, then
   FE-01.
+- **Before starting an item, run its Definition of Ready**
+  (`docs/specs/README.md`) and report it in one message. Don't start until
+  it is green or the owner accepts a listed gap. Infrastructure work also
+  follows `docs/CONSTITUTION.md`, Article 7.
 - **The approved spec is the contract.** Implement what it says, with the
   file names, routes, settings and tests it lists. Don't add scope that
   belongs to another item.
@@ -74,6 +78,13 @@ before changing anything:
   sections are What changed, How to test, Tests and Verification. Update
   the item's status in `docs/BACKLOG.md` in the same PR. Don't start the
   next item until the owner says so.
+
+## Running commands
+
+- Give long commands a timeout and a narrow first scope.
+- Never find or kill a process by its command line (`pkill -f`, `pgrep -f`):
+  the pattern matches the shell that runs it. Keep the PID, or use a name
+  that cannot match itself.
 
 ## Stack and commands
 

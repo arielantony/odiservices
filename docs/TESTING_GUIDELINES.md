@@ -19,6 +19,14 @@ code in `app/`.
    that return fictitious data.
 5. **No secrets in tests.** Settings are built in code. Tests never read
    `.env`.
+6. **A check runs the artifact the way production does.** A script, config or
+   image is checked with the target's interpreter, as the target user and
+   with the target's permissions: `shellcheck -s sh` and `dash -n` for a
+   script a provider runs under `sh`, a root-only file read by a non-root
+   user, and so on. A test that only looks for a string in a file proves the
+   string is there, not that it works. When the target cannot be reproduced
+   in the repository, the spec says what the test cannot catch and which
+   live check covers it.
 
 ## Kinds of tests
 
@@ -64,6 +72,26 @@ board rows, marked *Pending validation* in the backlog. In those cases:
   issues, specs or chats;
 - screenshots of it are not saved to `docs/`, the scratchpad or anywhere else;
 - the result is recorded in the backlog as "validated on <date>", with no data.
+
+## Live checks (infrastructure and deploy)
+
+Live checks run against a real host or account, with the owner present.
+
+- **Read every check once before it runs live,** when the spec is approved.
+  An expected result that can never happen (a `grep` count of 0 on a file
+  that holds the word "key" in field names) or a command that does not do
+  what the check says (`docker kill` is a deliberate stop, so the restart
+  policy leaves the container down) is a spec bug found for free.
+- **Name the exact command and the exact expected output.**
+- **Bound the check:** a timeout, and a narrow scope first (the common ports,
+  then the full range). Never find or kill a process by its command line
+  (`pkill -f`, `pgrep -f`): the pattern also matches the shell running it.
+- **After an apply that replaces a resource, read the live state back** (the
+  firewall, the attachments, the address) and compare it with the spec before
+  the next step. The plan describes what OpenTofu will do, not what the
+  provider ended up with.
+- **A scratch branch or resource made for a check is removed when the check
+  ends,** and the result says so.
 
 ## Running the tests
 
