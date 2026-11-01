@@ -106,6 +106,12 @@ OPS-05 decides what goes in it.
 
 Run `deploy.sh` with the previous tag or commit.
 
+### 6.3a A container that stays down
+
+The restart policy is `unless-stopped`: Docker brings a crashed container back,
+but not one stopped on purpose with `docker kill` or `docker stop`. To start it
+again run `sudo docker start odiservices-api-1`, or run `deploy.sh` again.
+
 ### 6.4 Reach the portal
 
 ```sh

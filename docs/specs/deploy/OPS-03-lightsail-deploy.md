@@ -206,7 +206,7 @@ addresses and no keys (question 6).
 | 10 | final | `deploy.sh <ref>` on the host | Ends with both containers `healthy` |
 | 11 | final | `ssh -L` tunnel, then `curl` `/healthz`, `/` and `/api/nope` on the forwarded port | 200 `ok`, 200 HTML, 404 `not_found` JSON. The CSP headers of BE-32 are present |
 | 12 | final | `sudo reboot`, wait, repeat check 11 | The stack came back with no manual step |
-| 13 | final | `docker kill` the `api` container | Docker restarts it and `/healthz` recovers |
+| 13 | final | Kill the `api` process from the host: `sudo kill -9 $(docker inspect -f '{{.State.Pid}}' odiservices-api-1)` | Docker restarts it and `/healthz` recovers. (`docker kill` and `docker stop` are deliberate stops: `unless-stopped` leaves the container down) |
 | 14 | final | Deploy a ref whose `web` healthcheck fails (a deliberately broken commit on a scratch branch) | `deploy.sh` exits non-zero and the previous tag is serving again |
 | 15 | final | `stat -c '%U %a' /etc/odiservices/.env`, `grep -ci 'key\|secret\|token' infra/tofu/terraform.tfstate` and `docker compose exec api sh -c 'find /app -name ".env*"'` | `root 600`. The state holds no secret. Nothing found in the container |
 
