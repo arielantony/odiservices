@@ -6,7 +6,7 @@ TOFU = ROOT / "infra" / "tofu"
 main = (TOFU / "main.tf").read_text()
 variables = (TOFU / "variables.tf").read_text()
 versions = (TOFU / "versions.tf").read_text()
-cloud_init = (TOFU / "cloud-init.yaml").read_text()
+launch = (TOFU / "launch.sh").read_text()
 gitignore = (ROOT / ".gitignore").read_text()
 
 
@@ -38,10 +38,17 @@ def test_no_secret_in_infra():
         assert not re.search(r"(private_key|secret|token|password)\s*=", text, re.I), path.name
 
 
-def test_cloud_init_hardens_ssh():
-    assert "PasswordAuthentication no" in cloud_init
-    assert "PermitRootLogin no" in cloud_init
-    assert "install -d -m 0700 -o root -g root /etc/odiservices" in cloud_init
+def test_launch_script_hardens_ssh():
+    assert "PasswordAuthentication no" in launch
+    assert "PermitRootLogin no" in launch
+    assert "install -d -m 0700 -o root -g root /etc/odiservices" in launch
+
+
+def test_launch_script_is_a_shell_script():
+    # Lightsail does not read cloud-config: a "#cloud-config" first line is run by sh and fails.
+    assert launch.startswith("#!/bin/bash\n")
+    assert "#cloud-config" not in launch
+    assert "set -euxo pipefail" in launch
 
 
 def test_state_files_are_ignored():

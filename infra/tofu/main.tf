@@ -10,8 +10,9 @@ resource "aws_lightsail_instance" "portal" {
   bundle_id         = var.bundle_id
   key_pair_name     = aws_lightsail_key_pair.deploy.name
 
-  # No secret in user_data: it is stored in the state in plain text.
-  user_data = templatefile("${path.module}/cloud-init.yaml", {
+  # Lightsail runs user_data as a shell script, not as cloud-config.
+  # No secret in it: it is stored in the state in plain text.
+  user_data = templatefile("${path.module}/launch.sh", {
     ssh_public_key = trimspace(var.ssh_public_key)
   })
 }
