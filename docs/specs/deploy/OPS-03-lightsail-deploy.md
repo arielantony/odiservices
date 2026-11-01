@@ -123,7 +123,8 @@ user needs only Lightsail permissions (the runbook lists the managed policy
 - `/etc/odiservices/.env`: owned by `root`, mode `0600`. The prod override
   points `env_file` at it. OPS-05 decides its contents. Until then the file
   may be absent or empty and `api` starts on defaults (`prod`). The deploy
-  script creates it empty with `0600` if missing, using `sudo`.
+  script creates it empty with `0600` if missing, using `sudo`. Compose reads `env_file` on the client side, so `deploy.sh` runs
+  `docker compose` under `sudo`; builds and git stay as `deploy`.
 - The file is **never** in the checkout, the image, a log, the OpenTofu state
   or a PR.
 
