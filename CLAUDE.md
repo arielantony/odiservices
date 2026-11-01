@@ -120,6 +120,9 @@ before changing anything:
   output goes to `project-tracker/dist/`. It reads the backlog and never
   writes to it, so changes to the backlog's table format, headings or ID
   prefixes have to be mirrored in `generate.py`.
+- **Infra and deploy (OPS-03).** `infra/tofu/` creates the Lightsail host and
+  `app/deploy/deploy.sh` deploys it; see `docs/deploy/lightsail.md`. The host
+  is not public until OPS-04: reach it through an SSH tunnel.
 
 ## Browser checks
 

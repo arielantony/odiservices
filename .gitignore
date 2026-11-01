@@ -37,3 +37,11 @@ dist/
 .DS_Store
 .idea/
 .vscode/
+
+# OpenTofu: the state can hold sensitive values (OPS-03)
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!*.tfvars.example
+crash.log

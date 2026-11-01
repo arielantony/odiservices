@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-03 |
 | **Depends on** | OPS-01, OPS-02, BE-32 |
-| **Spec status** | Draft, awaiting the owner's approval. Owner decisions of 2026-10-31 are applied: OpenTofu, `us-east-2` (Ohio), the 4 GB plan (dual-stack), local state first, containers, a private repo with a deploy key, and owner-run checks |
+| **Spec status** | Approved, 2026-10-31 (approved by the owner when #34 merged). Owner decisions of 2026-10-31 are applied: OpenTofu, `us-east-2` (Ohio), the 4 GB plan (dual-stack), local state first, containers, a private repo with a deploy key, and owner-run checks |
 | **Date** | 2026-10-31 |
 
 ## 1. Goal
@@ -60,7 +60,7 @@ long as the Docker service is enabled at boot.
 | `versions.tf` | `required_version` and `required_providers`: `opentofu/aws` pinned to an exact version. The lock file `.terraform.lock.hcl` **is** committed |
 | `variables.tf` | `region` (default `us-east-2`), `availability_zone` (default `us-east-2a`), `bundle_id` (default `medium_3_0`), `blueprint_id` (default `ubuntu_24_04`), `ssh_public_key` (no default), `ssh_allowed_cidrs` (no default) |
 | `main.tf` | The resources below |
-| `cloud-init.yaml` | The `user_data` template (below) |
+| `launch.sh` | The `user_data` template (below). Lightsail runs `user_data` as a shell script and does not read cloud-config, so this is a script, not YAML. It is pasted into Lightsail's own `#!/bin/sh` wrapper, so it is POSIX sh (dash on Ubuntu), never bash |
 | `outputs.tf` | `public_ip` and `ssh_command`. No secret |
 
 Resources:
@@ -76,7 +76,7 @@ Resources:
   `ssh_allowed_cidrs`. Never `0.0.0.0/0` as a default: the variable has no
   default and a validation rejects `0.0.0.0/0` and `::/0`. No 80, no 443.
 
-`cloud-init.yaml` (the instance's first boot):
+`launch.sh` (the instance's first boot, run once as root):
 
 1. Installs Docker Engine and the Compose plugin from Docker's apt repository.
 2. Enables Docker at boot.
@@ -123,7 +123,8 @@ user needs only Lightsail permissions (the runbook lists the managed policy
 - `/etc/odiservices/.env`: owned by `root`, mode `0600`. The prod override
   points `env_file` at it. OPS-05 decides its contents. Until then the file
   may be absent or empty and `api` starts on defaults (`prod`). The deploy
-  script creates it empty with `0600` if missing, using `sudo`.
+  script creates it empty with `0600` if missing, using `sudo`. Compose reads `env_file` on the client side, so `deploy.sh` runs
+  `docker compose` under `sudo`; builds and git stay as `deploy`.
 - The file is **never** in the checkout, the image, a log, the OpenTofu state
   or a PR.
 
@@ -205,9 +206,9 @@ addresses and no keys (question 6).
 | 10 | final | `deploy.sh <ref>` on the host | Ends with both containers `healthy` |
 | 11 | final | `ssh -L` tunnel, then `curl` `/healthz`, `/` and `/api/nope` on the forwarded port | 200 `ok`, 200 HTML, 404 `not_found` JSON. The CSP headers of BE-32 are present |
 | 12 | final | `sudo reboot`, wait, repeat check 11 | The stack came back with no manual step |
-| 13 | final | `docker kill` the `api` container | Docker restarts it and `/healthz` recovers |
+| 13 | final | Kill the `api` process from the host: `sudo kill -9 $(docker inspect -f '{{.State.Pid}}' odiservices-api-1)` | Docker restarts it and `/healthz` recovers. (`docker kill` and `docker stop` are deliberate stops: `unless-stopped` leaves the container down) |
 | 14 | final | Deploy a ref whose `web` healthcheck fails (a deliberately broken commit on a scratch branch) | `deploy.sh` exits non-zero and the previous tag is serving again |
-| 15 | final | `stat -c '%U %a' /etc/odiservices/.env`, `grep -ci 'key\|secret\|token' infra/tofu/terraform.tfstate` and `docker compose exec api sh -c 'find /app -name ".env*"'` | `root 600`. The state holds no secret. Nothing found in the container |
+| 15 | final | `stat -c '%U %a' /etc/odiservices/.env`, `grep -ci 'key\|secret\|token' infra/tofu/terraform.tfstate` and `docker compose exec api sh -c 'find /app -name ".env*"'` | `root 600`. The state holds no secret: the `grep` matches only field names (`key_pair_name`, `private_key: null`) and public data, so read the matches instead of expecting a count of 0. Nothing found in the container |
 
 Then `tofu destroy` removes the instance if it was a throwaway, and the
 address is released.
@@ -239,7 +240,8 @@ is **not** used: no network, no credentials, no AWS. No Docker.
 | `test_ssh_cidr_has_no_default_and_rejects_open_world` | `ssh_allowed_cidrs` has no `default`, and its validation mentions `0.0.0.0/0` and `::/0` |
 | `test_provider_is_pinned_and_lock_file_committed` | `versions.tf` pins an exact provider version and `.terraform.lock.hcl` exists |
 | `test_no_secret_in_infra` | No `private_key`, `secret`, `token`, `password` assignment or `AKIA` string in `infra/tofu/` (the example file lists names only) |
-| `test_cloud_init_hardens_ssh` | `cloud-init.yaml` disables password and root login and creates `/etc/odiservices` with mode `0700` |
+| `test_launch_script_hardens_ssh` | `launch.sh` disables password and root login and creates `/etc/odiservices` with mode `0700` |
+| `test_launch_script_is_posix_sh` | `launch.sh` starts with `#!/bin/sh`, has no `#cloud-config` line, uses `set -eux` and has no bashism (`pipefail`, `>(`, `[[`) |
 | `test_state_files_are_ignored` | `.gitignore` covers `*.tfstate*`, `.terraform/` and `*.tfvars` |
 
 `test_deploy_files.py` (step 2):
