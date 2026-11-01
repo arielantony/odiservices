@@ -44,11 +44,14 @@ def test_launch_script_hardens_ssh():
     assert "install -d -m 0700 -o root -g root /etc/odiservices" in launch
 
 
-def test_launch_script_is_a_shell_script():
-    # Lightsail does not read cloud-config: a "#cloud-config" first line is run by sh and fails.
-    assert launch.startswith("#!/bin/bash\n")
+def test_launch_script_is_posix_sh():
+    # Lightsail does not read cloud-config, and it runs the script inside its own
+    # "#!/bin/sh" wrapper, which is dash on Ubuntu: bash-only syntax fails before it starts.
+    assert launch.startswith("#!/bin/sh\n")
     assert "#cloud-config" not in launch
-    assert "set -euxo pipefail" in launch
+    assert "set -eux" in launch
+    for bashism in ("pipefail", ">(", "<(", "[[", "function "):
+        assert bashism not in launch, bashism
 
 
 def test_state_files_are_ignored():

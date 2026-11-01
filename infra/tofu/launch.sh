@@ -1,8 +1,11 @@
-#!/bin/bash
-# First boot of the Lightsail instance (OPS-03). Lightsail runs this as root,
-# once, as a shell script (it does not read cloud-config). No secret goes here.
-set -euxo pipefail
-exec > >(tee -a /var/log/odiservices-launch.log) 2>&1
+#!/bin/sh
+# shellcheck shell=sh
+# First boot of the Lightsail instance (OPS-03). Lightsail pastes this into its own
+# "#!/bin/sh" launch script and runs it as root, once. On Ubuntu sh is dash, so this
+# file is POSIX sh, with no bash-only syntax. It does not read
+# cloud-config. No secret goes here.
+set -eux
+exec >>/var/log/odiservices-launch.log 2>&1
 
 export DEBIAN_FRONTEND=noninteractive
 APT="apt-get -o DPkg::Lock::Timeout=300 -y"

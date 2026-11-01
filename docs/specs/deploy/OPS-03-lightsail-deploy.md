@@ -60,7 +60,7 @@ long as the Docker service is enabled at boot.
 | `versions.tf` | `required_version` and `required_providers`: `opentofu/aws` pinned to an exact version. The lock file `.terraform.lock.hcl` **is** committed |
 | `variables.tf` | `region` (default `us-east-2`), `availability_zone` (default `us-east-2a`), `bundle_id` (default `medium_3_0`), `blueprint_id` (default `ubuntu_24_04`), `ssh_public_key` (no default), `ssh_allowed_cidrs` (no default) |
 | `main.tf` | The resources below |
-| `launch.sh` | The `user_data` template (below). Lightsail runs `user_data` as a shell script and does not read cloud-config, so this is bash, not YAML |
+| `launch.sh` | The `user_data` template (below). Lightsail runs `user_data` as a shell script and does not read cloud-config, so this is a script, not YAML. It is pasted into Lightsail's own `#!/bin/sh` wrapper, so it is POSIX sh (dash on Ubuntu), never bash |
 | `outputs.tf` | `public_ip` and `ssh_command`. No secret |
 
 Resources:
@@ -240,7 +240,7 @@ is **not** used: no network, no credentials, no AWS. No Docker.
 | `test_provider_is_pinned_and_lock_file_committed` | `versions.tf` pins an exact provider version and `.terraform.lock.hcl` exists |
 | `test_no_secret_in_infra` | No `private_key`, `secret`, `token`, `password` assignment or `AKIA` string in `infra/tofu/` (the example file lists names only) |
 | `test_launch_script_hardens_ssh` | `launch.sh` disables password and root login and creates `/etc/odiservices` with mode `0700` |
-| `test_launch_script_is_a_shell_script` | `launch.sh` starts with `#!/bin/bash`, has no `#cloud-config` line and uses `set -euxo pipefail` |
+| `test_launch_script_is_posix_sh` | `launch.sh` starts with `#!/bin/sh`, has no `#cloud-config` line, uses `set -eux` and has no bashism (`pipefail`, `>(`, `[[`) |
 | `test_state_files_are_ignored` | `.gitignore` covers `*.tfstate*`, `.terraform/` and `*.tfvars` |
 
 `test_deploy_files.py` (step 2):
