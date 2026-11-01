@@ -162,7 +162,9 @@ directly on `main`.
   the item's PRs column in `docs/BACKLOG.md` and the definition
   `[#N]: <PR URL>` to the PR links block at the end of that file. This
   covers step PRs, follow-ups and the final feature → `main` PR. A change
-  with no backlog item has no row to link.
+  with no backlog item has no row to link. The final PR's link is a plain
+  push of that commit to the feature branch (never a rebase or a force-push).
+  It is the only direct commit a feature branch takes.
 - **An item with a single step needs no feature branch.** Its branch starts
   from `origin/main` and its PR targets `main`. The same applies to changes
   that are not backlog items, such as docs or process changes.
@@ -194,6 +196,38 @@ directly on `main`.
     PR.
 - **The product owner reviews and merges.** The author never merges their
   own PR.
+
+## Article 7 — Infrastructure and live systems
+
+Work that creates or changes real resources (cloud accounts, hosts, DNS,
+databases) follows these rules in addition to Article 6.
+
+1. **Ready before start.** The item meets its Definition of Ready
+   (`docs/specs/README.md`) before the first command: identity, inventory,
+   cost, access paths and tooling are checked and reported. A missing
+   prerequisite is found at the start, not in the middle.
+2. **Least privilege.** Work uses a scoped identity, never the account's root
+   user. The owner creates access keys; the agent never reads or prints them,
+   and no secret goes into the repository, the state, a log or a chat.
+3. **Plan, then apply.** `plan` is read-only. Each `apply` or `destroy`
+   needs the owner's explicit approval of one saved plan. An approval covers
+   that plan only.
+4. **Read the live state back after a replacement,** before the next step.
+   Any exposure (a port open to the world, a detached address) is closed
+   first.
+5. **Cost is stated, and leftovers are handled.** The spec gives the cost of
+   the resource and of a failed attempt. After a failed attempt the agent
+   says whether the resource is still running and recommends keeping it only
+   if the next step reuses it.
+6. **Boot a skeleton first.** Step 1 proves the whole loop with something
+   disposable (apply, boot, connect, destroy) before the real script is
+   written (`docs/TESTING_GUIDELINES.md`, rule 6).
+7. **Two failures stop the work.** After the second failed live attempt at
+   the same step, the agent stops, writes the diagnosis in the spec (the log
+   lines, the cause, what the checks missed) and proposes the fix. It does
+   not patch a third time on a guess.
+8. **Leave nothing behind.** Scratch branches, scratch resources and open
+   tunnels made for a check are removed, and the result says so.
 
 ## Note on Figma
 

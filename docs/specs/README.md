@@ -43,6 +43,20 @@ dependencies, spec status and date. Then:
 6. **Open questions:** each one with a recommended option. A question that
    gets no answer becomes an assumption with the recommended option, and is
    recorded as such.
+7. **Prerequisites:** what must exist before the first line is written, as a
+   table: the prerequisite, who provides it (owner or agent), the **preflight
+   command** that proves it exists, and the expected output. Accounts,
+   identities, credentials (their location, never their value), instances,
+   tools, quotas and test data all count. See the Definition of Ready below.
+8. **Assumptions to verify:** every claim about a platform, a tool or a
+   service that the design depends on and that the author has not seen with
+   their own eyes (how a provider runs a boot script, which shell, what a
+   restart policy does after a manual kill). Each one is labeled *verified*
+   or *assumed*. An *assumed* claim gets a cheap smoke test, planned in the
+   item's first step, before anything is built on it.
+
+Specs approved before 2026-11-01 are not rewritten. An item that has not
+started yet adds sections 7 and 8 before it starts.
 
 If the item would change more than 500 lines, the Design section also lists
 the **steps**, one pull request each (`docs/CONSTITUTION.md`, Article 6).
@@ -60,6 +74,59 @@ fits in a few lines per section.
 
 Approval is recorded in the spec header with its date. A backlog item becomes
 **Ready** only when its spec is approved (see `docs/BACKLOG.md`).
+
+## Definition of Ready
+
+**Ready** (in the backlog) means the spec is approved. An item is **started**
+only when the Definition of Ready below is met. When the owner says to start
+an item, the agent runs this gate first and reports it in one message:
+what is green, what is missing and who provides it. Work starts when
+everything is green, or when the owner accepts a listed gap in writing. The
+point is to find the missing account, key or instance before the work, not in
+the middle of it.
+
+**Every item**
+
+- The spec is approved and every **Depends on** item is Done.
+- Open questions are answered or recorded as assumptions.
+- Every verification check has an exact command and an expected result that
+  can actually happen, runs when the item merges (see Verification), and,
+  when it needs the owner, says who runs it. The checks were read once as a
+  dry run when the spec was approved.
+- The tests are listed with their fixtures.
+- **Prerequisites** (section 7): every preflight command was run today and
+  passed. Credentials are checked by their effect (a command that shows who
+  you are), never by reading them.
+- **Assumptions** (section 8) are labeled, and each *assumed* one has its
+  smoke test in step 1.
+- **Approvals:** the spec lists the actions that need the owner's explicit
+  OK (install a package, create or destroy a resource, apply a plan, create
+  a credential, push a scratch branch) and the owner's standing answer to
+  each. The agent asks once, at the start, and not once per action.
+- **Packages:** every install the item needs is listed in the spec.
+  Anything else is asked first (`CLAUDE.md`).
+
+**Infrastructure and deploy items also**
+
+- **Identity:** a scoped, non-root identity and its CLI profile exist, and
+  the preflight shows who it is (for AWS, `aws sts get-caller-identity`). No
+  root keys. The owner creates access keys; the agent never sees them.
+- **Inventory:** what already exists in the target account (instances,
+  addresses, key pairs, state files) and whether the item reuses it or
+  replaces it.
+- **Cost:** the monthly cost, the cost of a failed attempt, and who destroys
+  leftovers.
+- **Access paths:** the SSH key, the allowed address range and any deploy
+  key exist, outside the repository.
+- **Tooling:** every tool and version the item uses is installed and was
+  authorized in the spec (OpenTofu, shellcheck, nmap and so on).
+- **Step 1 is a walking skeleton:** a throwaway run of the whole loop (apply,
+  boot, connect, destroy) before the real script or image is written.
+- **Live checks** have a timeout and a first, narrow scope. A check that
+  cannot finish in a few minutes is split.
+
+**Frontend items also:** the prototype and the stories are approved
+(`docs/CONSTITUTION.md`, Article 2).
 
 If implementation shows that the spec is wrong, the spec is updated and
 re-approved before the code continues. The same applies to the frontend
