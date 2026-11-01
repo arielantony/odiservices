@@ -60,7 +60,7 @@ long as the Docker service is enabled at boot.
 | `versions.tf` | `required_version` and `required_providers`: `opentofu/aws` pinned to an exact version. The lock file `.terraform.lock.hcl` **is** committed |
 | `variables.tf` | `region` (default `us-east-2`), `availability_zone` (default `us-east-2a`), `bundle_id` (default `medium_3_0`), `blueprint_id` (default `ubuntu_24_04`), `ssh_public_key` (no default), `ssh_allowed_cidrs` (no default) |
 | `main.tf` | The resources below |
-| `cloud-init.yaml` | The `user_data` template (below) |
+| `launch.sh` | The `user_data` template (below). Lightsail runs `user_data` as a shell script and does not read cloud-config, so this is bash, not YAML |
 | `outputs.tf` | `public_ip` and `ssh_command`. No secret |
 
 Resources:
@@ -76,7 +76,7 @@ Resources:
   `ssh_allowed_cidrs`. Never `0.0.0.0/0` as a default: the variable has no
   default and a validation rejects `0.0.0.0/0` and `::/0`. No 80, no 443.
 
-`cloud-init.yaml` (the instance's first boot):
+`launch.sh` (the instance's first boot, run once as root):
 
 1. Installs Docker Engine and the Compose plugin from Docker's apt repository.
 2. Enables Docker at boot.
@@ -239,7 +239,8 @@ is **not** used: no network, no credentials, no AWS. No Docker.
 | `test_ssh_cidr_has_no_default_and_rejects_open_world` | `ssh_allowed_cidrs` has no `default`, and its validation mentions `0.0.0.0/0` and `::/0` |
 | `test_provider_is_pinned_and_lock_file_committed` | `versions.tf` pins an exact provider version and `.terraform.lock.hcl` exists |
 | `test_no_secret_in_infra` | No `private_key`, `secret`, `token`, `password` assignment or `AKIA` string in `infra/tofu/` (the example file lists names only) |
-| `test_cloud_init_hardens_ssh` | `cloud-init.yaml` disables password and root login and creates `/etc/odiservices` with mode `0700` |
+| `test_launch_script_hardens_ssh` | `launch.sh` disables password and root login and creates `/etc/odiservices` with mode `0700` |
+| `test_launch_script_is_a_shell_script` | `launch.sh` starts with `#!/bin/bash`, has no `#cloud-config` line and uses `set -euxo pipefail` |
 | `test_state_files_are_ignored` | `.gitignore` covers `*.tfstate*`, `.terraform/` and `*.tfvars` |
 
 `test_deploy_files.py` (step 2):

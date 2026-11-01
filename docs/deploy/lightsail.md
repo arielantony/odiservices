@@ -41,7 +41,9 @@ tofu apply
 tofu output ssh_command
 ```
 
-The first boot (cloud-init) takes a few minutes. Then:
+The first boot runs `launch.sh` and takes a few minutes. It is finished when
+`/var/lib/odiservices-launch.done` exists; its log is
+`/var/log/odiservices-launch.log`. Then:
 
 ```sh
 ssh deploy@<public_ip> docker --version
