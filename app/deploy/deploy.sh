@@ -9,7 +9,12 @@ ENV_FILE=/etc/odiservices/.env
 BASE="http://127.0.0.1:8080"
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
-COMPOSE=(docker compose -f docker-compose.yml -f docker-compose.prod.yml)
+# Compose reads env_file on the client side, and /etc/odiservices/.env is root-only
+# (0600), so compose runs under sudo. Builds and git stay as the deploy user.
+compose() {
+  local tag="$1"; shift
+  sudo env DEPLOY_TAG="$tag" docker compose -f docker-compose.yml -f docker-compose.prod.yml "$@"
+}
 
 if [ -n "$(git status --porcelain)" ]; then
   echo "refusing to deploy: the checkout is dirty" >&2
@@ -33,13 +38,13 @@ healthy() {
   curl -fsS "${BASE}/healthz" > /dev/null && curl -fsS "${BASE}/" > /dev/null
 }
 
-if DEPLOY_TAG="$TAG" "${COMPOSE[@]}" up --detach --wait && healthy; then
+if compose "$TAG" up --detach --wait && healthy; then
   echo "deployed ${TAG}"
 else
   echo "deploy of ${TAG} failed" >&2
   if [ -n "$previous" ] && [ "$previous" != "$TAG" ]; then
     echo "rolling back to ${previous}" >&2
-    DEPLOY_TAG="$previous" "${COMPOSE[@]}" up --detach --wait
+    compose "$previous" up --detach --wait
   fi
   exit 1
 fi

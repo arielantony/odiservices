@@ -70,3 +70,12 @@ def test_deploy_script_is_safe():
     assert "set -x" not in SCRIPT
     assert "printenv" not in SCRIPT
     assert not re.search(r"\b(cat|less|more|tail|head)\b[^\n|]*\$ENV_FILE", SCRIPT)
+
+
+def test_deploy_script_runs_compose_as_root():
+    # env_file is root-only, and compose reads it on the client side.
+    assert "sudo env DEPLOY_TAG=" in SCRIPT
+    assert "COMPOSE=(" not in SCRIPT
+    for line in SCRIPT.splitlines():
+        if "docker compose" in line and not line.lstrip().startswith("#"):
+            assert "sudo" in line
