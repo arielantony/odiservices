@@ -215,3 +215,62 @@ Do the host first: a tunnel that still has a connector cannot be deleted.
 
 `https://portal.tripleadev.com.br/cdn-cgi/access/logout`. The Access session
 lasts 12 hours and ends only there.
+
+### 7.6 Make the API verify the Access token (BE-23)
+
+The API checks the Access token itself, so it needs two settings in
+`/etc/odiservices/.env` on the host (root, `0600`). Neither is a secret, but
+the file stays root-only and out of the repository.
+
+1. On your machine, write the two lines to a private file. The AUD is read
+   from the OpenTofu state (the Cloudflare token is not needed for this).
+   Do not use the clipboard: copying the next command overwrites it.
+
+   ```sh
+   cd infra/cloudflare
+   AUD=$(AWS_PROFILE=odiservices-tofu tofu output -raw access_aud)
+   (umask 077; printf 'PORTAL_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com\nPORTAL_ACCESS_AUD=%s\n' "$AUD" \
+     > ~/.config/odiservices/portal-access.env)
+   ```
+
+2. Write them on the host. `tee` runs under `sudo`, and the input comes from
+   your file, so the `<` is on your machine (a `<` after `sudo` on the host
+   would be opened by the `deploy` user and fail). `truncate` empties the
+   file first, so run it only when the file holds nothing you need:
+
+   ```sh
+   ssh -i <SSH_KEY_FILE> -o IdentitiesOnly=yes deploy@<public_ip> \
+     'sudo truncate -s 0 /etc/odiservices/.env && sudo tee -a /etc/odiservices/.env >/dev/null \
+      && sudo grep -c "^PORTAL_ACCESS_" /etc/odiservices/.env' < ~/.config/odiservices/portal-access.env
+   ```
+
+   It must print `2`.
+
+3. Recreate the `api` container, because it reads the file only when it is
+   created. `deploy.sh` with the tag already running does not recreate it:
+
+   ```sh
+   ssh -i <SSH_KEY_FILE> -o IdentitiesOnly=yes deploy@<public_ip> \
+     'cd /opt/odiservices/app && sudo env DEPLOY_TAG=<tag> docker compose -f docker-compose.yml \
+      -f docker-compose.prod.yml up --detach --wait --force-recreate api \
+      && sudo docker exec odiservices-api-1 env | grep -c "^PORTAL_ACCESS_"'
+   ```
+
+   It must print `2`. A deploy of a new tag creates the container again by
+   itself.
+
+Check it from the host. Both calls must answer `401`, because neither came
+through Access:
+
+```sh
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/api/session
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Cf-Access-Jwt-Assertion: aaa.bbb.ccc' http://127.0.0.1:8080/api/session
+```
+
+In the browser, after the PIN login, `https://portal.tripleadev.com.br/api/session`
+shows `{"authenticated":true}`.
+
+With the two settings missing the API still starts, `/healthz` stays up and
+every other API route answers `503` (`auth_unavailable`). Two `503` on the
+check above mean the container does not have the settings: count them as in
+step 3.

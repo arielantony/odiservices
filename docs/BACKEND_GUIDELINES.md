@@ -179,9 +179,14 @@ Every error from the API uses one format, which the frontend client
 
 - Today, access is enforced by Cloudflare Access at the edge only. The pages
   carry no data.
-- **Before the first endpoint that returns data** (BE-02), the app verifies
-  the Access JWT on every protected request (BE-23). `/healthz` is the only
-  route exempted explicitly.
+- The app verifies the Access JWT on every protected request (BE-23, in
+  `server/access.py`). The check is application-wide, so a new router is
+  protected by default. `/healthz` is the only route exempted, by name, in
+  `PUBLIC_ROUTES`. A route that needs the identity declares
+  `Depends(require_access)` and gets an `AccessIdentity` (`subject`, `email`).
+- Settings: `PORTAL_ACCESS_TEAM_DOMAIN` and `PORTAL_ACCESS_AUD`, set together.
+  Without them every protected route answers 503 and `/healthz` stays up.
+- The token, its claims and the keys are never logged.
 - Locally there is no Access. The dev bypass (BE-25) works only with
   `PORTAL_ENV=dev`.
 

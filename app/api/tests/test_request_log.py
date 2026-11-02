@@ -102,6 +102,7 @@ def test_unsafe_cf_ray_is_replaced(client, capsys):
 
 def test_every_request_logged_whatever_the_log_level(capsys):
     client = TestClient(create_app(Settings(env="dev", log_level="ERROR")))
+    capsys.readouterr()  # the startup warning of BE-23 is not a request line
 
     client.get("/healthz")
 
@@ -128,6 +129,7 @@ def test_level_by_status(app, capsys):
 def test_traceback_only_in_dev(capsys):
     for env, expected in (("dev", True), ("prod", False)):
         app = create_app(Settings(env=env))
+        capsys.readouterr()  # the startup warning of BE-23 is not a request line
 
         @add_get(app, "/boom")
         def boom():

@@ -1,6 +1,7 @@
 from fastapi.testclient import TestClient
 
 from server.main import create_app
+from tests.conftest import add_get
 
 API_CSP = "default-src 'none'; frame-ancestors 'none'"
 
@@ -15,7 +16,7 @@ def test_api_csp_on_every_response(client):
 def test_csp_on_a_500():
     app = create_app()
 
-    @app.get("/boom")
+    @add_get(app, "/boom")
     def boom():
         raise RuntimeError("boom")
 
