@@ -130,7 +130,7 @@ seconds unless noted.
 | 1 | 2 | `make infra-check` | Passes for `infra/tofu`, `infra/tofu-bootstrap` and `infra/cloudflare`, with no credentials |
 | 2 | 2 | `test_infra_files.py` | Passes (section 5) |
 | 3 | 2 | `git check-ignore infra/cloudflare/terraform.tfvars infra/cloudflare/backend.hcl` | Both are ignored |
-| 4 | 1 | Preflight: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify \| jq .result.status` with the env file loaded, output not echoed beyond the status | `"active"` |
+| 4 | 1 | Preflight: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/accounts/<account_id>/tokens/verify \| jq .result.status` (the token is account-owned, so the `/user/tokens/verify` endpoint answers "Invalid API Token") with the env file loaded, output not echoed beyond the status | `"active"` |
 | 5 | 1 | *Owner:* `tofu plan` of the scratch configuration (agent asks "go") | Adds 1 tunnel, its config, 1 Access application, 1 policy and 1 DNS record; 0 to change, 0 to destroy |
 | 6 | 1 | *Owner:* `tofu apply` of that saved plan (agent asks "apply") | Succeeds. This proves the token's permissions |
 | 7 | 1 | On the host, the install steps of section 3.3, then `systemctl is-active cloudflared` and `journalctl -u cloudflared --no-pager \| grep -c "Registered tunnel connection"` (timeout 60 s) | `active`; 1 or more |
@@ -221,7 +221,7 @@ Cloudflare call and no fixture beyond the repository files:
 | OpenTofu with `use_lockfile` | agent | `tofu version` | `v1.13.2` or newer. **Green** (2026-11-02) |
 | The state bucket and the AWS profile | agent | `AWS_PROFILE=odiservices-tofu aws sts get-caller-identity` | `…:user/odiservices-tofu` |
 | A Cloudflare account with the zone active, Zero Trust on the Free plan | owner | The dashboard (steps 1 and 2) | Zone *Active*; team domain set. **Missing** |
-| The API token, scoped, in `~/.config/odiservices/cloudflare.env` | owner | Check 4 | `"active"`. **Missing** |
+| The API token, scoped, in `~/.config/odiservices/cloudflare.env` | owner | Check 4 (the account endpoint) | `"active"`. **Green** (2026-11-02) |
 | `portal` and `portal-test` are free in the zone | agent | `dig +short portal.tripleadev.com.br` and `portal-test.tripleadev.com.br` | No answer. Not checked yet |
 | Inventory | owner | The zone's DNS page and Zero Trust apps list | Assumed empty of `portal` records and Access apps. The token may not list them, so the owner confirms |
 | SSH to the host | owner | `ssh deploy@<public_ip> true` | Exit 0. Green since OPS-03 |
