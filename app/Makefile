@@ -76,5 +76,5 @@ infra-check:
 	cd ../infra/cloudflare && tofu fmt -check && tofu init -backend=false -input=false && tofu validate
 
 deploy-check: $(VENV_STAMP)
-	cd api && .venv/bin/python -m pytest tests/test_deploy_files.py
+	cd api && .venv/bin/python -m pytest tests/test_deploy_files.py tests/test_deploy_behavior.py
 	@if command -v shellcheck >/dev/null; then shellcheck deploy/deploy.sh deploy/install-cloudflared.sh; else echo "shellcheck not installed, skipped"; fi

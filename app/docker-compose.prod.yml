@@ -6,6 +6,9 @@ services:
     env_file: !override
       - /etc/odiservices/.env
     restart: unless-stopped
+    labels:
+      # Changes with /etc/odiservices/.env, so compose recreates the container.
+      odiservices.env-sha256: ${ENV_SHA256:-none}
 
   web:
     image: odiservices-web:${DEPLOY_TAG:-current}
