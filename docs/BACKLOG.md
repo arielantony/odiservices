@@ -263,32 +263,36 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
 | BE-23 | Task | Verify the Cloudflare Access JWT on every protected request | [Approved](specs/auth/BE-23-verify-access-jwt.md) | Done | BE-17, BE-18, BE-20, BE-21, OPS-03, OPS-04 | [#54] [#55] [#56] [#57] |
-| BE-24 | Task | Resolve the Access identity to a `users` row | — | Draft | BE-23, BE-26 | |
+| BE-24 | Task | Resolve the Access identity to a `users` row | — | Draft | BE-23, BE-26, BE-27 | |
 | BE-25 | Task | Provide a local development auth bypass | — | Draft | BE-23 | |
 
 Notes:
 - BE-23: the owner defined Cloudflare Access as the auth layer. Verifies `Cf-Access-Jwt-Assertion` against the team's certs and the application AUD, deny by default with `/healthz` exempt, and adds `GET /api/session`. `app/src/auth/access-jwt.ts` (in the backup) already does this in TypeScript and is a reference. Its live check (a real token in the browser) needs OPS-04, which is Done.
 - BE-24: there is a single user for now, but every record should belong to a user. Create the row on first login, keyed by the Access subject (`sub`, which BE-23 exposes).
-- BE-25: Cloudflare Access is not present locally. A setting that is off by default in production injects a fixed dev user. Works only with `PORTAL_ENV=dev`.
+- BE-25: Cloudflare Access is not present locally. A setting that is off by default in production injects a fixed dev user. Works only with `PORTAL_ENV=dev`, and development runs against the local Postgres (BE-26), never against production.
 
 ## Database (Supabase)
 
 ### Backend
 
-*Stage: Outline*
+*Stage: Planned*
 
-- **BE-26** Use Supabase as the backend database
-  - Context: it stores the extracted card statement data, as the owner defined. FastAPI is the only client, and the service-role key stays on the server and never reaches the browser.
-- **BE-27** Create the `users` table
-  - Context: there are no multiple users yet, but the owner wants the table now and roles later. Keep it minimal (id, Access subject, email, timestamps) so a `roles` / `user_roles` table can be added without reworking it.
-- **BE-28** Create the `statements` table (one row per card statement / fatura)
-  - Context: each extraction yields one statement with `total_lanc_atuais`. It belongs to a user and is used to validate the sum of its transactions. Feature items add columns to it (BE-07, BE-09).
-- **BE-29** Create the `transactions` table (lançamentos)
-  - Context: the columns mirror `ask_pdf.py` `SCHEMA`: item number within the statement, `secao` (compras/internacional/produtos), `data` (dd/mm text as printed), `descricao`, `valor` (numeric, BRL), `categoria`, `duvida`. It also needs `revisado` and `updated_at`, which today live in the board's localStorage. BE-13 adds the original category.
-- **BE-30** Model categories as a constrained set
-  - Context: the 10 fixed categories (FORNECEDOR … OUTROS) are duplicated in `ask_pdf.py` and `kanban/app.js`. Make the database the single source of truth through an enum or lookup table.
-- **BE-31** Version schema changes as SQL migrations
-  - Context: they must be reproducible across the dev and prod Supabase projects. Enable RLS with no anon access, since only the backend talks to Supabase.
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
+| BE-26 | Task | Use Supabase as the backend database | [In review](specs/database/BE-26-postgres-connection.md) | Draft | BE-17, BE-18 | |
+| BE-27 | Task | Create the `users` table | — | Draft | BE-31 | |
+| BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | — | Draft | BE-27, BE-31 | |
+| BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
+| BE-30 | Task | Model categories as a constrained set | — | Draft | BE-31 | |
+| BE-31 | Task | Version schema changes as SQL migrations | — | Draft | BE-26 | |
+
+Notes:
+- BE-26: it stores the extracted card statement data, as the owner defined. There is one Supabase project, which is production (owner, 2026-11-02). FastAPI is the only client and talks to Postgres directly through a driver, not through the Supabase HTTP API. The credential is a connection string, it stays on the server, and it never reaches the browser or the frontend bundle. Development uses a local Postgres in Docker.
+- BE-27: there are no multiple users yet, but the owner wants the table now and roles later. Keep it minimal (id, Access subject, email, timestamps) so a `roles` / `user_roles` table can be added without reworking it.
+- BE-28: each extraction yields one statement with `total_lanc_atuais`. It belongs to a user and is used to validate the sum of its transactions. Feature items add columns to it (BE-07, BE-09).
+- BE-29: the columns mirror `ask_pdf.py` `SCHEMA`: item number within the statement, `secao` (compras/internacional/produtos), `data` (dd/mm text as printed), `descricao`, `valor` (numeric, BRL), `categoria`, `duvida`. It also needs `revisado` and `updated_at`, which today live in the board's localStorage. BE-13 adds the original category.
+- BE-30: the 10 fixed categories (FORNECEDOR … OUTROS) are duplicated in `ask_pdf.py` and `kanban/app.js`. Make the database the single source of truth through an enum or lookup table.
+- BE-31: migrations with Alembic (owner decision, 2026-11-02), run by the owner against the one Supabase project and against the local Postgres. Enable RLS with no access for the Supabase API roles, since only the backend talks to the database. The dependencies of BE-27 to BE-31 are proposed here and confirmed in each item's spec.
 
 ## Packaging and deployment (AWS Lightsail)
 

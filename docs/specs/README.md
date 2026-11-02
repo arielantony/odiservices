@@ -13,6 +13,7 @@ One Markdown file per backlog ID, in a folder per backlog area:
 | `shell/` | Feature: Portal shell (frontend and backend) |
 | `foundation/` | Platform: Project foundation |
 | `deploy/` | Platform: Packaging and deployment |
+| `database/` | Platform: Database (Supabase) |
 
 New folders follow the same pattern (`upload/`, `board/`, `auth/`,
 `database/`, `quality/`) and are created with their first spec.
