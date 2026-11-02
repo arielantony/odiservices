@@ -25,7 +25,7 @@ cp terraform.tfvars.example terraform.tfvars   # git-ignored
 
 Edit `terraform.tfvars`:
 
-- `ssh_public_key`: the contents of your **public** key (`~/.ssh/id_ed25519.pub`).
+- `ssh_public_key`: the contents of your **public** key (here `~/.ssh/odiservices_lightsail.pub`; use the key you made for this host).
 - `ssh_allowed_cidrs`: your address as `x.x.x.x/32`. `0.0.0.0/0` is rejected.
 
 Check the plan id first: `aws lightsail get-bundles --region us-east-2`, and
@@ -91,9 +91,13 @@ tofu destroy
 
 Removes the instance and releases the address. Nothing persists on the host.
 
+If Cloudflare is set up (section 7), take it down **first**: stop and remove
+the service on the host (section 7.4), then `tofu destroy` in
+`infra/cloudflare`. A tunnel with a live connector cannot be deleted.
+
 ## 6. Deploy
 
-The portal is not public until OPS-04. You reach it through an SSH tunnel.
+The portal is public only through Cloudflare (section 7). Before that, or to bypass it, reach it through an SSH tunnel (6.4).
 
 ### 6.1 Deploy key (once)
 
@@ -146,3 +150,68 @@ Then open `http://127.0.0.1:8080` on your machine.
 
 Docker starts at boot and `restart: unless-stopped` brings both containers
 back with no step from you.
+
+## 7. Cloudflare (OPS-04)
+
+The portal is public at `https://portal.tripleadev.com.br`, behind Cloudflare
+Access (one-time PIN to the company domain). The origin has no open port: the
+host dials out to Cloudflare through a tunnel. Port 22 stays the only open
+port.
+
+### 7.1 Configuration
+
+```sh
+cd infra/cloudflare
+cp terraform.tfvars.example terraform.tfvars   # git-ignored: account id, zone id, allowed addresses and domains
+cp backend.hcl.example backend.hcl             # git-ignored: set the AWS account id
+set -a; . ~/.config/odiservices/cloudflare.env; set +a   # CLOUDFLARE_API_TOKEN, mode 600, never in chat
+AWS_PROFILE=odiservices-tofu tofu init -backend-config=backend.hcl
+AWS_PROFILE=odiservices-tofu tofu plan -out=plan.bin
+```
+
+Keep copies of `terraform.tfvars` and `backend.hcl` in `~/odiservices-backups/`.
+The API token needs: Account › Cloudflare Tunnel, Access: Apps, Access:
+Policies and Access: Organizations, Identity Providers, and Groups (all Write),
+and Zone › DNS (Write).
+
+### 7.2 Install the connector on the host
+
+Update the checkout on the host (`deploy.sh <ref>`, section 6.2) so it holds
+`install-cloudflared.sh`, then, from `infra/cloudflare` with the Cloudflare
+and AWS variables loaded as above:
+
+```sh
+tofu output -raw tunnel_token | ssh -i <SSH_KEY_FILE> -o IdentitiesOnly=yes \
+  deploy@<public_ip> /opt/odiservices/app/deploy/install-cloudflared.sh
+```
+
+The token travels only on standard input. Check:
+
+```sh
+ssh deploy@<public_ip> 'systemctl is-active cloudflared; systemctl is-enabled cloudflared'
+curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  https://api.cloudflare.com/client/v4/accounts/<account_id>/cfd_tunnel/<tunnel_id> | jq -r .result.status
+```
+
+Expect `active`, `enabled` and `healthy`.
+
+### 7.3 Rotate the token
+
+`tofu apply -replace=cloudflare_zero_trust_tunnel_cloudflared.portal` creates a
+new tunnel secret; repeat 7.2.
+
+### 7.4 Take it offline
+
+1. On the host: `sudo systemctl disable --now cloudflared`, then
+   `sudo rm /etc/systemd/system/cloudflared.service /etc/odiservices/cloudflared.env`
+   and `sudo systemctl daemon-reload`.
+2. In `infra/cloudflare`: `tofu plan -destroy -out=destroy.bin`, then
+   `tofu apply destroy.bin`. This removes the tunnel, the Access application,
+   the policy, the login provider and the DNS record.
+
+Do the host first: a tunnel that still has a connector cannot be deleted.
+
+### 7.5 Sign out
+
+`https://portal.tripleadev.com.br/cdn-cgi/access/logout`. The Access session
+lasts 12 hours and ends only there.
