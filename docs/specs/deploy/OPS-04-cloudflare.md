@@ -56,7 +56,7 @@ the company domain, and the page is the landing placeholder.
 | `backend.hcl.example` | `bucket = "odiservices-tofu-state-<account-id>"`, `key = "odiservices/cloudflare/terraform.tfstate"`, `region`, `encrypt = true`, `use_lockfile = true` |
 | `variables.tf` | `account_id`, `zone_id`, `hostname` (default `portal.tripleadev.com.br`), `allowed_emails` (list), `allowed_email_domains` (list), `session_duration` (default `12h`). No default for the first four, so no id or address reaches the repository |
 | `main.tf` | The resources of the next table |
-| `outputs.tf` | `portal_url`, `team_domain`, `access_aud`, and `tunnel_token` (`sensitive = true`) |
+| `outputs.tf` | `portal_url`, `access_aud`, and `tunnel_token` (`sensitive = true`). The team domain (`tripleadev.cloudflareaccess.com`, given by the owner on 2026-11-02) is not a resource, so it is not an output: BE-23 takes it as a setting, with the AUD |
 | `terraform.tfvars.example` | The variable names with placeholders |
 
 `terraform.tfvars` and `backend.hcl` stay git-ignored and are copied to
@@ -129,7 +129,7 @@ seconds unless noted.
 | # | Step | Check | Expected |
 |---|---|---|---|
 | 1 | 2 | `make infra-check` | Passes for `infra/tofu`, `infra/tofu-bootstrap` and `infra/cloudflare`, with no credentials |
-| 2 | 2 | `test_infra_files.py` | Passes (section 5) |
+| 2 | 2 | `test_infra_files.py` | Passes (section 5, the six tests of step 2) |
 | 3 | 2 | `git check-ignore infra/cloudflare/terraform.tfvars infra/cloudflare/backend.hcl` | Both are ignored |
 | 4 | 1 | Preflight: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/accounts/<account_id>/tokens/verify \| jq .result.status` (the token is account-owned, so the `/user/tokens/verify` endpoint answers "Invalid API Token") with the env file loaded, output not echoed beyond the status | `"active"` |
 | 5 | 1 | *Owner:* `tofu plan` of the scratch configuration (agent asks "go") | Adds 1 tunnel, its config, 1 Access application, 1 policy, 1 identity provider and 1 DNS record; 0 to change, 0 to destroy |
@@ -165,7 +165,7 @@ Cloudflare call and no fixture beyond the repository files:
 | `test_cloudflare_token_is_sensitive` | The `tunnel_token` output is `sensitive = true` and no file under `infra/cloudflare/` has a literal token |
 | `test_ingress_reaches_web_only` | The ingress rule targets `127.0.0.1:8080` and ends with `http_status:404` |
 | `test_firewall_opens_only_ssh` | `infra/tofu/main.tf` still opens port 22 and no other port |
-| `test_install_script_keeps_token_private` | The script reads the token from standard input, writes the env file with mode `0600` and sets `EnvironmentFile` |
+| `test_install_script_keeps_token_private` (step 3, with the script) | The script reads the token from standard input, writes the env file with mode `0600` and sets `EnvironmentFile` |
 
 ## 6. Open questions
 
