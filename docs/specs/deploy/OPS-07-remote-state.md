@@ -125,7 +125,7 @@ other bucket. The agent never creates or edits IAM.
 
 | Step | Branch | Content |
 |---|---|---|
-| 1 | `feat/ops-07-step-1-bucket` | `infra/tofu-bootstrap/`, `.gitignore` entries, `make infra-check` for both, the step 1 tests, the bucket created and the smoke tests (checks 4 to 9) |
+| 1 | `feat/ops-07-step-1-bucket` | The owner attaches the bucket policy (3.4), done 2026-11-01; `infra/tofu-bootstrap/`, `.gitignore` entries, `make infra-check` for both, the step 1 tests, the bucket created and the smoke tests (checks 4 to 9) |
 | 2 | `feat/ops-07-step-2-migrate` | `backend.tf`, `backend.hcl.example`, the migration, the runbook, the remaining tests (checks 10 to 15), OPS-07 set to Done |
 
 Both stay under 500 changed lines. The feature branch is
@@ -151,7 +151,7 @@ seconds, except where noted.
 | 11 | 2 | `aws s3api head-object` on the state key, then `tofu state list` | The object exists; 5 resources |
 | 12 | 2 | *Owner:* `tofu plan` in `infra/tofu` (agent asks "go") | "No changes" |
 | 13 | 2 | In a fresh worktree, with only `terraform.tfvars` and `backend.hcl` copied in, `tofu init -backend-config=backend.hcl` and `tofu plan` | "No changes". Nothing is read from a local state |
-| 14 | 2 | Recovery: `aws s3api list-object-versions` on the state key, then `aws s3api get-object --version-id <previous>` into the scratchpad, and read `serial` from the current and the older copy with `jq .serial` | At least two versions; the older `serial` is lower |
+| 14 | 2 | Recovery, with the runbook's command: `aws s3api copy-object` of the current version onto the state key, then `get-object` and compare `resources` and `outputs` with the backup (`jq -S .resources`) | A new version appears, and the content matches the backup. The `serial` and `lineage` are not compared: the migration creates the object with its own (assumption 4) |
 | 15 | 2 | `ls infra/tofu/terraform.tfstate*` in the old worktree | No such files. The backup directory still has the state |
 
 ## 5. Tests
@@ -183,7 +183,6 @@ call and no fixture beyond the repository files:
 |---|---|---|---|
 | OpenTofu with `use_lockfile` (1.10 or newer) | agent | `tofu version` | `v1.13.2`. **Green** (2026-11-01) |
 | A scoped, non-root identity | owner | `AWS_PROFILE=odiservices-tofu aws sts get-caller-identity` | `…:user/odiservices-tofu`. **Green** |
-| The bucket permission (section 3.4) | owner | None can prove it before the bucket exists (section 8, claim 2). The owner confirms in the IAM console that the policy is attached; step 1 check 5 proves it | **Not green.** The owner attaches the policy first |
 | The bucket name is free | agent | `aws s3api head-bucket --bucket <name>` | `404`. **Green** for `odiservices-tofu-state-<account-id>` |
 | The live state is intact and backed up | agent | `cmp` the live state against `~/odiservices-backups/tofu-state-2026-11-01/`, and `tofu state list` | Identical; 5 resources. **Green** |
 | Inventory | agent | The AWS account has no bucket for this purpose | Assumed none: `ListAllMyBuckets` is denied to the profile, so the agent cannot list. The 404 above covers the name only |
@@ -205,9 +204,7 @@ No package is installed. `tofu` and `aws` are already on the machine.
    from the S3 documentation. If check 5 fails with `AccessDenied`, the
    owner widens the resource to `arn:aws:s3:::odiservices-*` and the spec is
    updated.
-4. **`tofu init -migrate-state` copies the state with its lineage and serial.**
-   *Assumed.* Check 10 compares the object with the local copy; the backup
-   remains if it does not.
+4. **`tofu init -migrate-state` copies the state with its lineage and serial.** *Wrong*, found in step 2: the object in S3 had a new `lineage` and `serial` 1, with `resources` and `outputs` identical to the local state (same hash). The migration keeps the content, not the history. Nothing depends on the old `lineage`, `tofu plan` shows "No changes", and the pre-migration state stays in the backup. Check 10 compares content, not metadata.
 5. **The AWS provider 6.71.0 has the S3 resources named in section 3.1.**
    *Assumed.* `make infra-check` (`tofu validate`) proves it in step 1.
 
@@ -215,7 +212,7 @@ No package is installed. `tofu` and `aws` are already on the machine.
 
 | Action | Who | Standing answer |
 |---|---|---|
-| Attach the bucket policy in IAM | Owner | Done by the owner before step 1 |
+| Attach the bucket policy in IAM (a step of this item, section 3.5) | Owner | Done on 2026-11-01. The agent never creates or edits IAM |
 | `tofu plan` (bootstrap, main) | Owner says "go" | One saved plan each |
 | `tofu apply` of the bootstrap plan | Owner says "apply" | One saved plan |
 | `tofu init -migrate-state` | Owner says "go" | Once, after the backup is compared |

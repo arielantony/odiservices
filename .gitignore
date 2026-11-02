@@ -44,4 +44,5 @@ dist/
 .terraform/
 *.tfvars
 !*.tfvars.example
+backend.hcl
 crash.log
