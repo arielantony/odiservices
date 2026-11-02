@@ -90,3 +90,8 @@ def test_api_label_carries_the_env_file_hash():
 def test_deploy_script_passes_only_a_hash_of_the_env_file():
     assert 'sudo sha256sum "$ENV_FILE"' in SCRIPT
     assert 'ENV_SHA256="$env_hash"' in SCRIPT
+
+
+def test_env_file_existence_is_tested_under_sudo():
+    assert 'sudo test -e "$ENV_FILE"' in SCRIPT
+    assert '[ ! -e "$ENV_FILE" ]' not in SCRIPT

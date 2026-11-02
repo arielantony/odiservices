@@ -25,7 +25,9 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-if [ ! -e "$ENV_FILE" ]; then
+# The test runs under sudo: the directory is root-only, and as the deploy user
+# `-e` reports a missing file and the install below would empty the real one.
+if ! sudo test -e "$ENV_FILE"; then
   sudo install -m 0600 -o root -g root /dev/null "$ENV_FILE"
 fi
 

@@ -12,6 +12,7 @@ APP = Path(__file__).resolve().parents[2]
 STUBS = {
     "sudo": r"""#!/usr/bin/env bash
 echo "sudo $*" >> "$FAKE_LOG"
+if [ "$1" = test ]; then [ "$FAKE_ENV_EXISTS" = yes ]; exit $?; fi
 if [ "$1" = sha256sum ]; then echo "$FAKE_HASH  $2"; exit 0; fi
 if [ "$1" = env ]; then
   shift; tag=""
@@ -51,7 +52,7 @@ def run_deploy(tmp_path):
         (bin_dir / name).chmod(0o755)
     log = tmp_path / "log"
 
-    def run(tag="new1", previous="old1", env_hash="aaa", images="", fails=""):
+    def run(tag="new1", previous="old1", env_hash="aaa", images="", fails="", env_exists="yes"):
         log.write_text("")
         env = {
             **os.environ,
@@ -62,6 +63,7 @@ def run_deploy(tmp_path):
             "FAKE_PREVIOUS": previous,
             "FAKE_IMAGES": images,
             "FAKE_COMPOSE_FAILS": fails,
+            "FAKE_ENV_EXISTS": env_exists,
         }
         result = subprocess.run(
             ["bash", str(root / "deploy" / "deploy.sh"), "main"],
@@ -119,3 +121,22 @@ def test_failed_deploy_rolls_back_and_does_not_prune(run_deploy):
     assert "rolling back to old1" in result.stderr
     assert any("DEPLOY_TAG=old1" in line for line in compose_lines(lines))
     assert not any(" rmi " in line for line in lines)
+
+
+def test_existing_env_file_is_never_recreated(run_deploy):
+    # The env file is root-only: only sudo can see it. A deploy must not
+    # replace it with an empty one.
+    result, lines = run_deploy(env_exists="yes")
+
+    assert result.returncode == 0, result.stderr
+    assert any(line == "sudo test -e /etc/odiservices/.env" for line in lines)
+    assert not any("sudo install" in line for line in lines)
+
+
+def test_missing_env_file_is_created_empty_and_private(run_deploy):
+    _, lines = run_deploy(env_exists="no")
+
+    assert any(
+        "sudo install -m 0600 -o root -g root /dev/null /etc/odiservices/.env" in line
+        for line in lines
+    )
