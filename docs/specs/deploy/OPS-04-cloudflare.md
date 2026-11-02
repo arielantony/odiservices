@@ -197,10 +197,15 @@ Cloudflare call and no fixture beyond the repository files:
 3. **The login method.** In *Zero Trust › Settings › Authentication*, confirm
    *One-time PIN* is listed. It is added by default.
 4. **An API token** (*My Profile › API Tokens › Create Token › Custom*), with:
-   - Account › **Cloudflare Tunnel**: Edit
-   - Account › **Access: Apps and Policies**: Edit
+   - Account › **Cloudflare Tunnel**: Write
+   - Account › **Access: Apps**: Write
+   - Account › **Access: Policies**: Write
    - Account › **Access: Organizations, Identity Providers, and Groups**: Read
-   - Zone › **DNS**: Edit
+   - Zone › **DNS**: Write
+
+   These are the labels the dashboard showed on 2026-11-02 (it splits Apps and
+   Policies and says Write for what older docs call Edit). Not the legacy
+   "Argo Tunnel" permission.
    - Account resources: only this account. Zone resources: only
      `tripleadev.com.br`. No expiry shorter than the project needs; no IP
      filter unless the owner's address is fixed.
