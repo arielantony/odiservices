@@ -163,3 +163,14 @@ def test_ingress_reaches_web_only():
 def test_firewall_opens_only_ssh():
     assert main.count("port_info {") == 1
     assert "from_port = 22" in main and "to_port   = 22" in main
+
+
+def test_install_script_keeps_token_private():
+    script = (ROOT / "app" / "deploy" / "install-cloudflared.sh").read_text()
+    assert "read -r TUNNEL_TOKEN" in script and "[ -t 0 ]" in script
+    assert "${1" not in script and "$1" not in script
+    assert 'install -m 0600 -o root -g root /dev/null "$ENV_FILE"' in script
+    assert "EnvironmentFile=/etc/odiservices/cloudflared.env" in script
+    assert not re.search(r"echo[^\n]*TUNNEL_TOKEN", script)
+    assert "set -x" not in script
+    assert not re.search(r"TUNNEL_TOKEN=[A-Za-z0-9]", script)

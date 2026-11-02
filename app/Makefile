@@ -77,4 +77,4 @@ infra-check:
 
 deploy-check: $(VENV_STAMP)
 	cd api && .venv/bin/python -m pytest tests/test_deploy_files.py
-	@if command -v shellcheck >/dev/null; then shellcheck deploy/deploy.sh; else echo "shellcheck not installed, skipped"; fi
+	@if command -v shellcheck >/dev/null; then shellcheck deploy/deploy.sh deploy/install-cloudflared.sh; else echo "shellcheck not installed, skipped"; fi
