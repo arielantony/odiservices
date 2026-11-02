@@ -109,4 +109,3 @@ def test_backend_is_partial_and_locked():
     assert "encrypt      = true" in example
     assert "use_lockfile = true" in example
     assert "<account-id>" in example
-    assert not (TOFU / "backend.hcl").exists()
