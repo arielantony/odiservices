@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-04 |
 | **Depends on** | OPS-03, OPS-07 (the state of the new configuration goes in the OPS-07 bucket) |
-| **Spec status** | In review. Owner decisions of 2026-11-02 are applied: hostname `portal.tripleadev.com.br` with its DNS on Cloudflare; a Cloudflare Tunnel (the origin stays closed); Access allows the owner's company address and the domain `odisseiaviagens.com.br` (the address goes only in the git-ignored `terraform.tfvars`); the owner has no Cloudflare Zero Trust yet, so section 7 lists the steps |
+| **Spec status** | Approved, 2026-11-02 (approved by the owner when #49 merged). Owner decisions of 2026-11-02 are applied: hostname `portal.tripleadev.com.br` with its DNS on Cloudflare; a Cloudflare Tunnel (the origin stays closed); Access allows the owner's company address and the domain `odisseiaviagens.com.br` (the address goes only in the git-ignored `terraform.tfvars`); the owner has no Cloudflare Zero Trust yet, so section 7 lists the steps; session length 12 hours; the recommendations of section 6 are accepted |
 | **Date** | 2026-11-02 |
 
 ## 1. Goal
@@ -54,7 +54,7 @@ the company domain, and the page is the landing placeholder.
 | `versions.tf` | `required_version >= 1.10.0`; `cloudflare/cloudflare` pinned to one exact version (chosen in step 1, section 8 assumption 1); the `aws` provider is not used; `.terraform.lock.hcl` committed |
 | `backend.tf` | `backend "s3" {}`, partial, as in `infra/tofu/` |
 | `backend.hcl.example` | `bucket = "odiservices-tofu-state-<account-id>"`, `key = "odiservices/cloudflare/terraform.tfstate"`, `region`, `encrypt = true`, `use_lockfile = true` |
-| `variables.tf` | `account_id`, `zone_id`, `hostname` (default `portal.tripleadev.com.br`), `allowed_emails` (list), `allowed_email_domains` (list), `session_duration` (default `24h`). No default for the first four, so no id or address reaches the repository |
+| `variables.tf` | `account_id`, `zone_id`, `hostname` (default `portal.tripleadev.com.br`), `allowed_emails` (list), `allowed_email_domains` (list), `session_duration` (default `12h`). No default for the first four, so no id or address reaches the repository |
 | `main.tf` | The resources of the next table |
 | `outputs.tf` | `portal_url`, `team_domain`, `access_aud`, and `tunnel_token` (`sensitive = true`) |
 | `terraform.tfvars.example` | The variable names with placeholders |
@@ -171,7 +171,7 @@ Cloudflare call and no fixture beyond the repository files:
 1. **Where the tunnel token lives.** Recommended: in the encrypted state and
    copied to the host by the owner. The alternative is to create the tunnel in
    the dashboard and keep it out of OpenTofu, which loses the record in code.
-2. **Session length.** Recommended: 24 hours, then one-time PIN again.
+2. **Session length.** Decided by the owner on 2026-11-02: 12 hours, then one-time PIN again.
 3. **Login method.** Recommended: one-time PIN now, because it works for any
    address in the policy with no setup. A Google login can be added when the
    team grows, in its own item.
