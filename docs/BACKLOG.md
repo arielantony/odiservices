@@ -265,9 +265,11 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 | BE-23 | Task | Verify the Cloudflare Access JWT on every protected request | [Approved](specs/auth/BE-23-verify-access-jwt.md) | Done | BE-17, BE-18, BE-20, BE-21, OPS-03, OPS-04 | [#54] [#55] [#56] [#57] |
 | BE-24 | Task | Resolve the Access identity to a `users` row | — | Draft | BE-23, BE-26 | |
 | BE-25 | Task | Provide a local development auth bypass | — | Draft | BE-23 | |
+| BE-34 | Task | Control which roles can use which services | — | Draft | BE-24, BE-27 | |
 
 Notes:
 - BE-23: the owner defined Cloudflare Access as the auth layer. Verifies `Cf-Access-Jwt-Assertion` against the team's certs and the application AUD, deny by default with `/healthz` exempt, and adds `GET /api/session`. `app/src/auth/access-jwt.ts` (in the backup) already does this in TypeScript and is a reference. Its live check (a real token in the browser) needs OPS-04, which is Done.
+- BE-34: the portal will host many services, and the owner wants fine control over which roles reach which one (idea from the owner, 2026-11-02; not for now). Whether a service exists is a fact of the code: a registry of services with a stable slug (`categorizer`, ...), and each route is protected by a dependency such as `require_service("categorizer")`. Who may use it is data, kept in `portal.roles`, `user_roles`, `role_services` and a `services` table that mirrors the registry so the foreign keys have integrity. The migration that introduces a service inserts its row, and a test fails when the registry and the migrated table list different services. The backend decides on every request; hiding a card in the frontend is not access control. Cloudflare Access still filters who enters the portal. Build it when the second service or the second role appears. Until then BE-27 stays minimal and the registry is created with BE-02.
 - BE-24: there is a single user for now, but every record should belong to a user. Create the row on first login, keyed by the Access subject (`sub`, which BE-23 exposes).
 - BE-25: Cloudflare Access is not present locally. A setting that is off by default in production injects a fixed dev user. Works only with `PORTAL_ENV=dev`.
 
