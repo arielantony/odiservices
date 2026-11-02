@@ -299,6 +299,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 | OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
+| OPS-07 | Task | Move the OpenTofu state to a private S3 bucket with locking | [Approved](specs/deploy/OPS-07-remote-state.md) | Ready | OPS-03 | [#45] |
 
 Notes:
 - OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
@@ -306,6 +307,7 @@ Notes:
 - OPS-03: the owner chose the host. `app/DEPRECATED.md` records a previous Lightsail setup that used systemd rather than Compose, but the file no longer exists, so the spec records the choice itself: containers (spec 3.1). The owner chose OpenTofu, `us-east-2`, the 4 GB plan and local state first (2026-10-31); the item has two steps.
 - OPS-04: Cloudflare points at the `web` service only; `api` is never exposed. Access only protects traffic that passes through Cloudflare. Use a Cloudflare Tunnel, or a firewall restricted to Cloudflare IPs, so the origin cannot be reached directly and Access cannot be bypassed.
 - OPS-06: the owner asked for it on 2026-10-31. OPS-03 builds the images on the host; this item moves the build off it. Needs a private ECR repository per image (created with OpenTofu), a push step with scoped credentials, and an instance role that can only pull. `deploy.sh` then pulls a tag instead of building, which also lets the instance drop back to a smaller plan. Decide who pushes (the owner's machine now, CI once it exists) and an image retention rule. The images hold no secret, so ECR needs no special handling beyond private access and scan on push.
+- OPS-07: the owner asked for it on 2026-11-01. The live state sits in a feature worktree that cleanup scripts can remove. Bootstrap configuration with local state creates the bucket; the main configuration then uses a partial `s3` backend with `use_lockfile`. The owner attaches a policy limited to that bucket first.
 - OPS-05: the Supabase service-role key, the Access AUD and the Anthropic key must live outside the repo and the image, either as Lightsail environment variables or a root-only env file.
 
 ## Quality
@@ -380,3 +382,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#41]: https://github.com/arielantony/odiservices/pull/41
 [#42]: https://github.com/arielantony/odiservices/pull/42
 [#43]: https://github.com/arielantony/odiservices/pull/43
+[#45]: https://github.com/arielantony/odiservices/pull/45
