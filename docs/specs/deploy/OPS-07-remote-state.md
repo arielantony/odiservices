@@ -151,7 +151,7 @@ seconds, except where noted.
 | 11 | 2 | `aws s3api head-object` on the state key, then `tofu state list` | The object exists; 5 resources |
 | 12 | 2 | *Owner:* `tofu plan` in `infra/tofu` (agent asks "go") | "No changes" |
 | 13 | 2 | In a fresh worktree, with only `terraform.tfvars` and `backend.hcl` copied in, `tofu init -backend-config=backend.hcl` and `tofu plan` | "No changes". Nothing is read from a local state |
-| 14 | 2 | Recovery: `aws s3api list-object-versions` on the state key, then `aws s3api get-object --version-id <previous>` into the scratchpad, and read `serial` from the current and the older copy with `jq .serial` | At least two versions; the older `serial` is lower |
+| 14 | 2 | Recovery, with the runbook's command: `aws s3api copy-object` of the current version onto the state key, then `get-object` and compare `resources` and `outputs` with the backup (`jq -S .resources`) | A new version appears, and the content matches the backup. The `serial` and `lineage` are not compared: the migration creates the object with its own (assumption 4) |
 | 15 | 2 | `ls infra/tofu/terraform.tfstate*` in the old worktree | No such files. The backup directory still has the state |
 
 ## 5. Tests
@@ -204,9 +204,7 @@ No package is installed. `tofu` and `aws` are already on the machine.
    from the S3 documentation. If check 5 fails with `AccessDenied`, the
    owner widens the resource to `arn:aws:s3:::odiservices-*` and the spec is
    updated.
-4. **`tofu init -migrate-state` copies the state with its lineage and serial.**
-   *Assumed.* Check 10 compares the object with the local copy; the backup
-   remains if it does not.
+4. **`tofu init -migrate-state` copies the state with its lineage and serial.** *Wrong*, found in step 2: the object in S3 had a new `lineage` and `serial` 1, with `resources` and `outputs` identical to the local state (same hash). The migration keeps the content, not the history. Nothing depends on the old `lineage`, `tofu plan` shows "No changes", and the pre-migration state stays in the backup. Check 10 compares content, not metadata.
 5. **The AWS provider 6.71.0 has the S3 resources named in section 3.1.**
    *Assumed.* `make infra-check` (`tofu validate`) proves it in step 1.
 

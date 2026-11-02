@@ -98,3 +98,14 @@ def test_state_and_backend_files_are_ignored():
     lines = gitignore.splitlines()
     assert "*.tfstate" in lines and "*.tfvars" in lines and "backend.hcl" in lines
     assert "!*.tfvars.example" in lines
+
+
+def test_backend_is_partial_and_locked():
+    backend = (TOFU / "backend.tf").read_text()
+    assert 'backend "s3" {}' in backend
+    code = "\n".join(l for l in backend.splitlines() if not l.lstrip().startswith("#"))
+    assert "bucket" not in code and "key" not in code
+    example = (TOFU / "backend.hcl.example").read_text()
+    assert "encrypt      = true" in example
+    assert "use_lockfile = true" in example
+    assert "<account-id>" in example

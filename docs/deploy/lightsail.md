@@ -54,12 +54,34 @@ still takes your key; leave it, and do not add keys to it.
 
 ## 4. State
 
-The state is **local** (`infra/tofu/terraform.tfstate`) and git-ignored. It
-holds the instance and its address, not a key, but treat it as sensitive:
+The state lives in a private, versioned S3 bucket with locking (OPS-07). The
+bucket is created once by `infra/tofu-bootstrap/`, whose own state is local and
+git-ignored: keep a copy in `~/odiservices-backups/`.
 
-- Copy it somewhere safe outside the repository after every `apply`.
-- Run `apply` from one machine only.
-- A later item moves it to S3.
+**From a fresh checkout**
+
+```sh
+cd infra/tofu
+cp terraform.tfvars.example terraform.tfvars   # git-ignored, see section 2
+cp backend.hcl.example backend.hcl             # git-ignored, set the account id
+AWS_PROFILE=odiservices-tofu tofu init -backend-config=backend.hcl
+AWS_PROFILE=odiservices-tofu tofu plan         # "No changes" when nothing drifted
+```
+
+`terraform.tfvars` and `backend.hcl` stay local: keep a copy of both in
+`~/odiservices-backups/`. The bucket allows TLS only, blocks public access and
+encrypts at rest. The state holds the instance and its address, not a key.
+
+- **Locking:** a second `plan` or `apply` fails with `Error acquiring the state
+  lock` while one runs. If a run is killed and leaves the lock behind, check
+  that nothing is running, then `tofu force-unlock <id>`.
+- **Recovering a version:** the bucket keeps old versions for 90 days.
+  `aws s3api list-object-versions --bucket <bucket> --prefix odiservices/lightsail/`
+  lists them. To restore one, copy it back over the key:
+  `aws s3api copy-object --bucket <bucket> --key odiservices/lightsail/terraform.tfstate --copy-source "<bucket>/odiservices/lightsail/terraform.tfstate?versionId=<id>"`.
+  Then run `tofu plan` before anything else.
+- **The bucket itself** has `prevent_destroy`. Removing it means emptying every
+  version and removing that line first.
 
 ## 5. Destroy
 

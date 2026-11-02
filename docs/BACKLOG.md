@@ -299,7 +299,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 | OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | — | Draft | OPS-03 | |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 | OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
-| OPS-07 | Task | Move the OpenTofu state to a private S3 bucket with locking | [Approved](specs/deploy/OPS-07-remote-state.md) | Ready | OPS-03 | [#45] [#46] |
+| OPS-07 | Task | Move the OpenTofu state to a private S3 bucket with locking | [Approved](specs/deploy/OPS-07-remote-state.md) | Done | OPS-03 | [#45] [#46] [#47] |
 
 Notes:
 - OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
@@ -384,3 +384,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#43]: https://github.com/arielantony/odiservices/pull/43
 [#45]: https://github.com/arielantony/odiservices/pull/45
 [#46]: https://github.com/arielantony/odiservices/pull/46
+[#47]: https://github.com/arielantony/odiservices/pull/47
