@@ -57,3 +57,44 @@ def test_launch_script_is_posix_sh():
 def test_state_files_are_ignored():
     for pattern in ("*.tfstate", ".terraform/", "*.tfvars"):
         assert pattern in gitignore.splitlines()
+
+
+BOOTSTRAP = ROOT / "infra" / "tofu-bootstrap"
+
+
+def test_bootstrap_bucket_is_hardened():
+    text = (BOOTSTRAP / "main.tf").read_text()
+    assert 'status = "Enabled"' in text
+    assert 'sse_algorithm = "AES256"' in text
+    for setting in (
+        "block_public_acls",
+        "block_public_policy",
+        "ignore_public_acls",
+        "restrict_public_buckets",
+    ):
+        assert re.search(rf"{setting}\s*=\s*true", text), setting
+    assert 'object_ownership = "BucketOwnerEnforced"' in text
+    assert '"aws:SecureTransport"' in text and 'values   = ["false"]' in text
+    assert "noncurrent_days = 90" in text
+    assert "prevent_destroy = true" in text
+
+
+def test_bootstrap_provider_matches_main():
+    pin = re.search(r'version\s*=\s*"(= \d+\.\d+\.\d+)"', versions)
+    other = re.search(
+        r'version\s*=\s*"(= \d+\.\d+\.\d+)"', (BOOTSTRAP / "versions.tf").read_text()
+    )
+    assert pin and other and pin.group(1) == other.group(1)
+    assert (BOOTSTRAP / ".terraform.lock.hcl").is_file()
+
+
+def test_bootstrap_has_no_bucket_name_default():
+    block = (BOOTSTRAP / "variables.tf").read_text().split('variable "bucket_name"')[1]
+    assert "default" not in block.split("validation")[0]
+    assert "<account-id>" in (BOOTSTRAP / "terraform.tfvars.example").read_text()
+
+
+def test_state_and_backend_files_are_ignored():
+    lines = gitignore.splitlines()
+    assert "*.tfstate" in lines and "*.tfvars" in lines and "backend.hcl" in lines
+    assert "!*.tfvars.example" in lines

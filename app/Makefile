@@ -21,7 +21,7 @@ help:
 	@echo "make compose-up    Run api and web in Docker on 127.0.0.1:8000 (needs Docker)"
 	@echo "make compose-down  Stop and remove them"
 	@echo "make deploy-check  Test the prod Compose override and deploy.sh (shellcheck when installed)"
-	@echo "make infra-check   Format-check and validate infra/tofu (needs OpenTofu, no AWS credentials)"
+	@echo "make infra-check   Format-check and validate infra/tofu and infra/tofu-bootstrap (needs OpenTofu, no AWS credentials)"
 
 $(VENV_STAMP): api/requirements.txt api/requirements-dev.txt
 	cd api && { [ -d .venv ] || uv venv --python 3.14 .venv; } \
@@ -72,6 +72,7 @@ compose-down:
 
 infra-check:
 	cd ../infra/tofu && tofu fmt -check && tofu init -backend=false -input=false && tofu validate
+	cd ../infra/tofu-bootstrap && tofu fmt -check && tofu init -backend=false -input=false && tofu validate
 
 deploy-check: $(VENV_STAMP)
 	cd api && .venv/bin/python -m pytest tests/test_deploy_files.py
