@@ -305,6 +305,7 @@ Notes:
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 | OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
 | OPS-07 | Task | Move the OpenTofu state to a private S3 bucket with locking | [Approved](specs/deploy/OPS-07-remote-state.md) | Done | OPS-03 | [#45] [#46] [#47] [#48] |
+| OPS-08 | Task | Harden the privileges of the `deploy` user on the host | — | Draft | OPS-03 | |
 
 Notes:
 - OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
@@ -313,6 +314,7 @@ Notes:
 - OPS-04: Cloudflare points at the `web` service only; `api` is never exposed. Access only protects traffic that passes through Cloudflare. Use a Cloudflare Tunnel, or a firewall restricted to Cloudflare IPs, so the origin cannot be reached directly and Access cannot be bypassed.
 - OPS-06: the owner asked for it on 2026-10-31. OPS-03 builds the images on the host; this item moves the build off it. Needs a private ECR repository per image (created with OpenTofu), a push step with scoped credentials, and an instance role that can only pull. `deploy.sh` then pulls a tag instead of building, which also lets the instance drop back to a smaller plan. Decide who pushes (the owner's machine now, CI once it exists) and an image retention rule. The images hold no secret, so ECR needs no special handling beyond private access and scan on push.
 - OPS-07: the owner asked for it on 2026-11-01. The live state sits in a feature worktree that cleanup scripts can remove. Bootstrap configuration with local state creates the bucket; the main configuration then uses a partial `s3` backend with `use_lockfile`. The owner attaches a policy limited to that bucket first.
+- OPS-08: the owner asked for it on 2026-11-02, as a reminder, not for now. `deploy` has passwordless `sudo` for any command, and access to Docker is equivalent to root, so whoever gets its SSH key gets root on the host. Today this is accepted because only port 22 is open, with a key, the portal is behind Cloudflare Access and the host holds no real financial data. Options, from cheapest: a passphrase on the `deploy` key and the firewall restricted to known source IPs; secrets out of `/etc/odiservices/.env` (OPS-05); rootless Docker, the only one that changes the risk model, which also removes the `sudo` that `deploy.sh` needs to read the root-only env file. Restricting `sudoers` to a few commands gains little while `deploy` can reach Docker.
 - OPS-05: the Supabase service-role key, the Access AUD and the Anthropic key must live outside the repo and the image, either as Lightsail environment variables or a root-only env file.
 
 ## Quality
