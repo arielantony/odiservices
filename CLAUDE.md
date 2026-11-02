@@ -133,7 +133,8 @@ before changing anything:
   prefixes have to be mirrored in `generate.py`.
 - **Infra and deploy (OPS-03).** `infra/tofu/` creates the Lightsail host and
   `app/deploy/deploy.sh` deploys it; see `docs/deploy/lightsail.md`. The host
-  is not public until OPS-04: reach it through an SSH tunnel.
+  is not public until OPS-04: reach it through an SSH tunnel. The OpenTofu state
+  lives in an S3 bucket (OPS-07): run `tofu init -backend-config=backend.hcl`.
 
 ## Browser checks
 
