@@ -255,6 +255,9 @@ already there.
    login gets a `302` and never reaches nginx.
 8. **The OPS-07 bucket policy covers a second key.** *Assumed*: the policy is
    on the bucket, not on one key. Step 2's first `init` proves it.
+9. **The `odiservices-tofu` S3 access is separate from the Cloudflare token.**
+   *Verified* by design: two providers in two configurations, no shared
+   credential.
 10. **The v5 provider (5.28.1) names and shapes in section 3.1.** *Verified* in
     step 1: the resources apply and the token comes from the data source.
 11. **The tunnel config cannot be destroyed by OpenTofu** (the plan warns).
@@ -264,9 +267,6 @@ already there.
     service on the host first; the runbook says so.
 13. **Outside addresses get no PIN.** *Verified* (check 10): the PIN never
     arrived for an address outside the policy.
-9. **The `odiservices-tofu` S3 access is separate from the Cloudflare token.**
-   *Verified* by design: two providers in two configurations, no shared
-   credential.
 
 ## 9. Approvals
 
