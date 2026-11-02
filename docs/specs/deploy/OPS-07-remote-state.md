@@ -125,7 +125,7 @@ other bucket. The agent never creates or edits IAM.
 
 | Step | Branch | Content |
 |---|---|---|
-| 1 | `feat/ops-07-step-1-bucket` | `infra/tofu-bootstrap/`, `.gitignore` entries, `make infra-check` for both, the step 1 tests, the bucket created and the smoke tests (checks 4 to 9) |
+| 1 | `feat/ops-07-step-1-bucket` | The owner attaches the bucket policy (3.4), done 2026-11-01; `infra/tofu-bootstrap/`, `.gitignore` entries, `make infra-check` for both, the step 1 tests, the bucket created and the smoke tests (checks 4 to 9) |
 | 2 | `feat/ops-07-step-2-migrate` | `backend.tf`, `backend.hcl.example`, the migration, the runbook, the remaining tests (checks 10 to 15), OPS-07 set to Done |
 
 Both stay under 500 changed lines. The feature branch is
@@ -183,7 +183,6 @@ call and no fixture beyond the repository files:
 |---|---|---|---|
 | OpenTofu with `use_lockfile` (1.10 or newer) | agent | `tofu version` | `v1.13.2`. **Green** (2026-11-01) |
 | A scoped, non-root identity | owner | `AWS_PROFILE=odiservices-tofu aws sts get-caller-identity` | `…:user/odiservices-tofu`. **Green** |
-| The bucket permission (section 3.4) | owner | None can prove it before the bucket exists (section 8, claim 2). The owner confirms in the IAM console that the policy is attached; step 1 check 5 proves it | **Not green.** The owner attaches the policy first |
 | The bucket name is free | agent | `aws s3api head-bucket --bucket <name>` | `404`. **Green** for `odiservices-tofu-state-<account-id>` |
 | The live state is intact and backed up | agent | `cmp` the live state against `~/odiservices-backups/tofu-state-2026-11-01/`, and `tofu state list` | Identical; 5 resources. **Green** |
 | Inventory | agent | The AWS account has no bucket for this purpose | Assumed none: `ListAllMyBuckets` is denied to the profile, so the agent cannot list. The 404 above covers the name only |
@@ -215,7 +214,7 @@ No package is installed. `tofu` and `aws` are already on the machine.
 
 | Action | Who | Standing answer |
 |---|---|---|
-| Attach the bucket policy in IAM | Owner | Done by the owner before step 1 |
+| Attach the bucket policy in IAM (a step of this item, section 3.5) | Owner | Done on 2026-11-01. The agent never creates or edits IAM |
 | `tofu plan` (bootstrap, main) | Owner says "go" | One saved plan each |
 | `tofu apply` of the bootstrap plan | Owner says "apply" | One saved plan |
 | `tofu init -migrate-state` | Owner says "go" | Once, after the backup is compared |
