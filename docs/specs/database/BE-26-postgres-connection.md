@@ -23,9 +23,10 @@ first code that reads or writes is BE-24.
 **In scope**
 
 - The setting `PORTAL_DATABASE_URL` and its validation.
-- `server/db.py`: `build_engine` (a SQLAlchemy engine for Postgres through
-  psycopg 3) and `check_database`, plus `python -m server.db`, a command
-  that proves a connection works.
+- The package `server/db/`: `build_engine` (a SQLAlchemy engine for Postgres
+  through psycopg 3) and `check_database` in `engine.py`, plus `python -m
+  server.db`, a command that proves a connection works. It is a package so
+  the ORM models of BE-27 onwards have a place to live.
 - A local Postgres in Docker, in its own Compose file that production never
   reads.
 - `make db-up`, `db-down`, `db-check` and `test-db`.
@@ -39,9 +40,12 @@ first code that reads or writes is BE-24.
   runbook for the host: BE-31.
 - The `users`, `statements` and `transactions` tables and the categories:
   BE-27 to BE-30.
-- Wiring the engine into `create_app()` and a per-request connection
+- Wiring the engine into `create_app()` and a per-request ORM session
   dependency: BE-24, the first code that needs them. Adding them now would be
   code nothing calls.
+- The ORM models and their base class (`DeclarativeBase`, the naming
+  convention): BE-27 creates them with the first table. The test that keeps
+  the models and the migrations in step is BE-31's.
 - A readiness route that checks the database. `/healthz` stays independent of
   it, so the deploy checks keep passing (OPS-03).
 - Backups and point-in-time recovery of the Supabase project: depends on the
@@ -55,6 +59,15 @@ FastAPI talks to Postgres with a driver. It does not use `supabase-py` and
 the project's REST API. Reasons (confirmed by the owner, 2026-11-02): the same
 code runs against a local Postgres, and an import (BE-05) writes a statement
 and its transactions in one transaction.
+
+The data layer is **SQLAlchemy 2.0 with the ORM**, in the typed style
+(`Mapped[...]`), and a synchronous `Session`. The owner chose it on
+2026-11-02 for the long run: the portal will host many services, and the
+first consumer (BE-24) sets the pattern that every later one follows. The
+models arrive with each table (BE-27 to BE-30). The migrations stay
+hand-written SQL (BE-31), because they carry what the models cannot: the
+schema, the roles, RLS and its policies. `text()` stays available for the
+cases where plain SQL is clearer.
 
 Consequence: the secret is a database connection string, not the
 service-role key. The rule in `CLAUDE.md` and `docs/BACKEND_GUIDELINES.md` is
@@ -83,7 +96,7 @@ Held as `SecretStr` (BE-18 pattern), so it is never printed.
 - **Unset.** The server starts, as it does today. Nothing reads the database
   yet, and `/healthz` stays up.
 
-### 3.3 The engine (`server/db.py`)
+### 3.3 The engine (`server/db/engine.py`)
 
 ```python
 def build_engine(url: SecretStr) -> Engine
@@ -154,7 +167,7 @@ needs no Docker and calls no database. No test reaches Supabase.
 
 | File | Change |
 |---|---|
-| `app/api/server/db.py` | New: `build_engine`, `check_database`, `DatabaseInfo`, the `__main__` entry |
+| `app/api/server/db/__init__.py`, `engine.py`, `__main__.py` | New package: `build_engine`, `check_database`, `DatabaseInfo` and the `python -m server.db` entry |
 | `app/api/server/settings.py` | The field and the three rules of 3.2 |
 | `app/api/requirements.in`, `requirements.txt` | Add `sqlalchemy`, `psycopg[binary]`, compiled with `uv pip compile` |
 | `app/api/pytest.ini` | `addopts = -m "not db"` and the `db` marker |
@@ -233,7 +246,7 @@ Docker. Hosts and passwords are obviously fictitious (`db.example.com`,
 
 | # | Question | Recommended |
 |---|---|---|
-| 1 | Is there an ORM? Alembic (BE-31) is built on SQLAlchemy, so SQLAlchemy is a dependency either way | **SQLAlchemy Core with hand-written SQL, no ORM models.** The schema is three tables and the queries are simple. The migrations are the single description of the schema, so there is no model layer to keep in step with them. An ORM can be added later without touching the migrations. The alternative is ORM models, which duplicate the schema |
+| 1 | Is there an ORM? | **Decided by the owner, 2026-11-02: yes, SQLAlchemy 2.0 with the ORM.** The portal will host many services, and the pattern is set by the first consumer. The risk is that models and migrations drift apart, so BE-31 adds a test that fails when they do. The migrations stay hand-written, because autogenerate does not understand RLS, policies or roles |
 | 2 | TLS to Supabase: `require` or `verify-full`? | **`require` now.** The traffic is encrypted. `verify-full` also needs the project's CA certificate shipped to the host, which is more to maintain. Revisit with OPS-05 |
 | 3 | Local Postgres version | **17** until the owner confirms the Supabase version, then the same major |
 | 4 | Wire the engine into `create_app()` here? | **No.** BE-24 is the first caller |
