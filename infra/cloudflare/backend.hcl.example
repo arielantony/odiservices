@@ -1,0 +1,6 @@
+# Copy to backend.hcl (git-ignored) and replace <account-id> (the AWS one).
+bucket       = "odiservices-tofu-state-<account-id>"
+key          = "odiservices/cloudflare/terraform.tfstate"
+region       = "us-east-2"
+encrypt      = true
+use_lockfile = true

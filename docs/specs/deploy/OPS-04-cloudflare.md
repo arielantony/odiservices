@@ -56,7 +56,7 @@ the company domain, and the page is the landing placeholder.
 | `backend.hcl.example` | `bucket = "odiservices-tofu-state-<account-id>"`, `key = "odiservices/cloudflare/terraform.tfstate"`, `region`, `encrypt = true`, `use_lockfile = true` |
 | `variables.tf` | `account_id`, `zone_id`, `hostname` (default `portal.tripleadev.com.br`), `allowed_emails` (list), `allowed_email_domains` (list), `session_duration` (default `12h`). No default for the first four, so no id or address reaches the repository |
 | `main.tf` | The resources of the next table |
-| `outputs.tf` | `portal_url`, `team_domain`, `access_aud`, and `tunnel_token` (`sensitive = true`) |
+| `outputs.tf` | `portal_url`, `access_aud`, and `tunnel_token` (`sensitive = true`). The team domain (`tripleadev.cloudflareaccess.com`, given by the owner on 2026-11-02) is not a resource, so it is not an output: BE-23 takes it as a setting, with the AUD |
 | `terraform.tfvars.example` | The variable names with placeholders |
 
 `terraform.tfvars` and `backend.hcl` stay git-ignored and are copied to
@@ -64,9 +64,10 @@ the company domain, and the page is the landing placeholder.
 
 | Resource | Role |
 |---|---|
-| Tunnel (`cloudflare_zero_trust_tunnel_cloudflared`) | Remotely managed, named `odiservices-portal` |
+| Tunnel (`cloudflare_zero_trust_tunnel_cloudflared`) | Remotely managed (`config_src = "cloudflare"`), named `odiservices-portal`. Its token comes from the data source `cloudflare_zero_trust_tunnel_cloudflared_token`, which feeds the sensitive output |
 | Tunnel config | One ingress rule: `hostname` → `http://127.0.0.1:8080`, then `http_status:404` as the catch-all |
-| Access application | Self-hosted, domain `hostname`, session `session_duration`, login by one-time PIN |
+| Identity provider (`cloudflare_zero_trust_access_identity_provider`) | `type = "onetimepin"`, named `One-time PIN`. The account has none by default (step 1 found only the `cloudflare` method, for account members), so OpenTofu creates it |
+| Access application | Self-hosted, domain `hostname`, session `session_duration`, `allowed_idps` is the one-time PIN provider only and `auto_redirect_to_identity = true`, so the login goes straight to the PIN |
 | Access policy | Allow, `include` the emails and the email domains. Nothing else allows |
 | DNS record | `portal` CNAME to `<tunnel-id>.cfargotunnel.com`, proxied. It `depends_on` the Access application and its policy, so the name never exists without Access in front |
 
@@ -128,18 +129,18 @@ seconds unless noted.
 | # | Step | Check | Expected |
 |---|---|---|---|
 | 1 | 2 | `make infra-check` | Passes for `infra/tofu`, `infra/tofu-bootstrap` and `infra/cloudflare`, with no credentials |
-| 2 | 2 | `test_infra_files.py` | Passes (section 5) |
+| 2 | 2 | `test_infra_files.py` | Passes (section 5, the six tests of step 2) |
 | 3 | 2 | `git check-ignore infra/cloudflare/terraform.tfvars infra/cloudflare/backend.hcl` | Both are ignored |
-| 4 | 1 | Preflight: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/user/tokens/verify \| jq .result.status` with the env file loaded, output not echoed beyond the status | `"active"` |
-| 5 | 1 | *Owner:* `tofu plan` of the scratch configuration (agent asks "go") | Adds 1 tunnel, its config, 1 Access application, 1 policy and 1 DNS record; 0 to change, 0 to destroy |
+| 4 | 1 | Preflight: `curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" https://api.cloudflare.com/client/v4/accounts/<account_id>/tokens/verify \| jq .result.status` (the token is account-owned, so the `/user/tokens/verify` endpoint answers "Invalid API Token") with the env file loaded, output not echoed beyond the status | `"active"` |
+| 5 | 1 | *Owner:* `tofu plan` of the scratch configuration (agent asks "go") | Adds 1 tunnel, its config, 1 Access application, 1 policy, 1 identity provider and 1 DNS record; 0 to change, 0 to destroy |
 | 6 | 1 | *Owner:* `tofu apply` of that saved plan (agent asks "apply") | Succeeds. This proves the token's permissions |
 | 7 | 1 | On the host, the install steps of section 3.3, then `systemctl is-active cloudflared` and `journalctl -u cloudflared --no-pager \| grep -c "Registered tunnel connection"` (timeout 60 s) | `active`; 1 or more |
 | 8 | 1 | `curl -sI https://portal-test.tripleadev.com.br/` | `302` with a `Location` on `cloudflareaccess.com`. The origin was not reached |
 | 9 | 1 | *Owner:* open the test URL in a browser, log in with the one-time PIN sent to the owner's company address | The landing page loads |
 | 10 | 1 | *Owner:* the same with an address outside the policy | Access refuses; the page never loads |
-| 11 | 1 | *Owner:* `tofu destroy` of the scratch plan (agent asks "destroy"), then `dig +short portal-test.tripleadev.com.br` and the tunnel list in the API | No DNS answer; no tunnel left. The service is stopped on the host and the env file removed |
-| 12 | 2 | *Owner:* `tofu plan` in `infra/cloudflare` (agent asks "go") | Adds the 5 resources of section 3.1; 0 to change, 0 to destroy. The plan has no DNS record before the Access application |
-| 13 | 2 | *Owner:* `tofu apply` of that saved plan (agent asks "apply"), then `tofu state list` | Succeeds; 5 resources |
+| 11 | 1 | *Owner:* `tofu destroy` of the scratch plan (agent asks "destroy"), after the service is stopped on the host (a tunnel with a live connector cannot be deleted), then `dig +short portal-test.tripleadev.com.br` and the tunnel list in the API | No DNS answer; no tunnel, Access application, policy or identity provider left. The service is stopped on the host and the env file removed |
+| 12 | 2 | *Owner:* `tofu plan` in `infra/cloudflare` (agent asks "go") | Adds the 6 resources of section 3.1; 0 to change, 0 to destroy. The plan has no DNS record before the Access application |
+| 13 | 2 | *Owner:* `tofu apply` of that saved plan (agent asks "apply"), then `tofu state list` | Succeeds; 6 resources |
 | 14 | 2 | `curl -sI` on `https://portal.tripleadev.com.br/`, `/healthz` and `/api/` | Each answers `302` to `cloudflareaccess.com` (the host service is not yet installed, so the tunnel is down; Access still answers first) |
 | 15 | 3 | *Owner:* `install-cloudflared.sh` on the host with the token on standard input; then `systemctl is-active cloudflared` and `systemctl is-enabled cloudflared` | `active`; `enabled` |
 | 16 | 3 | `stat -c '%a %U' /etc/odiservices/cloudflared.env` on the host, and `git grep -n "TUNNEL_TOKEN" -- . ':!app/api/tests'` | `600 root`; only the variable name appears, no value |
@@ -164,7 +165,7 @@ Cloudflare call and no fixture beyond the repository files:
 | `test_cloudflare_token_is_sensitive` | The `tunnel_token` output is `sensitive = true` and no file under `infra/cloudflare/` has a literal token |
 | `test_ingress_reaches_web_only` | The ingress rule targets `127.0.0.1:8080` and ends with `http_status:404` |
 | `test_firewall_opens_only_ssh` | `infra/tofu/main.tf` still opens port 22 and no other port |
-| `test_install_script_keeps_token_private` | The script reads the token from standard input, writes the env file with mode `0600` and sets `EnvironmentFile` |
+| `test_install_script_keeps_token_private` (step 3, with the script) | The script reads the token from standard input, writes the env file with mode `0600` and sets `EnvironmentFile` |
 
 ## 6. Open questions
 
@@ -194,13 +195,13 @@ Cloudflare call and no fixture beyond the repository files:
    plan (up to 50 users; Cloudflare asks for a payment method but charges
    nothing), and choose a team name, for example `tripleadev`. The team
    domain becomes `<team>.cloudflareaccess.com`.
-3. **The login method.** In *Zero Trust › Settings › Authentication*, confirm
-   *One-time PIN* is listed. It is added by default.
+3. **The login method.** Nothing to do: the account has no One-time PIN
+   provider, and OpenTofu creates it (section 3.1).
 4. **An API token** (*My Profile › API Tokens › Create Token › Custom*), with:
    - Account › **Cloudflare Tunnel**: Write
    - Account › **Access: Apps**: Write
    - Account › **Access: Policies**: Write
-   - Account › **Access: Organizations, Identity Providers, and Groups**: Read
+   - Account › **Access: Organizations, Identity Providers, and Groups**: **Write** (the provider is created by OpenTofu; Read is not enough)
    - Zone › **DNS**: Write
 
    These are the labels the dashboard showed on 2026-11-02 (it splits Apps and
@@ -221,7 +222,7 @@ Cloudflare call and no fixture beyond the repository files:
 | OpenTofu with `use_lockfile` | agent | `tofu version` | `v1.13.2` or newer. **Green** (2026-11-02) |
 | The state bucket and the AWS profile | agent | `AWS_PROFILE=odiservices-tofu aws sts get-caller-identity` | `…:user/odiservices-tofu` |
 | A Cloudflare account with the zone active, Zero Trust on the Free plan | owner | The dashboard (steps 1 and 2) | Zone *Active*; team domain set. **Missing** |
-| The API token, scoped, in `~/.config/odiservices/cloudflare.env` | owner | Check 4 | `"active"`. **Missing** |
+| The API token, scoped, in `~/.config/odiservices/cloudflare.env` | owner | Check 4 (the account endpoint) | `"active"`. **Green** (2026-11-02) |
 | `portal` and `portal-test` are free in the zone | agent | `dig +short portal.tripleadev.com.br` and `portal-test.tripleadev.com.br` | No answer. Not checked yet |
 | Inventory | owner | The zone's DNS page and Zero Trust apps list | Assumed empty of `portal` records and Access apps. The token may not list them, so the owner confirms |
 | SSH to the host | owner | `ssh deploy@<public_ip> true` | Exit 0. Green since OPS-03 |
@@ -239,8 +240,10 @@ already there.
    version.
 2. **The Free plan covers Tunnel and Access for this use.** *Assumed* from
    Cloudflare's documentation. Step 1 applies on the owner's account.
-3. **One-time PIN is available after the Zero Trust setup.** *Assumed.* Owner
-   step 3 shows it, and check 9 uses it.
+3. **One-time PIN is available after the Zero Trust setup.** *Wrong, corrected
+   in step 1 (2026-11-02).* The account listed only the `cloudflare` method
+   and check 9 showed "restricted to members of the account". The provider is
+   now a resource (section 3.1) and the token needs Write on identity providers.
 4. **Universal SSL covers `portal.tripleadev.com.br`.** *Assumed*: a
    first-level subdomain of a zone on Cloudflare. Check 8 gets a valid TLS
    answer or fails visibly.
@@ -255,6 +258,15 @@ already there.
 9. **The `odiservices-tofu` S3 access is separate from the Cloudflare token.**
    *Verified* by design: two providers in two configurations, no shared
    credential.
+10. **The v5 provider (5.28.1) names and shapes in section 3.1.** *Verified* in
+    step 1: the resources apply and the token comes from the data source.
+11. **The tunnel config cannot be destroyed by OpenTofu** (the plan warns).
+    *Verified*: it is removed with its tunnel, and nothing is left.
+12. **A tunnel with a connected `cloudflared` cannot be destroyed.** *Found in
+    step 1* (the first `destroy` failed on the tunnel). Stop and remove the
+    service on the host first; the runbook says so.
+13. **Outside addresses get no PIN.** *Verified* (check 10): the PIN never
+    arrived for an address outside the policy.
 
 ## 9. Approvals
 

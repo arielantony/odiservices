@@ -109,3 +109,68 @@ def test_backend_is_partial_and_locked():
     assert "encrypt      = true" in example
     assert "use_lockfile = true" in example
     assert "<account-id>" in example
+
+
+CLOUDFLARE = ROOT / "infra" / "cloudflare"
+cf_main = (CLOUDFLARE / "main.tf").read_text()
+cf_variables = (CLOUDFLARE / "variables.tf").read_text()
+cf_versions = (CLOUDFLARE / "versions.tf").read_text()
+cf_outputs = (CLOUDFLARE / "outputs.tf").read_text()
+
+
+def _block(text, header):
+    return text.split(header)[1].split("\n}\n")[0]
+
+
+def test_cloudflare_dns_depends_on_access():
+    dns = _block(cf_main, 'resource "cloudflare_dns_record" "portal"')
+    depends = dns.split("depends_on")[1]
+    assert "cloudflare_zero_trust_access_application.portal" in depends
+    assert "cloudflare_zero_trust_access_policy.allow" in depends
+
+
+def test_cloudflare_has_no_identifier_defaults():
+    for name in ("account_id", "zone_id", "allowed_emails", "allowed_email_domains"):
+        assert not re.search(r"^\s*default\s*=", _block(cf_variables, f'variable "{name}"'), re.M), name
+    example = (CLOUDFLARE / "terraform.tfvars.example").read_text()
+    assert "<cloudflare-account-id>" in example and "<zone-id-of-tripleadev.com.br>" in example
+    assert not re.search(r'"[0-9a-f]{32}"', example)
+    assert "@" not in example
+
+
+def test_cloudflare_provider_is_pinned():
+    assert re.search(r'version\s*=\s*"= \d+\.\d+\.\d+"', cf_versions)
+    assert (CLOUDFLARE / ".terraform.lock.hcl").is_file()
+
+
+def test_cloudflare_token_is_sensitive():
+    assert "sensitive = true" in _block(cf_outputs, 'output "tunnel_token"')
+    for path in CLOUDFLARE.iterdir():
+        if not path.is_file() or path.name in (".terraform.lock.hcl", "terraform.tfvars", "backend.hcl"):
+            continue
+        text = path.read_text()
+        assert not re.search(r'(token|secret|password)\s*=\s*"[^"]+"', text, re.I), path.name
+        assert not re.search(r"\b[0-9a-f]{32}\b", text), path.name
+
+
+def test_ingress_reaches_web_only():
+    ingress = cf_main.split("ingress = [")[1].split("]")[0]
+    assert ingress.count("service") == 2
+    assert 'service = "http://127.0.0.1:8080"' in ingress
+    assert ingress.strip().rstrip(",").endswith('{ service = "http_status:404" }')
+
+
+def test_firewall_opens_only_ssh():
+    assert main.count("port_info {") == 1
+    assert "from_port = 22" in main and "to_port   = 22" in main
+
+
+def test_install_script_keeps_token_private():
+    script = (ROOT / "app" / "deploy" / "install-cloudflared.sh").read_text()
+    assert "read -r TUNNEL_TOKEN" in script and "[ -t 0 ]" in script
+    assert "${1" not in script and "$1" not in script
+    assert 'install -m 0600 -o root -g root /dev/null "$ENV_FILE"' in script
+    assert "EnvironmentFile=/etc/odiservices/cloudflared.env" in script
+    assert not re.search(r"echo[^\n]*TUNNEL_TOKEN", script)
+    assert "set -x" not in script
+    assert not re.search(r"TUNNEL_TOKEN=[A-Za-z0-9]", script)
