@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Packaging and deployment › Infrastructure › OPS-07 |
 | **Depends on** | OPS-03 |
-| **Spec status** | In review, 2026-11-01. Owner decisions of 2026-11-01 are applied: S3 native locking (`use_lockfile`), SSE-S3, a separate bootstrap configuration, bucket `odiservices-tofu-state-<account-id>` in `us-east-2`, versioning, public access blocked, TLS only, 90 days of old versions |
+| **Spec status** | Approved, 2026-11-01 (approved by the owner when #45 merged). Owner decisions of 2026-11-01 are applied: S3 native locking (`use_lockfile`), SSE-S3, a separate bootstrap configuration, bucket `odiservices-tofu-state-<account-id>` in `us-east-2`, versioning, public access blocked, TLS only, 90 days of old versions |
 | **Date** | 2026-11-01 |
 
 ## 1. Goal
