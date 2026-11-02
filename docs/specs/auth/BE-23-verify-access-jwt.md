@@ -159,11 +159,11 @@ Every check runs when the item merges. The owner runs the ones marked
 | 3 | The same server: `curl -si http://127.0.0.1:8000/healthz` and `curl -si -H 'Cf-Access-Jwt-Assertion: aaa.bbb.ccc' http://127.0.0.1:8000/api/session` | `200` for `/healthz`, `401` for the forged token |
 | 4 | `PORTAL_ACCESS_AUD=xyz make serve` | Startup fails and the message names `PORTAL_ACCESS_AUD` and does not print `xyz` |
 | 5 | With neither variable set: `make serve`, then `curl -si http://127.0.0.1:8000/api/session` and `/healthz` | `503` with `auth_unavailable`, and `200` for `/healthz` |
-| 6 | *Owner:* put the two values in `/etc/odiservices/.env` on the host and run `deploy.sh` (runbook, new subsection) | The script ends with `deployed <sha>` |
+| 6 | *Owner:* put the two values in `/etc/odiservices/.env` on the host and recreate the `api` container (runbook 7.6, steps 1 to 3) | The file has 2 `PORTAL_ACCESS_` lines and the container has 2 `PORTAL_ACCESS_` variables |
 | 7 | *Owner:* on the host, `curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/api/session`, then the same with `-H 'Cf-Access-Jwt-Assertion: aaa.bbb.ccc'` | `401` twice: the origin refuses a request that did not come through Access |
 | 8 | *Owner:* in the browser, log in at `https://portal.tripleadev.com.br` and open `/api/session` | `{"authenticated":true}`: a real token passes (algorithm, issuer, audience and `sub` match) |
 | 9 | *Owner:* on the host, `sudo docker logs $(sudo docker ps -q --filter name=api) 2>&1 \| grep -c 'eyJ'` | `0`: no token reached the log |
-| 10 | `git grep -n 'eyJ' -- . ':!app/api/tests'` and `git grep -n 'cloudflareaccess.com' -- app/api/server` | No match for the first. The second shows only the pattern in `settings.py` |
+| 10 | `git grep -n 'eyJ' -- . ':!app/api/tests' ':!docs/specs'` and `git grep -n 'cloudflareaccess.com' -- app/api/server` | No match for either: no token in the repository, and no team domain written in the server code (`settings.py` holds only a pattern with escaped dots) |
 
 Check 8 is the one that proves the design against the real service, so the
 item is not Done without it.

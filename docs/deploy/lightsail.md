@@ -220,24 +220,44 @@ lasts 12 hours and ends only there.
 
 The API checks the Access token itself, so it needs two settings in
 `/etc/odiservices/.env` on the host (root, `0600`). Neither is a secret, but
-the file stays root-only.
+the file stays root-only and out of the repository.
 
-1. Read the AUD on your machine, with the Cloudflare token loaded as in 7.1
-   and your AWS profile named. It is not printed to the repository or to chat:
+1. On your machine, write the two lines to a private file. The AUD is read
+   from the OpenTofu state (the Cloudflare token is not needed for this).
+   Do not use the clipboard: copying the next command overwrites it.
 
    ```sh
    cd infra/cloudflare
-   AWS_PROFILE=odiservices-tofu tofu output -raw access_aud | pbcopy
+   AUD=$(AWS_PROFILE=odiservices-tofu tofu output -raw access_aud)
+   (umask 077; printf 'PORTAL_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com\nPORTAL_ACCESS_AUD=%s\n' "$AUD" \
+     > ~/.config/odiservices/portal-access.env)
    ```
 
-2. On the host, edit the file (`sudo` needs a terminal) and add:
+2. Write them on the host. `tee` runs under `sudo`, and the input comes from
+   your file, so the `<` is on your machine (a `<` after `sudo` on the host
+   would be opened by the `deploy` user and fail). `truncate` empties the
+   file first, so run it only when the file holds nothing you need:
 
-   ```
-   PORTAL_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com
-   PORTAL_ACCESS_AUD=<the 64 characters from step 1>
+   ```sh
+   ssh -i <SSH_KEY_FILE> -o IdentitiesOnly=yes deploy@<public_ip> \
+     'sudo truncate -s 0 /etc/odiservices/.env && sudo tee -a /etc/odiservices/.env >/dev/null \
+      && sudo grep -c "^PORTAL_ACCESS_" /etc/odiservices/.env' < ~/.config/odiservices/portal-access.env
    ```
 
-3. Deploy: `/opt/odiservices/app/deploy/deploy.sh <tag-or-commit>`.
+   It must print `2`.
+
+3. Recreate the `api` container, because it reads the file only when it is
+   created. `deploy.sh` with the tag already running does not recreate it:
+
+   ```sh
+   ssh -i <SSH_KEY_FILE> -o IdentitiesOnly=yes deploy@<public_ip> \
+     'cd /opt/odiservices/app && sudo env DEPLOY_TAG=<tag> docker compose -f docker-compose.yml \
+      -f docker-compose.prod.yml up --detach --wait --force-recreate api \
+      && sudo docker exec odiservices-api-1 env | grep -c "^PORTAL_ACCESS_"'
+   ```
+
+   It must print `2`. A deploy of a new tag creates the container again by
+   itself.
 
 Check it from the host. Both calls must answer `401`, because neither came
 through Access:
@@ -251,4 +271,6 @@ In the browser, after the PIN login, `https://portal.tripleadev.com.br/api/sessi
 shows `{"authenticated":true}`.
 
 With the two settings missing the API still starts, `/healthz` stays up and
-every other API route answers `503` (`auth_unavailable`).
+every other API route answers `503` (`auth_unavailable`). Two `503` on the
+check above mean the container does not have the settings: count them as in
+step 3.
