@@ -110,6 +110,7 @@ the states and layouts that apply to all screens.
 | FE-02 | Story | [Categorizer service card](stories/landing/FE-02-categorizer-service-card.feature) | — | Draft | BE-02 |
 | FE-19 | Story | Loading, error and session-expired states on every screen | — | Needs prototype | BE-23 |
 | FE-20 | Story | Small screens, for every screen (v3 is desktop only) | — | Needs prototype | — |
+| FE-24 | Story | Sign out: a "Sair" control in the top bar that goes to `/cdn-cgi/access/logout` (the Access session lasts 12 hours and ends only there). Recorded during OPS-04 | — | Needs prototype | OPS-04 |
 | FE-23 | Task | Create the React app in `app/web/` (Vite, TypeScript, router, tokens, API client, Vitest) and move the static portal to `web/legacy/` (git-ignored, backed up to `~/odiservices-backups/`). Two PRs: scaffold, then API client | [Approved](specs/shell/FE-23-react-app.md) | Done | — | [#2], [#3], [#9], [#8] |
 
 - FE-23: `app/portal/` was archived to `~/odiservices-backups/portal-pre-react-2026-10-30.tar.gz` and moved to `app/web/legacy/` (git-ignored, deleted after FE-13). Step 1 (scaffold) and step 2 (API client) are separate PRs. Done 2026-10-30. The spec's `make dev` and `make serve` checks need the backend, so they are verified in BE-17 and BE-01.
@@ -296,7 +297,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 | OPS-01 | Task | Write separate Dockerfiles for the API and the web app (nginx) | [Approved](specs/deploy/OPS-01-dockerfile.md) | Done | BE-33, BE-19, BE-20 | [#29] |
 | OPS-02 | Task | Write a docker-compose file (`api` and `web` services) for local testing | [Approved](specs/deploy/OPS-02-docker-compose.md) | Done | OPS-01, BE-18 | [#30] |
 | OPS-03 | Task | Create the AWS Lightsail instance with OpenTofu and deploy the images | [Approved](specs/deploy/OPS-03-lightsail-deploy.md) | Done | OPS-01, OPS-02, BE-32 | [#34] [#35] [#36] [#37] [#38] [#39] [#40] [#41] [#42] [#43] |
-| OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | [Approved](specs/deploy/OPS-04-cloudflare.md) | Ready | OPS-03, OPS-07 | [#49] |
+| OPS-04 | Task | Put Cloudflare in front of the Lightsail instance | [Approved](specs/deploy/OPS-04-cloudflare.md) | Ready | OPS-03, OPS-07 | [#49] [#50] |
 | OPS-05 | Task | Manage secrets on the host | — | Draft | OPS-03 | |
 | OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
 | OPS-07 | Task | Move the OpenTofu state to a private S3 bucket with locking | [Approved](specs/deploy/OPS-07-remote-state.md) | Done | OPS-03 | [#45] [#46] [#47] [#48] |
@@ -387,3 +388,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#47]: https://github.com/arielantony/odiservices/pull/47
 [#48]: https://github.com/arielantony/odiservices/pull/48
 [#49]: https://github.com/arielantony/odiservices/pull/49
+[#50]: https://github.com/arielantony/odiservices/pull/50
