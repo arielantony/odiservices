@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Authentication › BE-23 |
 | **Depends on** | BE-17, BE-18, BE-20, BE-21, OPS-03, OPS-04 (the live checks need the portal behind Access) |
-| **Spec status** | In review, 2026-11-02 |
+| **Spec status** | Approved, 2026-11-02, with the recommended answer to each question in section 6. Corrected while implementing: the AUD preflight expects `64`, and assumptions 4 and 5 are verified |
 | **Date** | 2026-11-02 |
 
 ## 1. Goal
@@ -134,10 +134,18 @@ the key fetch does not block the event loop. It returns
 | `docs/BACKEND_GUIDELINES.md` | Auth section: the check is in place, the two settings, the exempt list |
 | `docs/BACKLOG.md` | BE-23 status; the Authentication › Backend area moves to Planned |
 
-The change is one pull request, about 450 changed lines with the tests. If
-it passes 500 while it is written, it splits at the seam between the
-verifier (settings, `access.py`, their tests) and the application wiring
-(`main.py`, `session.py`, the runbook), and this spec is amended first.
+The change is about 740 changed lines with the tests, over the limit of 500,
+so it has two steps and a final pull request (approved by the owner,
+2026-11-02). The branch is `feature/be-23-access-jwt`.
+
+| Step | Contents | Lines |
+|---|---|---|
+| 1, the verifier | `pyjwt[crypto]`, the two settings, `.env.example`, `AccessVerifier` and its exceptions in `access.py`, the fake Access helper, `test_access_verifier.py` and the settings tests | about 470 |
+| 2, the wiring | The `require_access` dependency, the answers, `PUBLIC_ROUTES`, `main.py`, `GET /api/session`, `test_access_routes.py`, the two existing tests that adapt, the runbook, `BACKEND_GUIDELINES.md` | about 280 |
+| Final PR | `feature/be-23-access-jwt` to `main`: Done in the backlog, and the checks that need the host and the browser (6 to 9) | no new code |
+
+Checks 1 and 4 run in step 1. Checks 2, 3 and 5 need the wiring and run in
+step 2. Checks 6 to 9 run in the final pull request.
 
 ## 4. Verification
 
@@ -229,7 +237,7 @@ A question with no answer becomes an assumption with the recommended option.
 |---|---|---|---|
 | The portal is behind Access (OPS-04 Done) | Agent | `curl -sI https://portal.tripleadev.com.br/healthz \| head -1` | `HTTP/2 302` |
 | The key set is published | Agent | `curl -s https://tripleadev.cloudflareaccess.com/cdn-cgi/access/certs \| python3 -c 'import json,sys; print(len(json.load(sys.stdin)["keys"]))'` | A number of 1 or more |
-| The AUD is known | Owner or agent, with the Cloudflare token loaded as in the runbook | From `infra/cloudflare/`: `tofu output -raw access_aud \| wc -c` | `65` (64 characters and a newline). The value is not secret, and it stays out of the repository |
+| The AUD is known | Owner or agent, with the Cloudflare token loaded as in the runbook | From `infra/cloudflare/`: `AWS_PROFILE=odiservices-tofu tofu output -raw access_aud \| wc -c` | `64` (`-raw` prints no newline). The value is not secret, and it stays out of the repository |
 | SSH access to the host | Owner | `ssh -i <SSH_KEY_FILE> deploy@<public_ip> true; echo $?` | `0` |
 | A way to edit `/etc/odiservices/.env` | Owner | `ssh -t -i <SSH_KEY_FILE> deploy@<public_ip> 'sudo -n true' ; echo $?` | `0`, or the owner uses `sudo` in a terminal |
 | A package that resolves for Python 3.14 | Agent | `printf 'pyjwt[crypto]\n' > "$SCRATCH/in.txt" && uv pip compile --python-version 3.14 "$SCRATCH/in.txt"` | Pins `pyjwt`, `cryptography`, `cffi`, `pycparser` |
@@ -252,11 +260,11 @@ reads `/etc/odiservices/.env` and never uses the owner's SSH key.
 | 1 | nginx forwards `Cf-Access-Jwt-Assertion` to the API | *Verified* by reading `web/nginx/default.conf.template`: `proxy_set_header` sets only `Host`, and nginx passes the other request headers | Check 8 |
 | 2 | Access sends the token to the origin through the tunnel in that header | *Assumed* (documented Access behavior; the TypeScript reference used it) | Check 8 |
 | 3 | The token has `alg` RS256, `iss` `https://<team domain>`, `aud` as a list, a `sub` and an `email` | *Assumed*. The reference checked `iss`, `aud` and RS256, but `sub` is new here | Check 8. If a real token lacks `sub`, the check shows a 401 and this spec is amended before the code goes on |
-| 4 | `PyJWKClient` caches the key set and refetches once on an unknown `kid` | *Assumed* | A smoke run in the first commit: a local HTTP server that serves a key set, asked for a known `kid`, then for a rotated one |
-| 5 | `cryptography` has a wheel for Python 3.14 on macOS arm64 and on the Linux image | *Assumed* | `make setup-api` and `make build-api-image` (the image build is part of `make test` or the Dockerfile check) in the first commit |
+| 4 | `PyJWKClient` caches the key set and refetches once on an unknown `kid` | *Verified* by reading PyJWT 2.15.1 (`get_signing_key`): it refreshes once, with a 30 s cooldown, keeps the cache when a fetch fails, and refuses redirects | The unit tests |
+| 5 | `cryptography` has a wheel for Python 3.14 on macOS arm64 and on the Linux image | *Verified* on 2026-11-02: `make setup-api` installs `cryptography` 50.0.2, and the `api` image builds and imports it on a read-only filesystem | `make setup-api`, `docker build api` |
 | 6 | The `api` container (read-only filesystem) can reach `https://<team domain>` | *Assumed* | Check 8. If it fails, the key fetch needs egress or a cache directory, and this spec is amended |
 | 7 | `PyJWKClient` writes nothing to disk | *Assumed* | Check 8 on the read-only container |
 
-Assumptions 4 and 5 are cheap and run first, before anything is built on
-them. Assumptions 2, 3, 6 and 7 can only be seen with the real service, so
+Assumptions 4 and 5 were checked before anything was built on them.
+Assumptions 2, 3, 6 and 7 can only be seen with the real service, so
 check 8 stays in the item and the item is not Done until it passes.
