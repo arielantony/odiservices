@@ -215,3 +215,40 @@ Do the host first: a tunnel that still has a connector cannot be deleted.
 
 `https://portal.tripleadev.com.br/cdn-cgi/access/logout`. The Access session
 lasts 12 hours and ends only there.
+
+### 7.6 Make the API verify the Access token (BE-23)
+
+The API checks the Access token itself, so it needs two settings in
+`/etc/odiservices/.env` on the host (root, `0600`). Neither is a secret, but
+the file stays root-only.
+
+1. Read the AUD on your machine, with the Cloudflare token loaded as in 7.1
+   and your AWS profile named. It is not printed to the repository or to chat:
+
+   ```sh
+   cd infra/cloudflare
+   AWS_PROFILE=odiservices-tofu tofu output -raw access_aud | pbcopy
+   ```
+
+2. On the host, edit the file (`sudo` needs a terminal) and add:
+
+   ```
+   PORTAL_ACCESS_TEAM_DOMAIN=<team>.cloudflareaccess.com
+   PORTAL_ACCESS_AUD=<the 64 characters from step 1>
+   ```
+
+3. Deploy: `/opt/odiservices/app/deploy/deploy.sh <tag-or-commit>`.
+
+Check it from the host. Both calls must answer `401`, because neither came
+through Access:
+
+```sh
+curl -s -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8080/api/session
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Cf-Access-Jwt-Assertion: aaa.bbb.ccc' http://127.0.0.1:8080/api/session
+```
+
+In the browser, after the PIN login, `https://portal.tripleadev.com.br/api/session`
+shows `{"authenticated":true}`.
+
+With the two settings missing the API still starts, `/healthz` stays up and
+every other API route answers `503` (`auth_unavailable`).

@@ -2,21 +2,41 @@
 
 Access signs a token for the application and sends it to the origin in the
 `Cf-Access-Jwt-Assertion` header. This module checks it and fails closed.
-The token, its claims and the keys are never logged. The application wiring
-(the dependency and the answers) comes in step 2.
+The token, its claims and the keys are never logged.
 """
 
+import json
+import sys
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import Any, Protocol
 
 import jwt
+from fastapi import Request
 from jwt import PyJWKClient
 
+# The only routes that need no token. Everything else is protected, so a
+# router added later is protected without anyone remembering to do it.
+PUBLIC_ROUTES = frozenset({"/healthz"})
+
+HEADER = "cf-access-jwt-assertion"
 CLOCK_TOLERANCE_SECONDS = 60
 KEY_CACHE_SECONDS = 300
 KEY_FETCH_TIMEOUT_SECONDS = 5
 # A real Access token is about 1 KB. Refuse anything absurd before parsing.
 MAX_TOKEN_LENGTH = 8192
+
+UNAUTHORIZED = (
+    401,
+    "unauthorized",
+    "Sessão inválida ou expirada. Entre novamente.",
+)
+UNAVAILABLE = (
+    503,
+    "auth_unavailable",
+    "Não foi possível verificar sua sessão. Tente novamente.",
+)
+
 
 @dataclass(frozen=True)
 class AccessIdentity:
@@ -30,6 +50,16 @@ class AccessTokenInvalid(Exception):
 
 class AccessUnavailable(Exception):
     """The keys cannot be fetched, or the verifier is not configured."""
+
+
+class AccessError(Exception):
+    """A refusal, with the status and the JSON error body to send."""
+
+    def __init__(self, status: int, code: str, message: str):
+        super().__init__(code)
+        self.status = status
+        self.code = code
+        self.message = message
 
 
 class KeyClient(Protocol):
@@ -96,3 +126,34 @@ class AccessVerifier:
         if email is not None and not isinstance(email, str):
             raise AccessTokenInvalid
         return AccessIdentity(subject=subject, email=email)
+
+
+def log_not_configured() -> None:
+    entry = {
+        "ts": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
+        "level": "WARNING",
+        "event": "access_not_configured",
+    }
+    sys.stdout.write(json.dumps(entry) + "\n")
+    sys.stdout.flush()
+
+
+def require_access(request: Request) -> AccessIdentity | None:
+    """Applied to the whole application. Returns the verified identity, or
+    None on a public route. BE-24 reads the identity from here."""
+    route = request.scope.get("route")
+    if route is not None and route.path in PUBLIC_ROUTES:
+        return None
+
+    verifier: AccessVerifier | None = request.app.state.access_verifier
+    if verifier is None:
+        raise AccessError(*UNAVAILABLE)
+    token = request.headers.get(HEADER)
+    if not token:
+        raise AccessError(*UNAUTHORIZED)
+    try:
+        return verifier.verify(token)
+    except AccessUnavailable:
+        raise AccessError(*UNAVAILABLE) from None
+    except AccessTokenInvalid:
+        raise AccessError(*UNAUTHORIZED) from None
