@@ -11,9 +11,13 @@ BASE="http://127.0.0.1:8080"
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 # Compose reads env_file on the client side, and /etc/odiservices/.env is root-only
 # (0600), so compose runs under sudo. Builds and git stay as the deploy user.
+# The hash of the env file goes into a label of the api container
+# (docker-compose.prod.yml), so a change to the file recreates the container even
+# when the tag is the same. Only the hash is used; the content is never printed.
 compose() {
-  local tag="$1"; shift
-  sudo env DEPLOY_TAG="$tag" docker compose -f docker-compose.yml -f docker-compose.prod.yml "$@"
+  local tag="$1" env_hash; shift
+  env_hash="$(sudo sha256sum "$ENV_FILE" | cut -d' ' -f1)"
+  sudo env DEPLOY_TAG="$tag" ENV_SHA256="$env_hash" docker compose -f docker-compose.yml -f docker-compose.prod.yml "$@"
 }
 
 if [ -n "$(git status --porcelain)" ]; then
@@ -49,9 +53,11 @@ else
   exit 1
 fi
 
-# Keep the images of the last three deploys.
+# Keep the images of the last three deploys, and never the ones in use or the
+# rollback target, even when they are old (an older commit deployed again keeps
+# its old creation date and would sort last).
 for svc in api web; do
   docker images "odiservices-${svc}" --format '{{.Tag}}' \
-    | grep -vx -e current -e local | tail -n +4 \
+    | grep -vx -e current -e local -e "$TAG" -e "${previous:-current}" | tail -n +4 \
     | xargs -r -I{} docker rmi "odiservices-${svc}:{}" || true
 done

@@ -246,18 +246,18 @@ the file stays root-only and out of the repository.
 
    It must print `2`.
 
-3. Recreate the `api` container, because it reads the file only when it is
-   created. `deploy.sh` with the tag already running does not recreate it:
+3. Deploy the tag already running. `deploy.sh` puts a hash of the file in a
+   label of the `api` container, so a changed file recreates it (a plain
+   `docker compose up` would not):
 
    ```sh
    ssh -i <SSH_KEY_FILE> -o IdentitiesOnly=yes deploy@<public_ip> \
-     'cd /opt/odiservices/app && sudo env DEPLOY_TAG=<tag> docker compose -f docker-compose.yml \
-      -f docker-compose.prod.yml up --detach --wait --force-recreate api \
+     '/opt/odiservices/app/deploy/deploy.sh <tag-or-commit> \
       && sudo docker exec odiservices-api-1 env | grep -c "^PORTAL_ACCESS_"'
    ```
 
-   It must print `2`. A deploy of a new tag creates the container again by
-   itself.
+   It must print `2`. If nothing in the file changed, the containers stay as
+   they are.
 
 Check it from the host. Both calls must answer `401`, because neither came
 through Access:

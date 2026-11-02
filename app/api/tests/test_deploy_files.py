@@ -79,3 +79,14 @@ def test_deploy_script_runs_compose_as_root():
     for line in SCRIPT.splitlines():
         if "docker compose" in line and not line.lstrip().startswith("#"):
             assert "sudo" in line
+
+
+def test_api_label_carries_the_env_file_hash():
+    labels = _merged()["api"]["labels"]
+    assert labels["odiservices.env-sha256"] == "${ENV_SHA256:-none}"
+    assert "labels" not in _merged()["web"]
+
+
+def test_deploy_script_passes_only_a_hash_of_the_env_file():
+    assert 'sudo sha256sum "$ENV_FILE"' in SCRIPT
+    assert 'ENV_SHA256="$env_hash"' in SCRIPT
