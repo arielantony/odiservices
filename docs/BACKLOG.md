@@ -258,14 +258,18 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 
 ### Backend
 
-*Stage: Outline*
+*Stage: Planned*
 
-- **BE-23** Verify the Cloudflare Access JWT on every protected request
-  - Context: the owner defined Cloudflare Access as the auth layer. Verify the `Cf-Access-Jwt-Assertion` header against the team's certs and the application AUD. `app/src/auth/access-jwt.ts` (in the backup) already does this in TypeScript and is a reference.
-- **BE-24** Resolve the Access identity to a `users` row
-  - Context: there is a single user for now, but every record should belong to a user. Create the row on first login, keyed by the Access subject.
-- **BE-25** Provide a local development auth bypass
-  - Context: Cloudflare Access is not present locally. A setting that is off by default in production injects a fixed dev user.
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
+| BE-23 | Task | Verify the Cloudflare Access JWT on every protected request | [In review](specs/auth/BE-23-verify-access-jwt.md) | Draft | BE-17, BE-18, BE-20, BE-21, OPS-03, OPS-04 | |
+| BE-24 | Task | Resolve the Access identity to a `users` row | — | Draft | BE-23, BE-26 | |
+| BE-25 | Task | Provide a local development auth bypass | — | Draft | BE-23 | |
+
+Notes:
+- BE-23: the owner defined Cloudflare Access as the auth layer. Verifies `Cf-Access-Jwt-Assertion` against the team's certs and the application AUD, deny by default with `/healthz` exempt, and adds `GET /api/session`. `app/src/auth/access-jwt.ts` (in the backup) already does this in TypeScript and is a reference. Its live check (a real token in the browser) needs OPS-04, which is Done.
+- BE-24: there is a single user for now, but every record should belong to a user. Create the row on first login, keyed by the Access subject (`sub`, which BE-23 exposes).
+- BE-25: Cloudflare Access is not present locally. A setting that is off by default in production injects a fixed dev user. Works only with `PORTAL_ENV=dev`.
 
 ## Database (Supabase)
 
