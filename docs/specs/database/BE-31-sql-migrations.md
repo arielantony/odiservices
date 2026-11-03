@@ -34,7 +34,7 @@ SQL before it runs, and every command against Supabase is the owner's.
   lives here and BE-27 adds the first model to it.
 - The baseline migration `0001`.
 - A helper that every table migration calls to turn on RLS and add the policy.
-- `make db-upgrade`, `db-sql`, `db-current` and `db-downgrade`.
+- `make db-upgrade`, `db-sql`, `db-current`, `db-downgrade` and `db-revision`.
 - Tests: the migration files, the baseline against a real local Postgres, the
   RLS invariant, and the test that fails when the ORM models and the migrated
   schema differ.
@@ -114,10 +114,17 @@ when a table in `portal` has no RLS or has a policy for any role other than
 
 ### 3.4 Migration files
 
-- Alembic with **hand-written** migrations. `--autogenerate` is not used to
-  write them: it does not understand RLS, policies or roles, and those are the
-  point. The models describe tables and queries, and the migrations describe
-  the schema, the roles and the security.
+- Alembic, with `--autogenerate` as a **drafting aid** only (decided by the
+  owner, 2026-11-02). `make db-revision M="<slug>"` runs `alembic revision
+  --autogenerate` against the local Postgres and writes a draft for tables,
+  columns, indexes and constraints. The author **reads and edits every
+  draft** before committing it: a rename appears as drop plus add (data loss),
+  and server defaults, enums and check constraints may be missed. Autogenerate
+  does not see RLS, policies, grants or roles, so those are written by hand:
+  the helper (3.3) in each migration that creates a table, and the baseline
+  for roles and privileges. The invariant test is the safety net for a
+  forgotten helper call. The `db-sql` plan (3.6) is what the owner approves,
+  never the draft.
 - Revision ids are `0001`, `0002`, and so on, in a straight line: one head,
   no branches. The file name is `<id>_<slug>.py`.
 - Each migration runs in its own transaction (`transaction_per_migration`),
@@ -149,6 +156,12 @@ schema `portal` before Alembic creates its version table there
 
 ### 3.6 Applying to production (Article 7)
 
+0. **Backup.** The Supabase project is on the Free plan, which has no
+   automatic backups, and it is the only production database. Before each
+   `upgrade` the owner runs `pg_dump` against it (the owner's URL) and keeps
+   the file **outside the repository**. The dump holds real data once the
+   portal has any, so it stays on the owner's machine and is never committed
+   or shared.
 1. **Plan.** `make db-sql` runs `alembic upgrade --sql`: it prints the SQL
    from the current revision to the head and **connects to nothing**. The
    owner reads it and says "apply". An approval covers that SQL only. For a
@@ -190,7 +203,7 @@ up while it costs nothing.
 | `app/api/alembic.ini` | New | 1 |
 | `app/api/migrations/env.py`, `script.py.mako` | New | 1 |
 | `app/api/server/db/base.py` | New: `Base`, the naming convention, `MetaData(schema="portal")` | 1 |
-| `app/Makefile` | `db-upgrade`, `db-sql`, `db-current`, `db-downgrade`, `help` lines | 1 |
+| `app/Makefile` | `db-upgrade`, `db-sql`, `db-current`, `db-downgrade`, `db-revision`, `help` lines | 1 |
 | `app/api/migrations/versions/0001_baseline.py` | New | 2 |
 | `app/api/migrations/helpers.py` | New: `enable_backend_only_rls` | 2 |
 | `docs/specs/database/BE-26-postgres-connection.md` | Out-of-scope line: the base class is BE-31's, not BE-27's | final |
@@ -201,9 +214,8 @@ up while it costs nothing.
 ## 4. Verification
 
 Every check runs when the item merges. Checks marked *Owner* are the owner's:
-the agent never has a production credential. Checks 9 to 17 are blocked until
-the owner confirms the Supabase project (BE-26, section 7), and the item is
-not Done without them.
+the agent never has a production credential. Checks 9 to 17 are the owner's
+and need the pooler details (section 7); the item is not Done without them.
 
 | # | Check | Expected |
 |---|---|---|
@@ -224,6 +236,7 @@ not Done without them.
 | 15 | *Owner:* as `app_backend`: `create table portal.zz_probe (id int)` | `permission denied for schema portal`: the server role cannot change the schema |
 | 16 | *Owner:* put the URL in the host's `/etc/odiservices/.env`, run `deploy.sh <tag>`, then `sudo docker exec odiservices-api-1 python -m server.db` | `database ok (role=app_backend, postgres=<major>)`: the host reaches the pooler |
 | 17 | *Owner:* `sudo docker exec odiservices-api-1 env \| grep -c '^PORTAL_DATABASE_URL='` and `sudo docker exec odiservices-api-1 env \| grep -c '^PORTAL_MIGRATION_DATABASE_URL='` | `1` and `0`: the privileged credential is not on the host |
+| 18 | After check 3, add a scratch model with one column to a throwaway copy of `Base`, then `make db-revision M=probe` | A draft file appears in `migrations/versions/` with the table. It is deleted afterwards, and `git status` is clean |
 
 ## 5. Tests
 
@@ -281,7 +294,8 @@ A question with no answer becomes an assumption with the recommended option.
 |---|---|---|---|
 | BE-26 is merged and the local Postgres works | Agent | `make db-up && make db-check` | `database ok (role=odiservices, postgres=17)` |
 | The packages resolve for Python 3.14 | Agent | `printf 'alembic\n' > "$SCRATCH/in.txt" && uv pip compile --python-version 3.14 "$SCRATCH/in.txt"` | `alembic`, `mako`, `markupsafe`, `sqlalchemy`, `typing-extensions` (run 2026-11-02: alembic 1.20.1, mako 1.4.3, markupsafe 3.0.4) |
-| **Supabase project details: region, Postgres major version, plan** | **Owner** | Read in the dashboard and tell the agent | **Pending (BE-26, section 7).** The owner agreed to approve the specs without them. They block checks 9 to 17 |
+| Supabase project details | Owner | Read in the dashboard | **Received 2026-11-02:** region `us-east-1`, Postgres 17.11, Free plan. Still to confirm in the dashboard: the session pooler host, and the pooler user format (assumption 6). Checks 9 to 17 are the owner's to run |
+| `pg_dump` on the owner's machine, version 17 or newer | Owner | `pg_dump --version` | A version number of 17 or newer (a dump needs a client at least as new as the server) |
 | The owner's connection string, as in BE-26 | Owner | `stat -f '%Lp' ~/.config/odiservices/supabase.env` | `600` |
 | The owner role can create roles and schemas | Owner | `psql "${PORTAL_MIGRATION_DATABASE_URL/+psycopg/}" -Atc "select rolcreaterole from pg_roles where rolname=current_user"` | `t` |
 | `psql` on the owner's machine | Owner | `psql --version` | A version number (14 is installed) |
