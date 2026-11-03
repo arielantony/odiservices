@@ -2,3 +2,5 @@ fastapi
 uvicorn[standard]
 pydantic-settings
 pyjwt[crypto]
+sqlalchemy
+psycopg[binary]

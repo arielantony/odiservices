@@ -6,7 +6,7 @@ VENV := api/.venv
 VENV_STAMP := $(VENV)/.synced
 NVM  := . "$$HOME/.nvm/nvm.sh" && cd web && nvm use
 
-.PHONY: help setup-api setup-web dev serve build-web test-web test-api test docker-build check-image compose-up compose-down infra-check deploy-check
+.PHONY: help setup-api setup-web dev serve build-web test-web test-api test docker-build check-image compose-up compose-down infra-check deploy-check db-up db-down db-check test-db
 
 help:
 	@echo "make setup-api  Create api/.venv and install the pinned dependencies (uv)"
@@ -21,6 +21,10 @@ help:
 	@echo "make compose-up    Run api and web in Docker on 127.0.0.1:8000 (needs Docker)"
 	@echo "make compose-down  Stop and remove them"
 	@echo "make deploy-check  Test the prod Compose override and deploy.sh (shellcheck when installed)"
+	@echo "make db-up        Start the local Postgres (127.0.0.1:55432) and wait until it is healthy"
+	@echo "make db-down      Stop it, keeping the data (V=1 also removes the volume)"
+	@echo "make db-check     Check the connection in PORTAL_DATABASE_URL (default: the local Postgres)"
+	@echo "make test-db      Start the local Postgres and run the tests marked db"
 	@echo "make infra-check   Format-check and validate infra/tofu, infra/tofu-bootstrap and infra/cloudflare (needs OpenTofu, no AWS credentials)"
 
 $(VENV_STAMP): api/requirements.txt api/requirements-dev.txt
@@ -36,6 +40,7 @@ setup-web:
 
 # nvm use runs before the jobs start: sourced inside a background job, nvm
 # can't find the installed versions.
+dev: export PORTAL_ENV ?= dev
 dev: $(VENV_STAMP)
 	@$(NVM) >/dev/null && cd .. && { \
 	trap 'kill 0' INT TERM EXIT; \
@@ -78,3 +83,18 @@ infra-check:
 deploy-check: $(VENV_STAMP)
 	cd api && .venv/bin/python -m pytest tests/test_deploy_files.py tests/test_deploy_behavior.py
 	@if command -v shellcheck >/dev/null; then shellcheck deploy/deploy.sh deploy/install-cloudflared.sh; else echo "shellcheck not installed, skipped"; fi
+
+DB_COMPOSE := docker compose -f docker-compose.db.yml
+LOCAL_DB_URL := postgresql+psycopg://odiservices@127.0.0.1:55432/odiservices
+
+db-up:
+	$(DB_COMPOSE) up --detach --wait
+
+db-down:
+	$(DB_COMPOSE) down $(if $(V),--volumes)
+
+db-check: $(VENV_STAMP)
+	cd api && PORTAL_DATABASE_URL="$${PORTAL_DATABASE_URL:-$(LOCAL_DB_URL)}" .venv/bin/python -m server.db
+
+test-db: $(VENV_STAMP) db-up
+	cd api && PORTAL_DATABASE_URL="$(LOCAL_DB_URL)" .venv/bin/python -m pytest -m db

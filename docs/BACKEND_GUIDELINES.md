@@ -192,8 +192,14 @@ Every error from the API uses one format, which the frontend client
 
 ### Data and third parties
 
-- **Supabase:** FastAPI is the only client. The service-role key stays on the
-  server and never reaches the browser, a response or a log.
+- **Postgres:** FastAPI is the only client and talks to it directly through
+  SQLAlchemy 2.0 and psycopg 3, not through the Supabase HTTP API. Production
+  is the one Supabase project; development is the local Postgres
+  (`make db-up`). The connection string is `PORTAL_DATABASE_URL`, a secret:
+  a host that is not loopback needs `sslmode=require` (or stronger), and
+  `PORTAL_ENV=dev` refuses a remote host. The credential stays on the server
+  and never reaches the browser, a response, a log or the repository.
+  `python -m server.db` proves a connection.
 - **Uploaded PDFs and extracted transactions are sensitive.** They are never
   written to the repo, `input/` and `outputs/` are never served, and they
   never enter the Docker image.

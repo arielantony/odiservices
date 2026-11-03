@@ -14,6 +14,7 @@ def clean_environment(monkeypatch):
     monkeypatch.delenv("PORTAL_LOG_LEVEL", raising=False)
     monkeypatch.delenv("PORTAL_ACCESS_TEAM_DOMAIN", raising=False)
     monkeypatch.delenv("PORTAL_ACCESS_AUD", raising=False)
+    monkeypatch.delenv("PORTAL_DATABASE_URL", raising=False)
 
 
 def load() -> Settings:
@@ -125,3 +126,80 @@ def test_access_aud_pattern(monkeypatch):
 
     assert "PORTAL_ACCESS_AUD" in str(error.value)
     assert "valor-curto-secreto" not in str(error.value)
+
+
+REMOTE = "postgresql+psycopg://u:SENHA-FICTICIA@db.example.com/x"
+
+
+def with_db(monkeypatch, url, env="prod") -> Settings:
+    monkeypatch.setenv("PORTAL_ENV", env)
+    monkeypatch.setenv("PORTAL_DATABASE_URL", url)
+    return load()
+
+
+def test_database_url_optional():
+    assert load().database_url is None
+
+
+def test_blank_database_url_counts_as_unset(monkeypatch):
+    monkeypatch.setenv("PORTAL_DATABASE_URL", "")
+    assert load().database_url is None
+
+
+@pytest.mark.parametrize(
+    "url", ["postgresql://u@127.0.0.1/x", "mysql://u@127.0.0.1/x", "x"]
+)
+def test_database_url_scheme(monkeypatch, url):
+    with pytest.raises(ValidationError, match="PORTAL_DATABASE_URL"):
+        with_db(monkeypatch, url)
+
+
+@pytest.mark.parametrize(
+    "url",
+    ["postgresql+psycopg://u@127.0.0.1", "postgresql+psycopg://u@127.0.0.1/",
+     "postgresql+psycopg:///x"],
+)
+def test_database_url_needs_host_and_name(monkeypatch, url):
+    with pytest.raises(ValidationError, match="PORTAL_DATABASE_URL"):
+        with_db(monkeypatch, url)
+
+
+@pytest.mark.parametrize("query", ["", "?sslmode=disable", "?sslmode=prefer"])
+def test_remote_host_needs_tls(monkeypatch, query):
+    with pytest.raises(ValidationError, match="PORTAL_DATABASE_URL"):
+        with_db(monkeypatch, REMOTE + query)
+
+
+@pytest.mark.parametrize("mode", ["require", "verify-ca", "verify-full"])
+def test_remote_host_with_tls_passes(monkeypatch, mode):
+    settings = with_db(monkeypatch, f"{REMOTE}?sslmode={mode}")
+    assert settings.database_url is not None
+
+
+@pytest.mark.parametrize("host", ["127.0.0.1", "[::1]", "localhost"])
+def test_loopback_host_needs_no_tls(monkeypatch, host):
+    url = f"postgresql+psycopg://u@{host}:5432/x"
+    assert with_db(monkeypatch, url).database_url is not None
+
+
+def test_dev_refuses_remote_host(monkeypatch):
+    with pytest.raises(ValidationError, match="PORTAL_DATABASE_URL"):
+        with_db(monkeypatch, REMOTE + "?sslmode=require", env="dev")
+    local = "postgresql+psycopg://u@127.0.0.1/x"
+    assert with_db(monkeypatch, local, env="dev").database_url is not None
+    assert with_db(monkeypatch, REMOTE + "?sslmode=require").database_url is not None
+
+
+def test_database_url_never_printed(monkeypatch):
+    messages = []
+    for url, env in [
+        (REMOTE, "prod"),
+        (REMOTE + "?sslmode=require", "dev"),
+        ("postgresql://u:SENHA-FICTICIA@127.0.0.1/x", "prod"),
+    ]:
+        with pytest.raises(ValidationError) as error:
+            with_db(monkeypatch, url, env=env)
+        messages.append(str(error.value))
+    settings = with_db(monkeypatch, REMOTE + "?sslmode=require")
+    messages += [repr(settings), str(settings)]
+    assert all("SENHA-FICTICIA" not in message for message in messages)

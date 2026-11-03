@@ -2,8 +2,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import make_url
+from sqlalchemy.exc import ArgumentError
+
+LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
+TLS_MODES = frozenset({"require", "verify-ca", "verify-full"})
 
 
 class Settings(BaseSettings):
@@ -36,11 +41,50 @@ class Settings(BaseSettings):
         None, alias="PORTAL_ACCESS_AUD", pattern=r"^[0-9a-f]{64}$"
     )
 
-    @field_validator("access_team_domain", "access_aud", mode="before")
+    # Postgres (BE-26): postgresql+psycopg://USER@HOST:PORT/DATABASE.
+    # The error messages never include the value.
+    database_url: SecretStr | None = Field(None, alias="PORTAL_DATABASE_URL")
+
+    @field_validator("access_team_domain", "access_aud", "database_url", mode="before")
     @classmethod
     def blank_is_unset(cls, value: object) -> object:
         # A copied .env.example has these variables with no value.
         return None if value == "" else value
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def database_url_is_valid(cls, value: SecretStr | None) -> SecretStr | None:
+        if value is None:
+            return None
+        try:
+            url = make_url(value.get_secret_value())
+        except ArgumentError:
+            raise ValueError(
+                "PORTAL_DATABASE_URL is not a valid database URL"
+            ) from None
+        if url.drivername != "postgresql+psycopg":
+            raise ValueError("PORTAL_DATABASE_URL must use postgresql+psycopg://")
+        if not url.host or not url.database:
+            raise ValueError(
+                "PORTAL_DATABASE_URL needs a host and a database name"
+            )
+        if url.host not in LOOPBACK_HOSTS and url.query.get("sslmode") not in TLS_MODES:
+            raise ValueError(
+                "PORTAL_DATABASE_URL needs sslmode=require (or verify-ca or "
+                "verify-full) for a host that is not loopback"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def dev_uses_a_local_database(self) -> "Settings":
+        if self.env == "dev" and self.database_url is not None:
+            host = make_url(self.database_url.get_secret_value()).host
+            if host not in LOOPBACK_HOSTS:
+                raise ValueError(
+                    "PORTAL_DATABASE_URL must point to this machine when "
+                    "PORTAL_ENV=dev"
+                )
+        return self
 
     @model_validator(mode="after")
     def access_settings_go_together(self) -> "Settings":
