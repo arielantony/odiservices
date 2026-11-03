@@ -24,13 +24,27 @@ def migration_url(environ: Mapping[str, str]) -> str:
     return url
 
 
-def refuse_remote_downgrade(url: str) -> None:
-    """Production moves forward only: a downgrade runs on this machine only."""
-    if make_url(url).host not in LOOPBACK_HOSTS:
-        raise MigrationGuardError(
-            "a downgrade runs only against a database on this machine; "
-            "production moves forward only"
-        )
+# Commands that only move forward or read. Anything else (a downgrade, or a
+# call that does not come from the CLI) is refused on a remote host.
+REMOTE_COMMANDS = {"upgrade", "current", "heads", "history", "branches", "show", "check"}
+
+
+def refuse_remote_unless_forward(url: str, command: str | None) -> None:
+    """Production moves forward only. On a host that is not this machine, only a
+    known forward or read-only command runs; an unknown one is refused."""
+    if make_url(url).host in LOOPBACK_HOSTS or command in REMOTE_COMMANDS:
+        return
+    raise MigrationGuardError(
+        "a downgrade runs only against a database on this machine; "
+        "production moves forward only"
+    )
+
+
+def describe_target(url: str) -> str:
+    """Host and database, for the line that says where a command runs. Never
+    the user, the password or the query."""
+    parsed = make_url(url)
+    return f"{parsed.host}/{parsed.database}"
 
 
 def next_revision_id(head: str | None) -> str:

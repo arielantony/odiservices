@@ -79,6 +79,7 @@ def rls_violations(connection) -> list[str]:
             """
             SELECT c.relname,
                    c.relrowsecurity,
+                   has_table_privilege('app_backend', c.oid, 'SELECT,INSERT,UPDATE,DELETE'),
                    coalesce((
                        SELECT array_agg(p.policyname || '=' || array_to_string(p.roles, ','))
                        FROM pg_policies p
@@ -93,8 +94,8 @@ def rls_violations(connection) -> list[str]:
     ).all()
     return sorted(
         table
-        for table, rls, policies in rows
-        if not rls or list(policies) != ["backend_only=app_backend"]
+        for table, rls, granted, policies in rows
+        if not rls or not granted or list(policies) != ["backend_only=app_backend"]
     )
 
 
@@ -171,6 +172,28 @@ def test_helper_enables_rls_and_policy(migrated):
         connection.execute(text("insert into portal.zz_scratch values (1)"))
         count = connection.execute(text("select count(*) from portal.zz_scratch")).scalar_one()
     assert count == 1
+
+
+def test_table_made_by_another_role_is_reported(migrated):
+    """The default privileges belong to the role that migrates. A table made by
+    another role gets no grant for app_backend, and the invariant says so."""
+    owner_engine = owner(migrated)
+    with owner_engine.begin() as connection:
+        connection.execute(text("create role zz_other nologin"))
+        connection.execute(text("grant usage, create on schema portal to zz_other"))
+    try:
+        with owner_engine.begin() as connection:
+            connection.execute(text("set role zz_other"))
+            connection.execute(text("create table portal.zz_foreign (id int)"))
+            connection.execute(text("reset role"))
+            with Operations.context(MigrationContext.configure(connection)):
+                enable_backend_only_rls("zz_foreign")
+            assert rls_violations(connection) == ["zz_foreign"]
+    finally:
+        with owner_engine.begin() as connection:
+            connection.execute(text("drop owned by zz_other"))
+            connection.execute(text("drop role zz_other"))
+        owner_engine.dispose()
 
 
 def drift(connection, metadata: MetaData) -> list:
