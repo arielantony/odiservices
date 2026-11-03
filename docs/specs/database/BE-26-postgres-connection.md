@@ -43,9 +43,10 @@ first code that reads or writes is BE-24.
 - Wiring the engine into `create_app()` and a per-request ORM session
   dependency: BE-24, the first code that needs them. Adding them now would be
   code nothing calls.
-- The ORM models and their base class (`DeclarativeBase`, the naming
-  convention): BE-27 creates them with the first table. The test that keeps
-  the models and the migrations in step is BE-31's.
+- The ORM base class (`DeclarativeBase`, the naming convention) and the test
+  that keeps the models and the migrations in step: BE-31, because Alembic's
+  `env.py` needs the metadata. The models themselves arrive with each table,
+  from BE-27.
 - A readiness route that checks the database. `/healthz` stays independent of
   it, so the deploy checks keep passing (OPS-03).
 - Backups and point-in-time recovery of the Supabase project: depends on the
