@@ -200,6 +200,14 @@ Every error from the API uses one format, which the frontend client
   `PORTAL_ENV=dev` refuses a remote host. The credential stays on the server
   and never reaches the browser, a response, a log or the repository.
   `python -m server.db` proves a connection.
+- **Schema changes are Alembic migrations** (BE-31), run by the owner from the
+  owner's machine and never from the host or the image. Every table lives in
+  the `portal` schema, never in `public`. A migration that creates a table
+  calls `enable_backend_only_rls(table)`: RLS on and one policy, for the
+  `app_backend` role the server connects as. A test fails when a table
+  escapes the rule or when the ORM models and the migrated schema differ.
+  The owner reads the SQL (`make db-sql`) before every production upgrade.
+  See `docs/deploy/supabase.md`.
 - **Uploaded PDFs and extracted transactions are sensitive.** They are never
   written to the repo, `input/` and `outputs/` are never served, and they
   never enter the Docker image.
