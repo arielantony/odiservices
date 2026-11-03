@@ -11,6 +11,24 @@ LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 TLS_MODES = frozenset({"require", "verify-ca", "verify-full"})
 
 
+def validate_database_url(raw: str, name: str) -> None:
+    """Check a Postgres URL (BE-26). The messages name the variable and never
+    include the value. Shared with the migration environment (BE-31)."""
+    try:
+        url = make_url(raw)
+    except ArgumentError:
+        raise ValueError(f"{name} is not a valid database URL") from None
+    if url.drivername != "postgresql+psycopg":
+        raise ValueError(f"{name} must use postgresql+psycopg://")
+    if not url.host or not url.database:
+        raise ValueError(f"{name} needs a host and a database name")
+    if url.host not in LOOPBACK_HOSTS and url.query.get("sslmode") not in TLS_MODES:
+        raise ValueError(
+            f"{name} needs sslmode=require (or verify-ca or verify-full) for a "
+            "host that is not loopback"
+        )
+
+
 class Settings(BaseSettings):
     """Portal settings, read from PORTAL_* environment variables.
 
@@ -54,25 +72,8 @@ class Settings(BaseSettings):
     @field_validator("database_url", mode="after")
     @classmethod
     def database_url_is_valid(cls, value: SecretStr | None) -> SecretStr | None:
-        if value is None:
-            return None
-        try:
-            url = make_url(value.get_secret_value())
-        except ArgumentError:
-            raise ValueError(
-                "PORTAL_DATABASE_URL is not a valid database URL"
-            ) from None
-        if url.drivername != "postgresql+psycopg":
-            raise ValueError("PORTAL_DATABASE_URL must use postgresql+psycopg://")
-        if not url.host or not url.database:
-            raise ValueError(
-                "PORTAL_DATABASE_URL needs a host and a database name"
-            )
-        if url.host not in LOOPBACK_HOSTS and url.query.get("sslmode") not in TLS_MODES:
-            raise ValueError(
-                "PORTAL_DATABASE_URL needs sslmode=require (or verify-ca or "
-                "verify-full) for a host that is not loopback"
-            )
+        if value is not None:
+            validate_database_url(value.get_secret_value(), "PORTAL_DATABASE_URL")
         return value
 
     @model_validator(mode="after")

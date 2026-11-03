@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Database › BE-31 |
 | **Depends on** | BE-26 (and through it BE-17, BE-18) |
-| **Spec status** | In review |
+| **Spec status** | Approved (2026-11-02) |
 | **Date** | 2026-11-02 |
 
 ## 1. Goal
