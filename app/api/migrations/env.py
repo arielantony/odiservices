@@ -11,6 +11,7 @@ from migrations.guards import (
     next_revision_id,
     refuse_remote_unless_forward,
 )
+from migrations.options import base_options
 from server.db.base import SCHEMA, Base
 
 config = context.config
@@ -18,13 +19,6 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
-
-
-def include_name(name, type_, parent_names):
-    # Supabase owns other schemas (public, auth, storage, ...): leave them.
-    if type_ == "schema":
-        return name == SCHEMA
-    return True
 
 
 def next_id(migration_context, revision, directives):
@@ -42,9 +36,7 @@ def command_name() -> str | None:
 def configure_options() -> dict:
     return dict(
         target_metadata=target_metadata,
-        version_table_schema=SCHEMA,
-        include_schemas=True,
-        include_name=include_name,
+        **base_options(),
         transaction_per_migration=True,
         process_revision_directives=next_id,
     )
@@ -71,7 +63,13 @@ def run_migrations_online() -> None:
     try:
         with engine.connect() as connection:
             # Alembic's version table lives in the schema, so it comes first.
-            connection.execute(text(f"CREATE SCHEMA IF NOT EXISTS {SCHEMA}"))
+            # Only when it is missing: a read command then needs no CREATE right.
+            exists = connection.execute(
+                text("SELECT 1 FROM pg_namespace WHERE nspname = :name"),
+                {"name": SCHEMA},
+            ).scalar()
+            if not exists:
+                connection.execute(text(f"CREATE SCHEMA {SCHEMA}"))
             connection.commit()
             context.configure(connection=connection, **configure_options())
             with context.begin_transaction():

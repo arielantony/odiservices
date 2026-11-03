@@ -91,3 +91,21 @@ def test_next_revision_id():
     assert next_revision_id(None) == "0001"
     assert next_revision_id("0001") == "0002"
     assert next_revision_id("0009") == "0010"
+
+
+def test_next_revision_id_rejects_a_non_numeric_head():
+    with pytest.raises(MigrationGuardError, match="not a number"):
+        next_revision_id("a1b2c3")
+
+
+def test_every_model_is_in_the_portal_schema():
+    from server.db import Base
+
+    assert all(table.schema == "portal" for table in Base.metadata.tables.values())
+
+
+def test_helper_rejects_a_bad_name():
+    from migrations.helpers import enable_backend_only_rls
+
+    with pytest.raises(ValueError):
+        enable_backend_only_rls("x; drop table y")
