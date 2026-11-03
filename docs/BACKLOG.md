@@ -279,7 +279,7 @@ Notes:
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| BE-26 | Task | Use Supabase as the backend database | [Approved](specs/database/BE-26-postgres-connection.md) | In progress | BE-17, BE-18 | [#61] |
+| BE-26 | Task | Use Supabase as the backend database | [Approved](specs/database/BE-26-postgres-connection.md) | In progress | BE-17, BE-18 | [#61] [#65] |
 | BE-27 | Task | Create the `users` table | — | Draft | BE-31 | |
 | BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | — | Draft | BE-27, BE-31 | |
 | BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
@@ -408,3 +408,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#57]: https://github.com/arielantony/odiservices/pull/57
 [#61]: https://github.com/arielantony/odiservices/pull/61
 [#63]: https://github.com/arielantony/odiservices/pull/63
+[#65]: https://github.com/arielantony/odiservices/pull/65
