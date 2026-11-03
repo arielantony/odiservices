@@ -1,0 +1,25 @@
+# Local Postgres for development (BE-26). Never part of the deploy:
+# deploy.sh reads docker-compose.yml and docker-compose.prod.yml only.
+# Trust authentication is safe here because the port is published on the
+# loopback interface alone, so the URL holds no secret.
+name: odiservices-dev-db
+
+services:
+  db:
+    image: postgres:${PORTAL_DB_PG_MAJOR:-17}
+    ports:
+      - "127.0.0.1:55432:5432"
+    environment:
+      POSTGRES_USER: odiservices
+      POSTGRES_DB: odiservices
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "odiservices", "-d", "odiservices"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  db-data:

@@ -24,6 +24,10 @@ idna==3.20
     # via anyio
 opentelemetry-api==1.45.2
     # via fastapi
+psycopg==3.3.6
+    # via -r requirements.in
+psycopg-binary==3.3.6
+    # via psycopg
 pycparser==3.12
     # via cffi
 pydantic==2.14.2
@@ -42,6 +46,8 @@ python-dotenv==1.2.4
     #   uvicorn
 pyyaml==6.0.3
     # via uvicorn
+sqlalchemy==2.1.6
+    # via -r requirements.in
 starlette==1.10.0
     # via fastapi
 typing-extensions==4.16.0
@@ -52,6 +58,7 @@ typing-extensions==4.16.0
     #   pydantic
     #   pydantic-core
     #   pydantic-settings
+    #   sqlalchemy
     #   typing-inspection
 typing-inspection==0.4.4
     # via

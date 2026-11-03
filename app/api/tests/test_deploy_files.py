@@ -95,3 +95,9 @@ def test_deploy_script_passes_only_a_hash_of_the_env_file():
 def test_env_file_existence_is_tested_under_sudo():
     assert 'sudo test -e "$ENV_FILE"' in SCRIPT
     assert '[ ! -e "$ENV_FILE" ]' not in SCRIPT
+
+
+def test_prod_compose_has_no_database_service():
+    for name in ("docker-compose.yml", "docker-compose.prod.yml"):
+        assert "db" not in _load(name)
+    assert "docker-compose.db.yml" not in SCRIPT

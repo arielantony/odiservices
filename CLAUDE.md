@@ -164,8 +164,10 @@ you started. A browser left open blocks the next agent.
   committed, served or copied into the Docker image.
 - **No secrets in the repo.** `.env` files are never committed, never read by
   tests, and never served. `.env.example` lists variable names only.
-- **The Supabase service-role key stays on the server.** It never reaches the
-  browser or the frontend bundle.
+- **The database credentials stay on the server.** Connection strings and
+  passwords (Supabase in production) never reach the browser, the frontend
+  bundle, a response, a log or the repository. The agent never holds a
+  production credential: every command against Supabase is the owner's.
 - **No PII in logs.** No query strings, bodies, headers, IPs, emails, file
   names or transaction descriptions (BE-21).
 - **No real external calls in tests.** Supabase, Cloudflare Access and
