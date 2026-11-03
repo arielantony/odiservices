@@ -9,7 +9,8 @@ from migrations.guards import (
     MigrationGuardError,
     migration_url,
     next_revision_id,
-    refuse_remote_downgrade,
+    describe_target,
+    refuse_remote_unless_forward,
 )
 
 API = Path(__file__).resolve().parents[1]
@@ -44,10 +45,26 @@ def test_migration_url_remote_needs_tls():
     assert migration_url({"PORTAL_MIGRATION_DATABASE_URL": REMOTE}) == REMOTE
 
 
-def test_downgrade_refused_on_remote_host():
-    with pytest.raises(MigrationGuardError, match="downgrade"):
-        refuse_remote_downgrade(REMOTE)
-    refuse_remote_downgrade(LOCAL)
+def test_remote_host_only_runs_forward_or_read_commands():
+    for command in ("upgrade", "current", "heads"):
+        refuse_remote_unless_forward(REMOTE, command)
+    for command in ("downgrade", "stamp", None):
+        with pytest.raises(MigrationGuardError, match="downgrade"):
+            refuse_remote_unless_forward(REMOTE, command)
+    refuse_remote_unless_forward(LOCAL, "downgrade")
+    refuse_remote_unless_forward(LOCAL, None)
+
+
+def test_describe_target_shows_host_and_database_only():
+    assert describe_target(REMOTE) == "db.example.com/x"
+
+
+@pytest.mark.parametrize("param", ["host", "hostaddr", "service", "HOST"])
+def test_url_cannot_replace_its_host(param):
+    url = f"postgresql+psycopg://u:SENHA-FICTICIA@127.0.0.1/x?{param}=db.example.com"
+    with pytest.raises(MigrationGuardError, match="host, hostaddr or service") as e:
+        migration_url({"PORTAL_MIGRATION_DATABASE_URL": url})
+    assert "SENHA-FICTICIA" not in str(e.value)
 
 
 def test_downgrade_refused_before_connecting():

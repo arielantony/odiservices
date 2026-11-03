@@ -169,6 +169,10 @@ Run them in this order, after the plan is approved.
 3. In the migration that creates the table, call
    `enable_backend_only_rls("<table>")` from `migrations/helpers.py`. Nothing
    else is needed for the grants: the default privileges of the baseline give
-   `app_backend` read and write on every new table in `portal`.
+   `app_backend` read and write on every new table in `portal`. Those defaults
+   belong to the role that runs the migrations (the user in
+   `PORTAL_MIGRATION_DATABASE_URL`). **Always migrate with that same role.** A
+   table made by another role gets no grant, and the server fails with
+   `permission denied`; `make test-db` reports it.
 4. `make test-db`: the RLS invariant and the drift test fail when a table
    escapes the rule or the models and the migrations differ.

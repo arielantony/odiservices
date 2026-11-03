@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import ArgumentError
 
+OVERRIDE_PARAMS = {"host", "hostaddr", "service"}
 LOOPBACK_HOSTS = frozenset({"127.0.0.1", "::1", "localhost"})
 TLS_MODES = frozenset({"require", "verify-ca", "verify-full"})
 
@@ -22,6 +23,10 @@ def validate_database_url(raw: str, name: str) -> None:
         raise ValueError(f"{name} must use postgresql+psycopg://")
     if not url.host or not url.database:
         raise ValueError(f"{name} needs a host and a database name")
+    # libpq lets a query parameter replace the host: the check above would
+    # then describe a different server than the one psycopg reaches.
+    if OVERRIDE_PARAMS & {key.lower() for key in url.query}:
+        raise ValueError(f"{name} must not set host, hostaddr or service in the query")
     if url.host not in LOOPBACK_HOSTS and url.query.get("sslmode") not in TLS_MODES:
         raise ValueError(
             f"{name} needs sslmode=require (or verify-ca or verify-full) for a "

@@ -1,13 +1,15 @@
 import os
+import sys
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, text
 
 from migrations.guards import (
+    describe_target,
     migration_url,
     next_revision_id,
-    refuse_remote_downgrade,
+    refuse_remote_unless_forward,
 )
 from server.db.base import SCHEMA, Base
 
@@ -31,9 +33,10 @@ def next_id(migration_context, revision, directives):
     script.rev_id = next_revision_id(head)
 
 
-def is_downgrade() -> bool:
+def command_name() -> str | None:
+    """The CLI command, or None when Alembic is called from code."""
     command = getattr(config.cmd_opts, "cmd", None)
-    return bool(command) and command[0].__name__ == "downgrade"
+    return command[0].__name__ if command else None
 
 
 def configure_options() -> dict:
@@ -62,8 +65,8 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     url = migration_url(os.environ)
-    if is_downgrade():
-        refuse_remote_downgrade(url)
+    refuse_remote_unless_forward(url, command_name())
+    print(f"alembic target: {describe_target(url)}", file=sys.stderr)
     engine = create_engine(url)
     try:
         with engine.connect() as connection:
