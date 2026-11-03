@@ -286,7 +286,7 @@ Notes:
 | BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | — | Draft | BE-27, BE-31 | |
 | BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
 | BE-30 | Task | Model categories as a constrained set | — | Draft | BE-31 | |
-| BE-31 | Task | Version schema changes as SQL migrations | [In review](specs/database/BE-31-sql-migrations.md) | Draft | BE-26 |[#63] |
+| BE-31 | Task | Version schema changes as SQL migrations | [Approved](specs/database/BE-31-sql-migrations.md) | In progress | BE-26 | [#63] |
 
 Notes:
 - BE-26: it stores the extracted card statement data, as the owner defined. There is one Supabase project, which is production (owner, 2026-11-02). FastAPI is the only client and talks to Postgres directly through a driver, not through the Supabase HTTP API. The credential is a connection string, it stays on the server, and it never reaches the browser or the frontend bundle. Development uses a local Postgres in Docker. The data layer is SQLAlchemy 2.0 with the ORM (owner, 2026-11-02); the models arrive with each table.
