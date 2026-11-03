@@ -312,7 +312,7 @@ Notes:
 | OPS-06 | Task | Store the built images in Amazon ECR and deploy by pulling them | — | Draft | OPS-03 | |
 | OPS-07 | Task | Move the OpenTofu state to a private S3 bucket with locking | [Approved](specs/deploy/OPS-07-remote-state.md) | Done | OPS-03 | [#45] [#46] [#47] [#48] |
 | OPS-08 | Task | Harden the privileges of the `deploy` user on the host | — | Draft | OPS-03 | |
-| OPS-09 | Task | Deploy to the host automatically when a change is merged to `main` (GitHub Actions) | — | Draft | OPS-03, OPS-04, QA-02 | |
+| OPS-09 | Task | Deploy to the host automatically when a change is merged to `main` (GitHub Actions) | — | Draft | OPS-03, OPS-04, QA-02 | [#71] |
 
 Notes:
 - OPS-01: the owner requested it, with separate `api` and `web` images (2026-10-30). Slim pinned bases and non-root users. Each image has its own context (`app/api`, `app/web`) and `.dockerignore`, which keeps `.env`, `input/` PDFs and `outputs/` out. nginx serves the built app and proxies `/api` and `/healthz`, so the browser sees one origin. Needs BE-33 first, because the API image has no `web/dist`.
@@ -423,3 +423,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#68]: https://github.com/arielantony/odiservices/pull/68
 [#69]: https://github.com/arielantony/odiservices/pull/69
 [#70]: https://github.com/arielantony/odiservices/pull/70
+[#71]: https://github.com/arielantony/odiservices/pull/71
