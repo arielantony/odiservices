@@ -203,3 +203,11 @@ def test_database_url_never_printed(monkeypatch):
     settings = with_db(monkeypatch, REMOTE + "?sslmode=require")
     messages += [repr(settings), str(settings)]
     assert all("SENHA-FICTICIA" not in message for message in messages)
+
+
+@pytest.mark.parametrize("param", ["host", "hostaddr", "service"])
+def test_database_url_cannot_replace_its_host(monkeypatch, param):
+    url = f"postgresql+psycopg://u:SENHA-FICTICIA@127.0.0.1/x?{param}=db.example.com"
+    with pytest.raises(ValidationError) as e:
+        with_db(monkeypatch, url)
+    assert "SENHA-FICTICIA" not in str(e.value)
