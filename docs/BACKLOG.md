@@ -286,7 +286,7 @@ Notes:
 | BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | — | Draft | BE-27, BE-31 | |
 | BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
 | BE-30 | Task | Model categories as a constrained set | — | Draft | BE-31 | |
-| BE-31 | Task | Version schema changes as SQL migrations | [Approved](specs/database/BE-31-sql-migrations.md) | In progress | BE-26 | [#63] [#66] [#67] [#68] [#69] [#70] |
+| BE-31 | Task | Version schema changes as SQL migrations | [Approved](specs/database/BE-31-sql-migrations.md) | Done | BE-26 | [#63] [#66] [#67] [#68] [#69] [#70] |
 
 Notes:
 - BE-26: it stores the extracted card statement data, as the owner defined. There is one Supabase project, which is production (owner, 2026-11-02). FastAPI is the only client and talks to Postgres directly through a driver, not through the Supabase HTTP API. The credential is a connection string, it stays on the server, and it never reaches the browser or the frontend bundle. Development uses a local Postgres in Docker. The data layer is SQLAlchemy 2.0 with the ORM (owner, 2026-11-02); the models arrive with each table.
@@ -294,7 +294,7 @@ Notes:
 - BE-28: each extraction yields one statement with `total_lanc_atuais`. It belongs to a user and is used to validate the sum of its transactions. Feature items add columns to it (BE-07, BE-09).
 - BE-29: the columns mirror `ask_pdf.py` `SCHEMA`: item number within the statement, `secao` (compras/internacional/produtos), `data` (dd/mm text as printed), `descricao`, `valor` (numeric, BRL), `categoria`, `duvida`. It also needs `revisado` and `updated_at`, which today live in the board's localStorage. BE-13 adds the original category.
 - BE-30: the 10 fixed categories (FORNECEDOR … OUTROS) are duplicated in `ask_pdf.py` and `kanban/app.js`. Make the database the single source of truth through an enum or lookup table.
-- BE-31: migrations with Alembic (owner decision, 2026-11-02), run by the owner against the one Supabase project and against the local Postgres. Tables live in the `portal` schema, with RLS on and one policy for the `app_backend` role, so the Supabase API roles see nothing and the server sees what it needs. It creates the ORM base class, and a test fails when the ORM models and the migrated schema differ. The runbook is `docs/deploy/supabase.md`. Done when the owner's live checks (9 to 17) pass. The owner approves the SQL (`alembic upgrade --sql`) before each production upgrade. The dependencies of BE-27 to BE-31 are proposed here and confirmed in each item's spec.
+- BE-31: migrations with Alembic (owner decision, 2026-11-02), run by the owner against the one Supabase project and against the local Postgres. Tables live in the `portal` schema, with RLS on and one policy for the `app_backend` role, so the Supabase API roles see nothing and the server sees what it needs. It creates the ORM base class, and a test fails when the ORM models and the migrated schema differ. The runbook is `docs/deploy/supabase.md`. Done: the owner's live checks (9 to 17) passed on 2026-11-03; `0001` is applied on Supabase. The owner approves the SQL (`alembic upgrade --sql`) before each production upgrade. The dependencies of BE-27 to BE-31 are proposed here and confirmed in each item's spec.
 
 ## Packaging and deployment (AWS Lightsail)
 
