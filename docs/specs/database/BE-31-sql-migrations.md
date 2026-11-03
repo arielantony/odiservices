@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Database › BE-31 |
 | **Depends on** | BE-26 (and through it BE-17, BE-18) |
-| **Spec status** | In review |
+| **Spec status** | Approved (2026-11-02) |
 | **Date** | 2026-11-02 |
 
 ## 1. Goal
@@ -100,9 +100,12 @@ Alembic's own table, `portal.alembic_version`, is created before `0001` runs,
 so the defaults of step 4 do not reach it: `app_backend` cannot read it. A
 test says so.
 
-The downgrade reverses the schema and the grants. It does **not** drop the
-role, because a role belongs to the whole Postgres server and a second local
-database may still use it.
+The downgrade reverses the grants, the default privileges and the role's
+settings. It does **not** drop the role, because a role belongs to the whole
+Postgres server and a second local database may still use it. It does **not**
+drop the schema either: `env.py` creates `portal` for Alembic's own version
+table, which lives in it, so dropping it mid-downgrade would break Alembic's
+last step. (Found while building step 2.)
 
 ### 3.3 The helper for every table
 
