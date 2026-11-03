@@ -17,8 +17,7 @@ def script_directory() -> ScriptDirectory:
 
 
 def test_single_head():
-    # Zero heads until the baseline (step 2) arrives; never more than one.
-    assert len(script_directory().get_heads()) <= 1
+    assert len(script_directory().get_heads()) == 1
 
 
 def test_revision_ids_are_sequential():
