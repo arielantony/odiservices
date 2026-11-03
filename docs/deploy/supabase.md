@@ -160,6 +160,11 @@ Run them in this order, after the plan is approved.
 | 16 | Section 4, the deploy and `python -m server.db` on the host | `database ok (role=app_backend, postgres=17)` |
 | 17 | `sudo docker exec odiservices-api-1 env \| grep -c '^PORTAL_DATABASE_URL='` and the same with `PORTAL_MIGRATION_DATABASE_URL` | `1` and `0` |
 
+> **No tunnel to production.** The guards treat `127.0.0.1` as this machine. A
+> tunnel that points a loopback port at Supabase would look local and would
+> allow a downgrade. Production is reached through the pooler host, never
+> through a tunnel.
+
 ## 6. A new table (every later migration)
 
 1. `make db-up && make db-upgrade`, then add the model in `server/db/`.

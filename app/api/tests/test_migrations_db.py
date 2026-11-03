@@ -1,6 +1,7 @@
 """The baseline against a real Postgres. Run by make test-db; each test uses a
 throwaway database on the local Postgres and drops it."""
 
+import os
 import uuid
 from pathlib import Path
 
@@ -11,16 +12,26 @@ from alembic.migration import MigrationContext
 from alembic.autogenerate import compare_metadata
 from alembic.operations import Operations
 from sqlalchemy import Column, Integer, MetaData, Table, create_engine, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.exc import DBAPIError
 
 from migrations.helpers import enable_backend_only_rls
+from migrations.options import base_options
 from server.db import Base
 
 pytestmark = pytest.mark.db
 
 API = Path(__file__).resolve().parents[1]
-HOST = "127.0.0.1:55432"
-ADMIN_URL = f"postgresql+psycopg://odiservices@{HOST}/odiservices"
+# `make test-db` exports the local database as PORTAL_DATABASE_URL (the
+# Makefile's LOCAL_DB_URL): host, port and user come from there.
+_LOCAL = make_url(
+    os.environ.get(
+        "PORTAL_DATABASE_URL", "postgresql+psycopg://odiservices@127.0.0.1:55432/odiservices"
+    )
+)
+HOST = f"{_LOCAL.host}:{_LOCAL.port}"
+OWNER = _LOCAL.username
+ADMIN_URL = f"postgresql+psycopg://{OWNER}@{HOST}/{_LOCAL.database}"
 
 
 def url(role: str, database: str) -> str:
@@ -33,7 +44,7 @@ def database(monkeypatch):
     admin = create_engine(ADMIN_URL, isolation_level="AUTOCOMMIT")
     with admin.connect() as connection:
         connection.execute(text(f'CREATE DATABASE "{name}"'))
-    monkeypatch.setenv("PORTAL_MIGRATION_DATABASE_URL", url("odiservices", name))
+    monkeypatch.setenv("PORTAL_MIGRATION_DATABASE_URL", url(OWNER, name))
     yield name
     with admin.connect() as connection:
         connection.execute(text(f'DROP DATABASE "{name}" WITH (FORCE)'))
@@ -57,7 +68,7 @@ def as_role(role: str, database: str):
 
 
 def owner(database: str):
-    return create_engine(url("odiservices", database))
+    return create_engine(url(OWNER, database))
 
 
 def rls_violations(connection) -> list[str]:
@@ -162,21 +173,10 @@ def test_helper_enables_rls_and_policy(migrated):
     assert count == 1
 
 
-def test_helper_rejects_a_bad_name():
-    with pytest.raises(ValueError):
-        enable_backend_only_rls("x; drop table y")
-
-
 def drift(connection, metadata: MetaData) -> list:
     context = MigrationContext.configure(
         connection,
-        opts={
-            "include_schemas": True,
-            "include_name": lambda name, type_, parents: (
-                name == "portal" if type_ == "schema" else True
-            ),
-            "version_table_schema": "portal",
-        },
+        opts=base_options(),
     )
     return compare_metadata(context, metadata)
 

@@ -34,4 +34,10 @@ def refuse_remote_downgrade(url: str) -> None:
 
 
 def next_revision_id(head: str | None) -> str:
-    return f"{int(head) + 1:04d}" if head else "0001"
+    if not head:
+        return "0001"
+    if not head.isdigit():
+        raise MigrationGuardError(
+            f"the head revision {head!r} is not a number; ids here are 0001, 0002, ..."
+        )
+    return f"{int(head) + 1:04d}"
