@@ -153,9 +153,9 @@ keep it that way (section 4, checks 7).
 | `make db-check` | `python -m server.db` against `$PORTAL_DATABASE_URL`, which defaults to `postgresql+psycopg://odiservices@127.0.0.1:55432/odiservices` |
 | `make test-db` | `db-up`, then the tests marked `db`. `make test-api` never runs them |
 
-`PORTAL_DB_PG_MAJOR` stays at 17 until the owner confirms the major version
-of the Supabase project (section 7). A local version that differs from
-production is the one fidelity gap, and it is recorded, not hidden.
+`PORTAL_DB_PG_MAJOR` stays at 17, the major version of the Supabase project
+(17.11, section 7). The minor versions differ, which is a gap that is recorded,
+not hidden.
 
 ### 3.5 Tests that need Postgres
 
@@ -184,8 +184,8 @@ About 320 changed lines with the tests, one pull request.
 ## 4. Verification
 
 Every check runs when the item merges. *Owner* checks need the owner's
-Supabase project. Check 9 is blocked until the owner confirms the project's
-details (section 7), and the item is not Done without it.
+Supabase project. Check 9 needs the session pooler host (section 7), and the item is not Done
+without it.
 
 | # | Check | Expected |
 |---|---|---|
@@ -246,9 +246,9 @@ Docker. Hosts and passwords are obviously fictitious (`db.example.com`,
 
 | # | Question | Recommended |
 |---|---|---|
-| 1 | Is there an ORM? | **Decided by the owner, 2026-11-02: yes, SQLAlchemy 2.0 with the ORM.** The portal will host many services, and the pattern is set by the first consumer. The risk is that models and migrations drift apart, so BE-31 adds a test that fails when they do. The migrations stay hand-written, because autogenerate does not understand RLS, policies or roles |
+| 1 | Is there an ORM? | **Decided by the owner, 2026-11-02: yes, SQLAlchemy 2.0 with the ORM.** The portal will host many services, and the pattern is set by the first consumer. The risk is that models and migrations drift apart, so BE-31 adds a test that fails when they do. Migrations are drafted with autogenerate and edited by hand (BE-31), because autogenerate does not understand RLS, policies or roles |
 | 2 | TLS to Supabase: `require` or `verify-full`? | **`require` now.** The traffic is encrypted. `verify-full` also needs the project's CA certificate shipped to the host, which is more to maintain. Revisit with OPS-05 |
-| 3 | Local Postgres version | **17** until the owner confirms the Supabase version, then the same major |
+| 3 | Local Postgres version | **17**, the same major as Supabase (17.11, confirmed 2026-11-02) |
 | 4 | Wire the engine into `create_app()` here? | **No.** BE-24 is the first caller |
 
 A question with no answer becomes an assumption with the recommended option.
@@ -261,7 +261,7 @@ A question with no answer becomes an assumption with the recommended option.
 | The Postgres image pulls | Agent | `docker pull -q postgres:17` | An image id (`sha256:…`) |
 | Port 55432 is free | Agent | `lsof -nP -iTCP:55432 -sTCP:LISTEN \| wc -l` | `0` |
 | The packages resolve for Python 3.14 | Agent | `printf 'sqlalchemy\npsycopg[binary]\n' > "$SCRATCH/in.txt" && uv pip compile --python-version 3.14 "$SCRATCH/in.txt"` | `sqlalchemy`, `psycopg`, `psycopg-binary` (run 2026-11-02: 2.1.6, 3.3.6 and 3.3.6, plus `typing-extensions`, already pinned) |
-| **Supabase project details: region, Postgres major version, plan** | **Owner** | Read in the Supabase dashboard (Project Settings) and tell the agent | **Pending: the owner is confirming (2026-11-02).** The owner agreed to write and approve this spec without it. Needed for check 9, for `PORTAL_DB_PG_MAJOR` and for BE-31 |
+| Supabase project details | Owner | Read in the Supabase dashboard (Project Settings) | **Received 2026-11-02:** region `us-east-1`, Postgres 17.11, Free plan. Still to read: the session pooler host, which check 9 needs |
 | The connection string in a private file | Owner | `stat -f '%Lp' ~/.config/odiservices/supabase.env` | `600`. The file holds `PORTAL_MIGRATION_DATABASE_URL`, the owner role over the **session pooler**, with `sslmode=require`. The agent never reads it |
 | The string works | Owner | `set -a; . ~/.config/odiservices/supabase.env; set +a; psql "${PORTAL_MIGRATION_DATABASE_URL/+psycopg/}" -Atc 'select current_user'` | `postgres` |
 
@@ -291,7 +291,7 @@ is free.
 | 5 | A transaction-mode pooler (port 6543) breaks prepared statements, advisory locks and DDL, so it is not used | *Assumed* | `prepare_threshold=None` is set regardless; BE-31 never uses port 6543 |
 | 6 | The pooler's username format is `<role>.<project ref>` | *Assumed* | Check 9 for the owner role, and BE-31 for `app_backend` |
 | 7 | The Lightsail host can reach the pooler (outbound traffic is open) | *Assumed* | BE-31, the check from the host |
-| 8 | A free-plan project pauses when idle | *Assumed*, depends on the plan | The owner's answer in section 7 |
+| 8 | A Free-plan project pauses when idle (about a week) and has no automatic backups | *Assumed*, from memory of the documentation; the plan is Free (2026-11-02) | The owner reads the dashboard. BE-31 requires a `pg_dump` before each upgrade |
 
 Assumptions 1 to 3 are checked in the first commit of the pull request.
 Assumptions 4 to 6 can only be seen with the real project, so check 9 stays
