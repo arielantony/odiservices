@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Database › BE-27 |
 | **Depends on** | BE-31 (and through it BE-26) |
-| **Spec status** | In review |
+| **Spec status** | Approved (2026-11-04), with the answers in section 6. The owner confirmed the Access `sub` as the key |
 | **Date** | 2026-11-04 |
 
 ## 1. Goal
@@ -211,7 +211,7 @@ the BE-31 tests (they reuse its fixtures).
 
 | # | Question | Answer |
 |---|---|---|
-| 1 | Key the row on the Access `sub`, or on the email? | **`sub`** (recommended; the owner asked what it is, explained in 3.1). Confirm when approving |
+| 1 | Key the row on the Access `sub`, or on the email? | **`sub`** (confirmed by the owner when approving, 2026-11-04; explained in 3.1) |
 | 2 | Is the row created on the first login, and how is privilege kept in check? | The row is created by BE-24, not here. A row grants nothing: Access is the gate and BE-34 will deny by default (3.2). The owner's question: *least privilege, yes*, held by there being no permission column |
 | 3 | Email lowercase and unique? | **Yes** (owner, 2026-11-04). Enforced by the database |
 | 4 | Is email PII? | **No** (owner, 2026-11-04): plain text in the table. It never goes in a log: the owner confirmed on 2026-11-04 that the rule stays (`CLAUDE.md`, BE-21) |

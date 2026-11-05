@@ -282,7 +282,7 @@ Notes:
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
 | BE-26 | Task | Use Supabase as the backend database | [Approved](specs/database/BE-26-postgres-connection.md) | Done | BE-17, BE-18 | [#61] [#65] |
-| BE-27 | Task | Create the `users` table | [In review](specs/database/BE-27-users-table.md) | Draft | BE-31 | [#72] |
+| BE-27 | Task | Create the `users` table | [Approved](specs/database/BE-27-users-table.md) | Ready | BE-31 | [#72] |
 | BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | — | Draft | BE-27, BE-31 | |
 | BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
 | BE-30 | Task | Model categories as a constrained set | — | Draft | BE-31 | |
