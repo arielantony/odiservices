@@ -67,7 +67,7 @@ because it is shown and searched, and because two people must not share one
 
 **Email is not treated as PII here** (owner decision, 2026-11-04): it is stored
 as plain text, with no encryption and no hashing. The logging rule is
-separate and stays as it is: `CLAUDE.md` and BE-21 list emails among the things
+separate and stays as it is (owner, 2026-11-04: keep the email out of logs): `CLAUDE.md` and BE-21 list emails among the things
 that never go in a log, and BE-23 tests that no `@` reaches the output. The
 model's `__repr__` shows the id only, so a user object printed by mistake does
 not leak the email.
@@ -214,9 +214,9 @@ the BE-31 tests (they reuse its fixtures).
 | 1 | Key the row on the Access `sub`, or on the email? | **`sub`** (recommended; the owner asked what it is, explained in 3.1). Confirm when approving |
 | 2 | Is the row created on the first login, and how is privilege kept in check? | The row is created by BE-24, not here. A row grants nothing: Access is the gate and BE-34 will deny by default (3.2). The owner's question: *least privilege, yes*, held by there being no permission column |
 | 3 | Email lowercase and unique? | **Yes** (owner, 2026-11-04). Enforced by the database |
-| 4 | Is email PII? | **No** (owner, 2026-11-04): plain text in the table. It still never goes in a log, because `CLAUDE.md` and BE-21 name emails in that rule. The owner says if that rule should change |
+| 4 | Is email PII? | **No** (owner, 2026-11-04): plain text in the table. It never goes in a log: the owner confirmed on 2026-11-04 that the rule stays (`CLAUDE.md`, BE-21) |
 | 5 | The primary key? | **UUID v4** (owner, 2026-11-04) |
-| 6 | May `email` be null? BE-23 accepts a token with no `email` | **Not null.** A person who signs in through an identity provider has one. A token with none (a service token) is not a person, so BE-24 decides what to do with it, and it gets no row. If BE-24 finds a real case, it amends this table |
+| 6 | May `email` be null? BE-23 accepts a token with no `email` | **Not null** (owner, 2026-11-04: "always store the email"). A person who signs in through an identity provider has one. A token with none (a service token) is not a person, so BE-24 decides what to do with it, and it gets no row. If BE-24 finds a real case, it amends this table |
 
 A question with no answer becomes an assumption with the recommended option.
 
