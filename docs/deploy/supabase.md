@@ -86,6 +86,10 @@ Constitution, Article 7: the plan is read and approved before anything runs.
      -f ~/odiservices-backups/supabase-$(date +%Y%m%d-%H%M).dump
    ```
 
+   `scripts/db-backup.sh` does the same with checks (pg_dump 17 or newer, the
+   env file at mode 600, the folder outside any repository, a non-empty dump
+   with `portal` objects). `--dry-run` checks the setup and connects to nothing.
+
 3. **Apply.** With the URL loaded as above:
 
    ```sh
