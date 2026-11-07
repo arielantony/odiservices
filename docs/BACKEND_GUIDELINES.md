@@ -187,6 +187,13 @@ Every error from the API uses one format, which the frontend client
 - Settings: `PORTAL_ACCESS_TEAM_DOMAIN` and `PORTAL_ACCESS_AUD`, set together.
   Without them every protected route answers 503 and `/healthz` stays up.
 - The token, its claims and the keys are never logged.
+- A route that needs the person declares `Depends(current_user)` (BE-24, in
+  `server/users.py`) and gets the `User` row, found by the Access `sub` and
+  created on the first request. The email is stored once and **never
+  updated**: a token with another email is flagged in the log
+  (`user_email_mismatch`, the `user_id` only) and the stored row is served.
+  The same email under another `sub` is a 409, and a token with no email and
+  no row is a 403. Responses and logs never carry the email or the subject.
 - Locally there is no Access. The dev bypass (BE-25) works only with
   `PORTAL_ENV=dev`.
 
