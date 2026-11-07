@@ -263,7 +263,7 @@ Monorepo layout and React: `docs/proposals/monorepo-and-react.md` (approved 2026
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
 | BE-23 | Task | Verify the Cloudflare Access JWT on every protected request | [Approved](specs/auth/BE-23-verify-access-jwt.md) | Done | BE-17, BE-18, BE-20, BE-21, OPS-03, OPS-04 | [#54] [#55] [#56] [#57] |
-| BE-24 | Task | Resolve the Access identity to a `users` row | — | Draft | BE-23, BE-26, BE-27 | |
+| BE-24 | Task | Resolve the Access identity to a `users` row | [Approved](specs/auth/BE-24-resolve-user.md) | Ready | BE-23, BE-26, BE-27 | [#75] |
 | BE-25 | Task | Provide a local development auth bypass | — | Draft | BE-23 | |
 | BE-34 | Task | Control which roles can use which services | — | Draft | BE-24, BE-27 | |
 
@@ -420,3 +420,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#70]: https://github.com/arielantony/odiservices/pull/70
 [#72]: https://github.com/arielantony/odiservices/pull/72
 [#73]: https://github.com/arielantony/odiservices/pull/73
+[#75]: https://github.com/arielantony/odiservices/pull/75
