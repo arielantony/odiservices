@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Authentication › BE-24 |
 | **Depends on** | BE-23, BE-26, BE-27 |
-| **Spec status** | In review |
+| **Spec status** | Approved (2026-11-07), with the answers in section 6. Questions 8 and 9 are accepted as recommended |
 | **Date** | 2026-11-07 |
 
 ## 1. Goal
@@ -202,11 +202,11 @@ identity. Fictitious data only (`fulano@exemplo.com`, `sub-fulano`,
 | 5 | The dependency? | **`current_user`**, on top of `require_access` (owner: follow the recommendation) |
 | 6 | One upsert per request? | **Changed by question 4.** An upsert that writes every request would touch `updated_at` for nothing, and a conflict update would be an email update. So: one `SELECT` per request, and an `INSERT ... ON CONFLICT DO NOTHING` only for a new person. No cache |
 | 7 | Depend on BE-25? | **No.** Tests use a fake identity (owner: follow the recommendation) |
-| 8 | Which route first uses `current_user`? | **Not asked.** Recommended: a new `GET /api/me` that answers the `id` only. Without a route using it, no row would ever be created by this item, and `/api/session` stays free of the database so a session probe still works when the database is down |
-| 9 | Is the mismatch flag enough, or should it also refuse the request? | **Not asked.** Recommended: only flag. Refusing would lock a person out over a changed mailbox, and the log line is the notice you asked for |
+| 8 | Which route first uses `current_user`? | **Accepted by the owner on approval (2026-11-07).** Recommended: a new `GET /api/me` that answers the `id` only. Without a route using it, no row would ever be created by this item, and `/api/session` stays free of the database so a session probe still works when the database is down |
+| 9 | Is the mismatch flag enough, or should it also refuse the request? | **Accepted by the owner on approval (2026-11-07).** Recommended: only flag. Refusing would lock a person out over a changed mailbox, and the log line is the notice you asked for |
 
 A question with no answer becomes an assumption with the recommended option.
-Questions 8 and 9 are mine, not yours: change them if you want.
+Questions 8 and 9 were the agent's own recommendations; the owner accepted them when approving.
 
 ## 7. Prerequisites
 
