@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Authentication › BE-24 |
 | **Depends on** | BE-23, BE-26, BE-27 |
-| **Spec status** | Approved (2026-11-07), with the answers in section 6. Questions 8 and 9 are accepted as recommended |
+| **Spec status** | Approved (2026-11-07), with the answers in section 6. Questions 8 and 9 are accepted as recommended. Checks 3 to 5 corrected while implementing (approved 2026-11-07): check 3 needs the two Access settings, and check 5 is a test, not a grep |
 | **Date** | 2026-11-07 |
 
 ## 1. Goal
@@ -126,7 +126,7 @@ belongs to the row that was refused.
 
 | File | Change |
 |---|---|
-| `app/api/server/users.py` | New: `current_user`, `normalize_email`, the flag writers, `UserNotAllowed` and `UserConflict` (both `AccessError`-style errors) |
+| `app/api/server/users.py` | New: `current_user`, `normalize_email`, the flag writers, the 403 and 409 constants (raised as `AccessError`, whose handler already formats them) |
 | `app/api/server/db/session.py` | New: `get_session` |
 | `app/api/server/routes/me.py` | New: `GET /api/me` |
 | `app/api/server/main.py` | Engine in `app.state`, lifespan to dispose it, the `me` router, the handler for the new errors |
@@ -148,9 +148,9 @@ Every check runs when the item merges, with BE-23, BE-26 and BE-27.
 |---|---|---|
 | 1 | From `app/`, with Docker stopped: `make test-api` | All tests pass |
 | 2 | `make test-db` | The `db` tests pass, the BE-27 ones included |
-| 3 | `make db-up && make db-upgrade`, then `make dev`, then `curl -s -o /dev/null -w '%{http_code}\n' 127.0.0.1:8000/api/me` | `401`: no token, so BE-23 refuses before anything touches the database |
-| 4 | `make dev` with `PORTAL_DATABASE_URL` unset, and `curl 127.0.0.1:8000/healthz` | `200`: the server starts with no database, as before |
-| 5 | `grep -rn "email" app/api/server/users.py` | Every hit is a comparison, a column or a variable. None is in a `print`, a log call or a response |
+| 3 | From `app/api/`, with the local database up (`make db-up && make db-upgrade`): `PORTAL_ENV=dev PORTAL_ACCESS_TEAM_DOMAIN=exemplo.cloudflareaccess.com PORTAL_ACCESS_AUD=$(printf '0123456789abcdef%.0s' 1 2 3 4) PORTAL_DATABASE_URL=postgresql+psycopg://odiservices@127.0.0.1:55432/odiservices .venv/bin/uvicorn server.main:create_app --factory --port 8123 &`, then `curl -s -o /dev/null -w '%{http_code}\n' 127.0.0.1:8123/api/me`, then stop it by its PID | `401`: no token, so BE-23 refuses before anything touches the database. (Without the two Access settings the answer is `503`, by BE-23) |
+| 4 | The same `uvicorn` with only `PORTAL_ENV=dev`, then `curl 127.0.0.1:8123/healthz` | `200`: the server starts with no database, as before |
+| 5 | `test_flags_have_no_personal_data` and the `@` assertions in `test_users_resolution_db.py` (check 2) | No flag line holds an email or a subject. The code never logs a value from the token |
 | 6 | *Owner, after the deploy:* open `https://<portal host>/api/me` in the browser, signed in through Access | `{"id": "<uuid>"}`, 200 |
 | 7 | *Owner:* in `psql` as the owner: `select count(*), min(created_at)=max(created_at) from portal.users` | `1`, `t` after step 6: one row, made by that first call |
 | 8 | *Owner:* reload `/api/me` three times, then run the query of check 7 again | Still `1`, and the id in the answer does not change: no duplicate and no update |
