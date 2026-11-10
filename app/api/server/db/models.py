@@ -13,6 +13,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     Text,
+    UniqueConstraint,
     func,
     text,
 )
@@ -106,3 +107,51 @@ class Statement(Base):
     def __repr__(self) -> str:
         # The id only: the name can reveal a card or a month.
         return f"<Statement {self.id}>"
+
+
+class Transaction(Base):
+    """One line of a card statement (a lançamento), BE-29. It belongs to a
+    statement (deleted with it) and has a category from the fixed set (BE-30)."""
+
+    __tablename__ = "transactions"
+    __table_args__ = (
+        UniqueConstraint("statement_id", "item_number"),
+        CheckConstraint("item_number >= 1", name="item_number_positive"),
+        CheckConstraint(
+            "section in ('purchases', 'international', 'products')", name="section_known"
+        ),
+        CheckConstraint("printed_date <> ''", name="printed_date_not_empty"),
+        CheckConstraint("description <> ''", name="description_not_empty"),
+        Index("ix_transactions_statement_id_category_code", "statement_id", "category_code"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
+    )
+    statement_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("statements.id", ondelete="CASCADE")
+    )
+    item_number: Mapped[int] = mapped_column(Integer)
+    section: Mapped[str] = mapped_column(Text)
+    printed_date: Mapped[str] = mapped_column(Text)
+    description: Mapped[str] = mapped_column(Text)
+    amount: Mapped[Decimal] = mapped_column(Numeric(14, 2))
+    category_code: Mapped[str] = mapped_column(
+        ForeignKey("categories.code", ondelete="RESTRICT")
+    )
+    doubtful: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
+    reviewed: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    def __repr__(self) -> str:
+        # The id only: the description names merchants.
+        return f"<Transaction {self.id}>"
