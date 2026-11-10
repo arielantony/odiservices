@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Database › BE-30 |
 | **Depends on** | BE-31 (Done) |
-| **Spec status** | Draft, awaiting owner approval. Not Ready: nothing is built until it is approved |
+| **Spec status** | Approved (2026-11-10), with the recommended answers in section 6. Not Ready until this PR is merged |
 | **Date** | 2026-11-10 |
 
 ## 1. Goal
@@ -166,18 +166,20 @@ Single PR. No feature branch: `feat/be-30-categories` from `origin/main`.
 
 ## 6. Open questions
 
-1. **Does the owner want `auto_assign`?** *Recommended: yes.* It records the
+Answered by the owner on 2026-11-10: all four, with the recommended option.
+
+1. **Does the owner want `auto_assign`?** *Answer: yes (recommended).* It records the
    "use only if I say so" rule in the data, so the classifier cannot pick
    `FOLHA DE PAGAMENTO` or `CUSTO DO CARRO` by mistake. Without it the rule
    lives only in the prompt.
-2. **Can `app_backend` change the categories?** *Recommended: no, read only.*
+2. **Can `app_backend` change the categories?** *Answer: no, read only (recommended).*
    The default privileges from `0001` give read and write on new tables. This
    item would revoke `INSERT`, `UPDATE` and `DELETE` on `portal.categories`
    from `app_backend`, so the set changes only through a migration or a SQL
    run by the owner. The portal does not need to add categories in this item.
-3. **Is the list of ten complete?** *Recommended: yes, these ten.* They are
+3. **Is the list of ten complete?** *Answer: yes, these ten (recommended).* They are
    the business's list today. A new category later is a new row, by migration.
-4. **Label language.** *Recommended: pt-BR in the `label` column.* It is the
+4. **Label language.** *Answer: pt-BR in the `label` column (recommended).* It is the
    text the user reads (`CLAUDE.md`, Language). The `code` stays in English
    and uppercase, as the classifier returns it.
 

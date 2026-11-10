@@ -285,7 +285,7 @@ Notes:
 | BE-27 | Task | Create the `users` table | [Approved](specs/database/BE-27-users-table.md) | Done | BE-31 | [#72] [#73] |
 | BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | — | Draft | BE-27, BE-31 | |
 | BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
-| BE-30 | Task | Model categories as a constrained set | [Draft](specs/database/BE-30-categories.md) | Draft | BE-31 | [#78] |
+| BE-30 | Task | Model categories as a constrained set | [Draft](specs/database/BE-30-categories.md) | Ready | BE-31 | [#78] |
 | BE-31 | Task | Version schema changes as SQL migrations | [Approved](specs/database/BE-31-sql-migrations.md) | Done | BE-26 | [#63] [#66] [#67] [#68] [#69] [#70] |
 | BE-35 | Task | Make the migration drift test see column defaults | — | Draft | BE-31 | |
 
