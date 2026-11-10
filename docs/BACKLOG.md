@@ -283,7 +283,7 @@ Notes:
 |---|---|---|---|---|---|---|
 | BE-26 | Task | Use Supabase as the backend database | [Approved](specs/database/BE-26-postgres-connection.md) | Done | BE-17, BE-18 | [#61] [#65] |
 | BE-27 | Task | Create the `users` table | [Approved](specs/database/BE-27-users-table.md) | Done | BE-31 | [#72] [#73] |
-| BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | [Approved](specs/database/BE-28-statements-table.md) | Draft | BE-27, BE-31 | [#81] |
+| BE-28 | Task | Create the `statements` table (one row per card statement / fatura) | [Approved](specs/database/BE-28-statements-table.md) | In progress | BE-27, BE-31 | [#81], [#82] |
 | BE-29 | Task | Create the `transactions` table (lançamentos) | — | Draft | BE-28, BE-30 | |
 | BE-30 | Task | Model categories as a constrained set | [Approved](specs/database/BE-30-categories.md) | Done | BE-31 | [#79], [#80] |
 | BE-31 | Task | Version schema changes as SQL migrations | [Approved](specs/database/BE-31-sql-migrations.md) | Done | BE-26 | [#63] [#66] [#67] [#68] [#69] [#70] |
@@ -427,3 +427,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#79]: https://github.com/arielantony/odiservices/pull/79
 [#80]: https://github.com/arielantony/odiservices/pull/80
 [#81]: https://github.com/arielantony/odiservices/pull/81
+[#82]: https://github.com/arielantony/odiservices/pull/82

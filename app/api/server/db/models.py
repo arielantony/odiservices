@@ -2,8 +2,20 @@
 
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Integer, Text, func, text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Numeric,
+    Text,
+    func,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from server.db.base import Base
@@ -64,3 +76,33 @@ class Category(Base):
 
     def __repr__(self) -> str:
         return f"<Category {self.code}>"
+
+
+class Statement(Base):
+    """A card statement (fatura) a person sent (BE-28). One row per statement;
+    the transactions refer to it by a foreign key (BE-29)."""
+
+    __tablename__ = "statements"
+    __table_args__ = (
+        CheckConstraint("name <> ''", name="name_not_empty"),
+        Index("ix_statements_user_id_created_at", "user_id", text("created_at DESC")),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        primary_key=True, default=uuid.uuid4, server_default=text("gen_random_uuid()")
+    )
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    name: Mapped[str] = mapped_column(Text)
+    total_lanc_atuais: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    def __repr__(self) -> str:
+        # The id only: the name can reveal a card or a month.
+        return f"<Statement {self.id}>"
