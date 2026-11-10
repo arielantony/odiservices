@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Database › BE-28 |
 | **Depends on** | BE-27 (Done), BE-31 (Done) |
-| **Spec status** | In review (2026-11-10). Not Ready until the owner approves it |
+| **Spec status** | Approved (2026-11-10), with the recommended answers in section 6. Not Ready until this PR is merged |
 | **Date** | 2026-11-10 |
 
 ## 1. Goal
@@ -194,22 +194,21 @@ Exemplo, set/2026"). The `db` tests reuse the BE-31 fixtures and run in
 
 ## 6. Open questions
 
-Each with a recommended option. A question with no answer becomes an
-assumption with the recommended option.
+Answered by the owner on 2026-11-10: all three, with the recommended option.
 
-1. **Is `total_lanc_atuais` nullable?** *Recommended: yes.* The list (FE-04)
+1. **Is `total_lanc_atuais` nullable?** *Answer: yes (recommended).* The list (FE-04)
    shows statements still being classified or failed, with "—" as the total,
    and BE-07 adds that status. If the row is created at upload, the total does
    not exist yet. The alternative is to create the row only after a successful
    extraction, which makes the column not null but leaves no place to record a
    failed upload.
 2. **What happens to a user's statements when the user row is deleted?**
-   *Recommended: `RESTRICT`.* The database refuses to delete a user that still
+   *Answer: `RESTRICT` (recommended).* The database refuses to delete a user that still
    has statements, so financial data is never removed as a side effect. Nothing
    deletes users today. The alternative, `CASCADE`, would erase the statements
    (and, with BE-29, their transactions) silently.
-3. **Where does `name` come from, and may it be empty?** *Recommended: not
-   null, not empty, taken from the uploaded file's name without the extension
+3. **Where does `name` come from, and may it be empty?** *Answer: not
+   null (recommended), not empty, taken from the uploaded file's name without the extension
    by BE-03 and BE-05.* BE-03 may let the person edit it later. The file name
    is stored as the person's own label, not as the file: BE-04 decides that the
    PDF is not kept. The name never goes into a log (BE-21).
