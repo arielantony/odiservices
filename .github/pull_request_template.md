@@ -45,4 +45,12 @@ Use fictitious data only (the canonical fixture, "Fatura Cartão Exemplo, set/20
 ### Verification (spec section <N>)
 
 - [x] <check that was run and passed>
-- [ ] Pending validation: <check> (needs the owner's real data; the only box that may stay unchecked)
+- [ ] Pending validation: <check> (needs the owner's real data; the only merge box that may stay unchecked)
+
+### After merge (deploy, owner, from `main`)
+
+<!-- Only when the item needs a production step (a migration, a deploy).
+Leave the section out otherwise. The item stays In progress until these pass;
+a Done PR records the result. -->
+
+- [ ] <deploy check and its command>

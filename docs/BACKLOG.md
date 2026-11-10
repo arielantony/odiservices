@@ -48,9 +48,9 @@ are updated in the same change.
 | Needs prototype | Frontend only. No approved design yet, so no Gherkin |
 | Draft | Written, but its prototype or its spec is not approved |
 | Ready | Prototype (frontend) and spec approved, dependencies known. Can be started once its Definition of Ready is met (`docs/specs/README.md`) |
-| In progress | Being implemented |
+| In progress | Being implemented, or merged and waiting for its deploy checks (the spec's *After merge (deploy)* list) |
 | Pending validation | Implemented, unit tests and every other check pass; some checks wait for real data the owner provides (the note under the item says which). Never used for checks that wait on a later item: those belong in that item's spec |
-| Done | Implemented and verified: unit tests pass and, for stories, every scenario passes |
+| Done | Implemented and verified: unit tests pass, every scenario of a story passes and, when the item needs a production step, its deploy checks passed |
 
 **Types:** *Story* means user-facing behavior with a Gherkin `.feature` file.
 *Task* means technical or decision work with no user-facing behavior of its

@@ -193,7 +193,9 @@ directly on `main`.
     box is checked. The only exception is a *Pending validation* check
     (the owner's real data), labeled as such. A check that waits on a later
     item means the spec is wrong: stop and fix the spec before opening the
-    PR.
+    PR. Checks that need a deploy to production are not merge checks: the PR
+    lists them under **After merge (deploy)**, with the owner as the one who
+    runs them (see Article 7).
 - **The product owner reviews and merges.** The author never merges their
   own PR.
 
