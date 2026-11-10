@@ -90,6 +90,12 @@ Written by hand after a draft from `make db-revision M=categories` (BE-31,
   constraints of 3.2.
 - `enable_backend_only_rls("categories")` from `migrations/helpers.py`, so
   RLS is on with one policy for `app_backend`.
+- `REVOKE INSERT, UPDATE, DELETE ON portal.categories FROM app_backend`. The
+  default privileges from `0001` would give the portal's role write access
+  to this table. The set changes only by migration or by SQL the owner runs
+  (section 6, question 2). `SELECT` stays. Added to this section on
+  2026-11-10, with the owner's approval, after the implementation found the
+  gap.
 - The seed: `op.bulk_insert` of the ten rows of 3.1, in that order, with
   `position` 1 to 10. The seed is part of the schema, so it lives in the
   migration and not in a script.
