@@ -37,7 +37,11 @@ dependencies, spec status and date. Then:
    needs a later item belongs in that item's spec, which then lists this
    item in its Depends on. The same applies to commands: a Makefile target
    or script the item adds must work when it merges. *Pending validation*
-   (the owner's real data) is the only kind of check that may wait.
+   (the owner's real data) is the only kind of check that may wait. A check
+   that needs production (a migration applied to Supabase, a deploy to the
+   host) goes in a separate **After merge (deploy)** list in the same
+   section: the owner runs it from `main` after the merge, with the
+   commands written out. The item is Done only when that list passes.
 5. **Tests:** the unit tests this item ships with, given as test name, what it
    asserts and the fixture it uses. They follow `docs/TESTING_GUIDELINES.md`:
    fictitious data only, and an item is Done only when they pass.

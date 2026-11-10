@@ -46,6 +46,11 @@ before changing anything:
   item's spec; if you find one, the spec is wrong (stop and propose the
   fix). Only *Pending validation* checks (the owner's real data) may stay
   unchecked in a PR.
+- **Deploy checks run after the merge.** A check that needs production (a
+  migration applied to Supabase, a deploy to the host) is listed in the
+  spec's *After merge (deploy)* section, not in the merge checks. The owner
+  runs it from `main`, the item stays *In progress* until it passes, and a
+  Done PR records the result.
 - **Every item ends in a pull request** (`docs/CONSTITUTION.md`, Article 6),
   opened with `gh pr create`. Under 500 changed lines (lockfiles and
   binaries excluded). If an item would be larger, propose the steps in its
