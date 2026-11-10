@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Platform › Database › BE-29 |
 | **Depends on** | BE-28 (Done), BE-30 (Done) |
-| **Spec status** | In review (2026-11-10). Not Ready until the owner approves it |
+| **Spec status** | Approved (2026-11-10), with the recommended answers to section 6 |
 | **Date** | 2026-11-10 |
 
 ## 1. Goal
