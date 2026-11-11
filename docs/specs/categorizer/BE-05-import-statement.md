@@ -5,7 +5,7 @@
 | **Backlog** | Feature: Categorizer › Statement upload and processing › BE-05 |
 | **Story** | None. FE-03 (BE-03) and FE-04 (BE-06) come after it |
 | **Depends on** | BE-24 (Done), BE-28 (Done), BE-29 (Done), BE-30 (Done) |
-| **Spec status** | In review |
+| **Spec status** | Approved (2026-11-10), with the recommended answers to section 6 |
 | **Date** | 2026-11-10 |
 
 ## 1. Goal
@@ -255,6 +255,10 @@ verifier faked, as in BE-24. No call leaves the machine.
 
 ## 6. Open questions
 
+Answered by the owner on 2026-11-10: 1 follows the recommendation, 2 refuse,
+3 accept, 4 yes (store two). Each question below keeps its recommendation
+for the record.
+
 1. **Names in the request body.** Keep the extraction's own names
    (`total_lanc_atuais`, `lancamentos`, `secao`, `valor`, ...), or define
    English names and make BE-03 translate? *Recommended:* the extraction's
@@ -274,7 +278,6 @@ verifier faked, as in BE-24. No call leaves the machine.
    month's name), BE-15 deletes the extra one, and a name check would block a
    legitimate re-import after a fix.
 
-An unanswered question becomes an assumption with the recommended option.
 
 ## 7. Prerequisites
 
