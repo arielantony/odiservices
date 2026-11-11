@@ -152,22 +152,26 @@ statements already sent (Categorizer home screen).
 
 ### Backend
 
-*Stage: Outline*
+*Stage: Planned*
 
-- **BE-03** Upload a statement PDF and run the extraction server-side
-  - Context: `ask_pdf.py` is a local CLI today that writes to `outputs/`. To be product-ready, it should run server-side (upload PDF → Claude → import), with `ANTHROPIC_API_KEY` held on the server. The 10 MB limit shown in the prototype must be enforced here too.
-- **BE-04** Do not persist uploaded PDFs, or store them encrypted
-  - Context: card statements are sensitive financial documents. Decide on retention before building the upload.
-- **BE-05** Import a statement from the extraction JSON
-  - Context: no static data, so the result of the extraction must enter through the API. Validate it against the `ask_pdf.py` schema and check the transaction sum against `total_lanc_atuais`.
-- **BE-06** List the current user's statements, newest first, paginated
-  - Context: replaces the hardcoded `result-9.json` default in `serve.py`. FE-04 shows the name, the date sent, the status and the total, plus "Mostrar faturas anteriores".
-- **BE-07** Track each statement's processing status and failure reason
-  - Context: FE-04 shows "Classificando", "Concluída", "N para revisar" and "Falhou: <reason>". No current item stores this.
-- **BE-08** Retry a failed extraction
-  - Context: FE-05 "Tentar de novo" puts a failed statement back into classification without a new upload.
-- **BE-09** Store the card name and last digits of each statement
-  - Context: FE-06 shows "Cartão Exemplo final 0000". The `statements` table (BE-28) has no such field today.
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
+| BE-03 | Task | Upload a statement PDF and run the extraction server-side | — | Draft | BE-04, BE-05 |
+| BE-04 | Task | Do not persist uploaded PDFs, or store them encrypted | — | Draft | — |
+| BE-05 | Task | Import a statement from the extraction JSON | [In review](specs/categorizer/BE-05-import-statement.md) | Draft | BE-24, BE-28, BE-29, BE-30 |
+| BE-06 | Task | List the current user's statements, newest first, paginated | — | Draft | BE-24, BE-28 |
+| BE-07 | Task | Track each statement's processing status and failure reason | — | Draft | BE-28 |
+| BE-08 | Task | Retry a failed extraction | — | Draft | BE-03, BE-07 |
+| BE-09 | Task | Store the card name and last digits of each statement | — | Draft | BE-28 |
+
+Notes:
+- BE-03: `ask_pdf.py` is a local CLI today that writes to `outputs/`. To be product-ready, it should run server-side (upload PDF → Claude → import), with `ANTHROPIC_API_KEY` held on the server. The 10 MB limit shown in the prototype must be enforced here too.
+- BE-04: card statements are sensitive financial documents. Decide on retention before building the upload.
+- BE-05: no static data, so the result of the extraction must enter through the API. Validate it against the `ask_pdf.py` schema and check the transaction sum against `total_lanc_atuais`. It is the only door for statement data: BE-03 will call the same import with what Claude returns. Specified first in this area (2026-11-10).
+- BE-06: replaces the hardcoded `result-9.json` default in `serve.py`. FE-04 shows the name, the date sent, the status and the total, plus "Mostrar faturas anteriores".
+- BE-07: FE-04 shows "Classificando", "Concluída", "N para revisar" and "Falhou: <reason>". No current item stores this.
+- BE-08: FE-05 "Tentar de novo" puts a failed statement back into classification without a new upload.
+- BE-09: FE-06 shows "Cartão Exemplo final 0000". The `statements` table (BE-28) has no such field today.
 
 ---
 
