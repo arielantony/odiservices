@@ -158,7 +158,7 @@ statements already sent (Categorizer home screen).
 |---|---|---|---|---|---|---|
 | BE-03 | Task | Upload a statement PDF and run the extraction server-side | — | Draft | BE-04, BE-05 |
 | BE-04 | Task | Do not persist uploaded PDFs, or store them encrypted | — | Draft | — |
-| BE-05 | Task | Import a statement from the extraction JSON | [Approved](specs/categorizer/BE-05-import-statement.md) | Ready | BE-24, BE-28, BE-29, BE-30 | [#88] |
+| BE-05 | Task | Import a statement from the extraction JSON | [Approved](specs/categorizer/BE-05-import-statement.md) | Done | BE-24, BE-28, BE-29, BE-30 | [#88], [#90] |
 | BE-06 | Task | List the current user's statements, newest first, paginated | — | Draft | BE-24, BE-28 |
 | BE-07 | Task | Track each statement's processing status and failure reason | — | Draft | BE-28 |
 | BE-08 | Task | Retry a failed extraction | — | Draft | BE-03, BE-07 |
@@ -437,3 +437,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#86]: https://github.com/arielantony/odiservices/pull/86
 [#87]: https://github.com/arielantony/odiservices/pull/87
 [#88]: https://github.com/arielantony/odiservices/pull/88
+[#90]: https://github.com/arielantony/odiservices/pull/90
