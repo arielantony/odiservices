@@ -5,7 +5,7 @@
 | **Backlog** | Feature: Statement board › Backend › BE-10 |
 | **Story** | None. FE-06 and FE-08 come after it |
 | **Depends on** | BE-05 (Ready, not Done: this item starts only when BE-05 is Done), BE-24 (Done), BE-28 (Done), BE-29 (Done), BE-30 (Done) |
-| **Spec status** | In review |
+| **Spec status** | Approved (2026-11-11), with the recommended answers to section 6 |
 | **Date** | 2026-11-11 |
 
 ## 1. Goal
@@ -201,6 +201,9 @@ about them.
 | `test_null_total_is_returned_as_null` | A statement inserted through the ORM with no total gives `"total": null`, `transaction_count` 0 and `transactions` `[]` |
 
 ## 6. Open questions
+
+Answered by the owner on 2026-11-11: all four follow the recommendation. Each
+question below keeps its recommendation for the record.
 
 1. **Counts and total in the response.** *Recommended: yes,* with BE-05's
    names (`total`, `transaction_count`, `doubtful_count`), so the board header and
