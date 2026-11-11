@@ -2,6 +2,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy import Engine
 
@@ -13,15 +14,22 @@ from server.access import (
 )
 from server.db import build_engine
 from server.request_log import RequestLogMiddleware
-from server.routes import health, me, session
+from server.routes import health, me, session, statements
 from server.security_headers import SecurityHeadersMiddleware
 from server.settings import Settings, get_settings
+from server.statements import REFUSED_INVALID, refusal_response
 
 NOT_FOUND = {"error": {"code": "not_found", "message": "Recurso não encontrado."}}
 
 
 async def not_found(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(NOT_FOUND, status_code=404)
+
+
+async def invalid_body(request: Request, exc: Exception) -> JSONResponse:
+    # A body that fails its model, on any route (BE-05, spec 3.5). FastAPI's
+    # default answer repeats the input; this one never does.
+    return refusal_response(REFUSED_INVALID)
 
 
 async def access_refused(request: Request, exc: Exception) -> JSONResponse:
@@ -75,7 +83,9 @@ def create_app(
     app.add_middleware(SecurityHeadersMiddleware)
     app.add_exception_handler(404, not_found)
     app.add_exception_handler(AccessError, access_refused)
+    app.add_exception_handler(RequestValidationError, invalid_body)
     app.include_router(health.router)
     app.include_router(session.router)
     app.include_router(me.router)
+    app.include_router(statements.router)
     return app

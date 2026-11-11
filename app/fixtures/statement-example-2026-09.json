@@ -1,0 +1,22 @@
+{
+  "total_lanc_atuais": 11906.35,
+  "lancamentos": [
+    {"id": 1, "secao": "compras", "data": "05/09", "descricao": "Distribuidora Exemplo Ltda", "valor": 1250.0, "categoria": "FORNECEDOR", "duvida": false},
+    {"id": 2, "secao": "compras", "data": "05/09", "descricao": "Papelaria Fictícia", "valor": 89.9, "categoria": "FORNECEDOR", "duvida": false},
+    {"id": 3, "secao": "compras", "data": "05/09", "descricao": "Atacado Modelo SA", "valor": 432.1, "categoria": "FORNECEDOR", "duvida": false},
+    {"id": 4, "secao": "compras", "data": "05/09", "descricao": "Hospedagem Servidor Demo", "valor": 199.0, "categoria": "OPERACIONAL", "duvida": false},
+    {"id": 5, "secao": "compras", "data": "05/09", "descricao": "Software Gestão Teste", "valor": 349.0, "categoria": "OPERACIONAL", "duvida": true},
+    {"id": 6, "secao": "compras", "data": "05/09", "descricao": "Anúncios Online Exemplo", "valor": 500.0, "categoria": "MARKETING/COMERCIAL", "duvida": false},
+    {"id": 7, "secao": "compras", "data": "05/09", "descricao": "Gráfica Imaginária", "valor": 210.0, "categoria": "MARKETING/COMERCIAL", "duvida": false},
+    {"id": 8, "secao": "compras", "data": "05/09", "descricao": "Notebook Loja Fictícia", "valor": 4899.0, "categoria": "INVESTIMENTO", "duvida": false},
+    {"id": 9, "secao": "compras", "data": "05/09", "descricao": "Contabilidade Exemplo", "valor": 650.0, "categoria": "DESPESA ADMINISTRATIVA", "duvida": false},
+    {"id": 10, "secao": "compras", "data": "05/09", "descricao": "Correios Demo", "valor": 32.4, "categoria": "DESPESA ADMINISTRATIVA", "duvida": false},
+    {"id": 11, "secao": "compras", "data": "05/09", "descricao": "Pró-labore Fictício", "valor": 3000.0, "categoria": "FOLHA DE PAGAMENTO", "duvida": false},
+    {"id": 12, "secao": "compras", "data": "05/09", "descricao": "Posto Combustível Teste", "valor": 280.0, "categoria": "CUSTO DO CARRO", "duvida": false},
+    {"id": 13, "secao": "compras", "data": "05/09", "descricao": "Estacionamento Demo", "valor": 25.0, "categoria": "CUSTO DO CARRO", "duvida": false},
+    {"id": 14, "secao": "produtos", "data": "05/09", "descricao": "Tarifa Bancária Exemplo", "valor": 19.9, "categoria": "DESPESAS FINANCEIRAS", "duvida": false},
+    {"id": 15, "secao": "internacional", "data": "05/09", "descricao": "IOF Compra Exterior", "valor": 12.35, "categoria": "DESPESAS FINANCEIRAS", "duvida": false},
+    {"id": 16, "secao": "compras", "data": "05/09", "descricao": "Estorno Loja Exemplo", "valor": -120.0, "categoria": "OUTROS", "duvida": false},
+    {"id": 17, "secao": "compras", "data": "05/09", "descricao": "Compra Não Identificada", "valor": 77.7, "categoria": "OUTROS", "duvida": true}
+  ]
+}

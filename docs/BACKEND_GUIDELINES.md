@@ -103,6 +103,7 @@ app/api/
 │   ├── main.py          # create_app(), run with uvicorn --factory
 │   ├── settings.py      # Settings, get_settings()
 │   ├── request_log.py   # request log middleware
+│   ├── statements.py    # statement import (BE-05): models, checks, storage
 │   └── routes/          # one module per area, each with an APIRouter
 └── tests/               # one test file per module or item
 ```
@@ -143,6 +144,11 @@ Every error from the API uses one format, which the frontend client
   resource, so the client can reload it.
 - An unhandled exception returns `500` with no details. The details go to
   the log only (see "Logging").
+- A body that fails its model answers `422 invalid_statement`, on any route,
+  through the `RequestValidationError` handler in `server/main.py` (BE-05).
+  FastAPI's own answer repeats the input, so it is not used. A route with a
+  body reads it by hand, checks its size first (`413 payload_too_large`), and
+  raises `RequestValidationError` itself.
 
 ### Settings
 
