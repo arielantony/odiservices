@@ -5,7 +5,7 @@
 | **Backlog** | Feature: Categorizer › Statement upload and processing › BE-05 |
 | **Story** | None. FE-03 (BE-03) and FE-04 (BE-06) come after it |
 | **Depends on** | BE-24 (Done), BE-28 (Done), BE-29 (Done), BE-30 (Done) |
-| **Spec status** | Approved (2026-11-10), with the recommended answers to section 6 |
+| **Spec status** | Approved (2026-11-10), with the recommended answers to section 6. Amended 2026-11-11 after the implementation review: decimal parsing, 503 on a database error, `name` in the 201, size exception |
 | **Date** | 2026-11-10 |
 
 ## 1. Goal
@@ -71,7 +71,7 @@ extraction's (`ask_pdf.py`, `SCHEMA`), so BE-03 can pass Claude's output with
 as `additionalProperties: false` does in `SCHEMA`.
 
 Response `201`, with `Cache-Control: no-store`. No description, and no value
-that was not a count, a total or an id:
+but the name the caller sent (trimmed), a count, a total or an id:
 
 ```json
 {"id": "6f1c...-uuid", "name": "Fatura Cartão Exemplo, set/2026",
@@ -80,7 +80,10 @@ that was not a count, a total or an id:
 
 Money in the API is a **decimal string** (`"11906.35"`), never a float, in
 responses. The request accepts JSON numbers, as the extraction produces them,
-and reads them as decimals, not as binary floats.
+and reads them as decimals, not as binary floats: the body is parsed with
+`json.loads(parse_float=Decimal)` and only JSON numbers are accepted, so a
+string, a boolean or a float-typed value is `invalid_statement`.
+A `Content-Length` that is not a number is also `invalid_statement`.
 
 ### 3.2 Validation, in this order
 
@@ -138,7 +141,7 @@ The portal's format (`docs/BACKEND_GUIDELINES.md`, Errors).
 | 422 | `invalid_statement` | `Os dados da fatura são inválidos.` |
 | 422 | `unknown_category` | `A fatura tem uma categoria desconhecida.` |
 | 422 | `total_mismatch` | `A soma dos lançamentos não confere com o total da fatura.` |
-| 503 | `database_unavailable` | from BE-24, unchanged |
+| 503 | `database_unavailable` | from BE-24, unchanged. Also a database error during the import (the log carries the class name only) |
 
 ### 3.5 Request validation errors
 
@@ -188,7 +191,8 @@ FastAPI).
 
 ### 3.8 Steps
 
-One step, about 450 lines with the tests and the fixture. Branch
+One step. It came to about 780 lines with the tests and the fixture; the owner
+allowed it to pass the 500-line limit for this item (2026-11-11). It was about 450 lines with the tests and the fixture. Branch
 `feat/be-05-import-statement`, from `origin/main`, PR to `main`. The estimate
 is the tightest part of the spec: if the code passes 500 lines, I stop and
 propose a split at the seam between the validation (3.2, 3.5, 3.6) and the
@@ -296,8 +300,14 @@ only. Approvals: none beyond the PR.
 
 | # | Claim | Status | Check |
 |---|---|---|---|
-| 1 | Pydantic reads a JSON number such as `89.9` as `Decimal("89.9")`, not as the binary float | **assumed** | `test_amounts_are_read_as_decimals`, first test written |
+| 1 | Pydantic reads a JSON number such as `89.9` as `Decimal("89.9")`, not as the binary float | **changed**: `model_validate_json` also accepted strings, so the body is parsed with `parse_float=Decimal` | `test_amounts_are_read_as_decimals`, first test written |
 | 2 | `RequestValidationError` can be handled app-wide with `add_exception_handler` and the handler never sees a response already built by the middleware | **assumed** | `test_validation_error_uses_the_portal_format` |
-| 3 | Reading `Content-Length` is enough to bound the body in this stack (the nginx `web` image also limits it) | **assumed** | `test_oversized_body_is_413`; a chunked body without a length is a gap, recorded here, closed when BE-03 sets the upload limit |
+| 3 | Reading `Content-Length` is enough to bound the body in this stack (the nginx `web` image also limits it) | **partly**: the bytes actually read are checked too, but a chunked body is still read in full before it is refused | `test_oversized_body_is_413`; a chunked body without a length is a gap, recorded here, closed when BE-03 sets the upload limit |
 | 4 | `app_backend` can insert into `statements` and `transactions` through the default privileges of `0001` | verified (BE-28, BE-29 `db` tests) | Re-run by the `db` tests |
 | 5 | A ceiling of 500 lines and 512 KiB covers a real statement (the real one has about 20 to 60 lines) | **assumed** | The owner confirms with a statement of theirs once BE-03 exists (*Pending validation*, no data recorded) |
+
+## 9. Notes from the implementation
+
+- `current_user` runs before the body is validated, so a new person who sends an invalid body still gets a `users` row (same as `/api/me`).
+- The log has no new event except `database_error` (class name only).
+- Checks 4 to 6 are covered by the named tests.
