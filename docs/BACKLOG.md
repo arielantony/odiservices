@@ -208,22 +208,26 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 
 ### Backend
 
-*Stage: Outline*
+*Stage: Planned*
 
-- **BE-10** Get one statement with its transactions
-  - Context: replaces `/data/result.json` and `/data/extract.json`. It returns one merged shape so the frontend no longer joins two files.
-- **BE-11** Update a transaction's category and reviewed flag
-  - Context: this is the core board action (drag a card, confirm a doubt, undo). It replaces the localStorage edits so changes persist across browsers.
-- **BE-12** Return a per-category summary for a statement
-  - Context: feeds the distribution bar. Computing the totals on the server keeps them consistent with the database.
-- **BE-13** Record whether a transaction's category was changed by the user
-  - Context: FE-08 shows "Movido por você" on cards the user moved. It needs the original category, or a flag.
-- **BE-14** Export a statement
-  - Context: FE-13 "Exportar JSON". Decide between a server endpoint and an export built in the browser.
-- **BE-15** Delete a statement and its transactions
-  - Context: FE-18 "Excluir fatura". Decide between a hard delete and a soft delete.
-- **BE-16** Provide display labels for the categories
-  - Context: the database stores `FORNECEDOR`, but the UI shows "Fornecedor". Decide whether the mapping lives in the API or in the frontend.
+| ID | Type | Item | Spec | Status | Depends on | PRs |
+|---|---|---|---|---|---|---|
+| BE-10 | Task | Get one statement with its transactions | [Approved](specs/categorizer/BE-10-get-statement.md) | Ready | BE-05, BE-24, BE-28, BE-29, BE-30 | [#89] |
+| BE-11 | Task | Update a transaction's category and reviewed flag | — | Draft | BE-10 | |
+| BE-12 | Task | Return a per-category summary for a statement | — | Draft | BE-10 | |
+| BE-13 | Task | Record whether a transaction's category was changed by the user | — | Draft | BE-11 | |
+| BE-14 | Task | Export a statement | — | Draft | BE-10 | |
+| BE-15 | Task | Delete a statement and its transactions | — | Draft | BE-10 | |
+| BE-16 | Task | Provide display labels for the categories | — | Draft | BE-30 | |
+
+Notes:
+- BE-10: replaces `/data/result.json` and `/data/extract.json`. It returns one merged shape so the frontend no longer joins two files.
+- BE-11: this is the core board action (drag a card, confirm a doubt, undo). It replaces the localStorage edits so changes persist across browsers.
+- BE-12: feeds the distribution bar. Computing the totals on the server keeps them consistent with the database.
+- BE-13: FE-08 shows "Movido por você" on cards the user moved. It needs the original category, or a flag.
+- BE-14: FE-13 "Exportar JSON". Decide between a server endpoint and an export built in the browser.
+- BE-15: FE-18 "Excluir fatura". Decide between a hard delete and a soft delete.
+- BE-16: the database stores `FORNECEDOR`, but the UI shows "Fornecedor". Decide whether the mapping lives in the API or in the frontend.
 
 ---
 
@@ -437,4 +441,5 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#86]: https://github.com/arielantony/odiservices/pull/86
 [#87]: https://github.com/arielantony/odiservices/pull/87
 [#88]: https://github.com/arielantony/odiservices/pull/88
+[#89]: https://github.com/arielantony/odiservices/pull/89
 [#90]: https://github.com/arielantony/odiservices/pull/90
