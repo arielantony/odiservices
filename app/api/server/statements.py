@@ -7,6 +7,7 @@ Anthropic. Messages never carry a value from the payload.
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
@@ -44,6 +45,9 @@ REFUSED_TOTAL = (
     "total_mismatch",
     "A soma dos lançamentos não confere com o total da fatura.",
 )
+# GET /api/statements/{id} (BE-10, spec 3.4): one answer for an unknown, a
+# malformed and another user's id.
+REFUSED_NOT_FOUND = (404, "statement_not_found", "A fatura não foi encontrada.")
 
 
 class StatementRefused(Exception):
@@ -197,4 +201,81 @@ def import_statement(session: Session, user: User, payload: StatementPayload) ->
         total=payload.total_lanc_atuais,
         transaction_count=len(lines),
         doubtful_count=sum(line.duvida for line in lines),
+    )
+
+
+class TransactionView(BaseModel):
+    """One stored line, as GET /api/statements/{id} returns it (BE-10, spec 3.2).
+    Money is a decimal string with two places, never a float."""
+
+    id: str
+    item_number: int
+    section: str
+    printed_date: str
+    description: str
+    amount: str
+    category_code: str
+    doubtful: bool
+    reviewed: bool
+
+
+class StatementView(BaseModel):
+    """The header and the lines of one statement (BE-10, spec 3.2). The header
+    names are BE-05's `201` names, so the import and the read share one shape."""
+
+    id: str
+    name: str
+    total: str | None
+    created_at: str
+    transaction_count: int
+    doubtful_count: int
+    transactions: list[TransactionView]
+
+
+def money_text(value: Decimal) -> str:
+    return f"{value:.2f}"
+
+
+def utc_text(value: datetime) -> str:
+    """ISO 8601 in UTC, ending in `Z` (Pydantic's default would be `+00:00`)."""
+    return value.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+
+
+def read_statement(session: Session, user: User, statement_id: UUID) -> StatementView | None:
+    """The statement `statement_id` and its lines, for `user` only (spec 3.3).
+    None when there is no such statement for this user: missing, or another
+    user's. The lines are read only after the statement is found."""
+    statement = session.scalar(
+        select(Statement).where(Statement.id == statement_id, Statement.user_id == user.id)
+    )
+    if statement is None:
+        return None
+    transactions = list(
+        session.scalars(
+            select(Transaction)
+            .where(Transaction.statement_id == statement.id)
+            .order_by(Transaction.item_number)
+        )
+    )
+    return StatementView(
+        id=str(statement.id),
+        name=statement.name,
+        total=None if statement.total_lanc_atuais is None else money_text(statement.total_lanc_atuais),
+        created_at=utc_text(statement.created_at),
+        transaction_count=len(transactions),
+        doubtful_count=sum(1 for item in transactions if item.doubtful),
+        transactions=[
+            TransactionView(
+                id=str(item.id),
+                item_number=item.item_number,
+                section=item.section,
+                printed_date=item.printed_date,
+                description=item.description,
+                amount=money_text(item.amount),
+                category_code=item.category_code,
+                doubtful=item.doubtful,
+                reviewed=item.reviewed,
+            )
+            for item in transactions
+        ],
     )

@@ -4,7 +4,7 @@
 |---|---|
 | **Backlog** | Feature: Statement board › Backend › BE-10 |
 | **Story** | None. FE-06 and FE-08 come after it |
-| **Depends on** | BE-05 (Ready, not Done: this item starts only when BE-05 is Done), BE-24 (Done), BE-28 (Done), BE-29 (Done), BE-30 (Done) |
+| **Depends on** | BE-05 (Done), BE-24 (Done), BE-28 (Done), BE-29 (Done), BE-30 (Done) |
 | **Spec status** | Approved (2026-11-11), with the recommended answers to section 6 |
 | **Date** | 2026-11-11 |
 
@@ -136,7 +136,7 @@ appears in any line.
 
 ### 3.6 Steps
 
-One step, about 220 lines with the tests. Branch `feat/be-10-get-statement`,
+One step, about 480 lines with the tests (the first estimate was 220). Branch `feat/be-10-get-statement`,
 from `origin/main`, PR to `main`.
 
 ### 3.7 Files
@@ -147,6 +147,7 @@ from `origin/main`, PR to `main`.
 | `app/api/server/routes/statements.py` | Add `GET /api/statements/{statement_id}`. The module is created by BE-05 |
 | `app/api/tests/test_statement_read.py` | New: section 5, no database |
 | `app/api/tests/test_statement_read_db.py` | New: section 5, marker `db` |
+| `app/api/tests/test_access_routes.py` | The every-route-is-protected test fills a path parameter with a sample id instead of asserting there is none (found in implementation, 2026-11-11) |
 | `docs/BACKLOG.md` | BE-10: status to In progress, then the PR link |
 
 No migration, no setting, no dependency, no change to the fixture or to the
@@ -252,3 +253,8 @@ database, no deploy.
 | 7 | BE-05's `server/statements.py`, `server/routes/statements.py`, the fixture and its `RequestValidationError` handler exist as its spec says | *Assumed*: BE-05 is approved, not merged | Prerequisites, first two rows |
 | 8 | psycopg 3 returns a `numeric(14,2)` as a `Decimal` that keeps its scale (`Decimal("1250.00")`), so two places are kept | *Assumed* | `test_gaps_and_money_are_kept_as_stored`; if the scale is lost, the formatting is fixed in the read, not the column |
 | 9 | Overriding `get_session` and `current_user` through `app.dependency_overrides` works with `create_app`, as the BE-24 tests do | *Assumed* from the `add_get` helper in `tests/conftest.py` | First run of `test_statement_read.py` |
+
+## 9. Notes from the implementation
+
+- `uuid.UUID` also accepts braces, a `urn:uuid:` prefix and unhyphenated hex. They resolve to the same statement, for its owner only, so they are not treated as malformed. Anything else is a 404.
+- `read_statement` returns `None` for a missing or another user's statement; the route maps it to the 404.

@@ -1,6 +1,7 @@
 import importlib
 import json
 import pkgutil
+import re
 
 import jwt
 import pytest
@@ -92,10 +93,10 @@ def test_every_route_is_protected_except_the_list():
     for path in paths:
         if path in PUBLIC_ROUTES:
             continue
-        # No route has path parameters yet. When one does, fill them in here.
-        assert "{" not in path
+        # A path parameter is filled with a sample id (BE-10).
+        url = re.sub(r"\{[^}]+\}", "00000000-0000-4000-8000-000000000000", path)
         for method in ("GET", "POST", "PUT", "PATCH", "DELETE"):
-            response = client.request(method, path)
+            response = client.request(method, url)
             assert response.status_code in (401, 405), (method, path)
 
 
