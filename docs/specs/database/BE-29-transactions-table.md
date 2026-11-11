@@ -186,6 +186,8 @@ these pass; a Done PR records the result.
 | 12 | `make db-upgrade && make db-current` against Supabase | `0005 (head)` |
 | 13 | In `psql` as the owner: `select count(*) from portal.transactions;` | `0` |
 
+Checks 11 to 13 validated by the owner on 2026-11-10 (Supabase at `0005 (head)`, `portal.transactions` empty).
+
 ## 5. Tests
 
 Fictitious data only (`sub-fulano`, `fulano@exemplo.com`, "Fatura Cartão
