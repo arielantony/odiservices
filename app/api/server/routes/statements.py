@@ -25,6 +25,7 @@ from server.statements import (
     StatementRefused,
     import_statement,
     owned_statement,
+    read_category_summary,
     read_patch,
     read_payload,
     read_statement,
@@ -170,3 +171,26 @@ async def patch_transaction(
         log_event("WARNING", "database_error", error=type(exc).__name__)
         raise AccessError(*DATABASE_UNAVAILABLE) from None
     return JSONResponse(item.model_dump(), headers={"Cache-Control": "no-store"})
+
+
+@router.get("/api/statements/{statement_id}/summary")
+async def get_category_summary(
+    statement_id: str,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+) -> JSONResponse:
+    """The per-category totals and shares of one statement (BE-12). Read as a
+    string, so a malformed id is the same 404 as an unknown one (spec 3.1)."""
+    try:
+        parsed = uuid.UUID(statement_id)
+    except ValueError:
+        return refusal_response(REFUSED_NOT_FOUND)
+    try:
+        view = await run_in_threadpool(read_category_summary, session, user, parsed)
+    except DBAPIError as exc:
+        # The class name only: a driver message can hold the host (spec 3.6).
+        log_event("WARNING", "database_error", error=type(exc).__name__)
+        raise AccessError(*DATABASE_UNAVAILABLE) from None
+    if view is None:
+        return refusal_response(REFUSED_NOT_FOUND)
+    return JSONResponse(view.model_dump(), headers={"Cache-Control": "no-store"})
