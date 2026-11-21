@@ -28,8 +28,9 @@ NAME = "Fatura Cartão Exemplo, set/2026"
 CATEGORY = "OUTROS"
 INSERT_TRANSACTION = text(
     "insert into portal.transactions "
-    "(statement_id, item_number, section, printed_date, description, amount, category_code) "
-    "values (:s, :i, :sec, :d, :desc, :amt, :cat)"
+    "(statement_id, item_number, section, printed_date, description, amount, category_code, "
+    "original_category_code) "
+    "values (:s, :i, :sec, :d, :desc, :amt, :cat, :cat)"
 )
 
 
@@ -84,6 +85,7 @@ def test_transactions_columns(migrated):
         ("reviewed", "boolean", "NO"),
         ("created_at", "timestamp with time zone", "NO"),
         ("updated_at", "timestamp with time zone", "NO"),
+        ("original_category_code", "text", "NO"),
     ]
 
 
@@ -94,8 +96,9 @@ def test_defaults_are_set_on_insert(migrated):
         row = connection.execute(
             text(
                 "insert into portal.transactions "
-                "(statement_id, item_number, section, printed_date, description, amount, category_code) "
-                "values (:s, 1, 'purchases', '03/09', 'LOJA EXEMPLO 1/3', -49.90, :cat) "
+                "(statement_id, item_number, section, printed_date, description, amount, category_code, "
+                "original_category_code) "
+                "values (:s, 1, 'purchases', '03/09', 'LOJA EXEMPLO 1/3', -49.90, :cat, :cat) "
                 "returning substr(id::text, 15, 1) as version, doubtful, reviewed, "
                 "created_at, updated_at"
             ),
@@ -123,6 +126,7 @@ def test_updated_at_moves_on_orm_update(migrated):
             description="LOJA EXEMPLO 1/3",
             amount=Decimal("-49.90"),
             category_code=CATEGORY,
+            original_category_code=CATEGORY,
         )
         session.add(transaction)
         session.commit()

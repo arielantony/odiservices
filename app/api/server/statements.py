@@ -223,6 +223,7 @@ def import_statement(session: Session, user: User, payload: StatementPayload) ->
                     "description": line.descricao,
                     "amount": line.valor,
                     "category_code": line.categoria,
+                    "original_category_code": line.categoria,
                     "doubtful": line.duvida,
                     "reviewed": False,
                 }
@@ -255,6 +256,7 @@ class TransactionView(BaseModel):
     category_code: str
     doubtful: bool
     reviewed: bool
+    moved_by_user: bool
 
 
 class StatementView(BaseModel):
@@ -291,6 +293,7 @@ def transaction_view(item: Transaction) -> TransactionView:
         category_code=item.category_code,
         doubtful=item.doubtful,
         reviewed=item.reviewed,
+        moved_by_user=item.category_code != item.original_category_code,
     )
 
 
