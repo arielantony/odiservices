@@ -190,7 +190,9 @@ description, no category text and no amount appears in any line.
 
 ### 3.8 Steps
 
-One step, about 350 lines with the tests. Branch `feat/be-11-update-transaction`,
+One step. It came to about 590 lines with the tests (the first estimate was
+350); the owner allowed it to pass the 500-line limit for this item
+(2026-11-21), so no split. It was about 350 lines Branch `feat/be-11-update-transaction`,
 from `origin/main` after BE-10 is merged, PR to `main`. If the code passes 500
 lines, I stop and propose a split at the seam between the route (3.1, 3.2, 3.4)
 and the writing (3.5, 3.6).
@@ -333,8 +335,16 @@ None beyond the PR. No production database, no deploy.
 |---|---|---|---|
 | 1 | The route takes the user as `Depends(current_user)`, as `/api/me` and BE-05 do | *Verified*, `server/users.py` | Check 3 |
 | 2 | `app_backend` may `UPDATE` `portal.transactions`, so no migration is needed | *Verified* from source: `migrations/versions/0001_baseline.py` grants `SELECT, INSERT, UPDATE, DELETE` on tables in `portal` by default privilege; `migrations/helpers.py` creates the policy `backend_only` `TO app_backend USING (true) WITH CHECK (true)` (`FOR ALL`), and `0005_transactions.py` calls it | Check 4 runs an `UPDATE` through the app's role |
-| 3 | The BE-10 read exists and its transaction shape is the one in 3.2 | *Assumed*: BE-10 is approved, not merged | Preflight, first row of section 7 |
+| 3 | The BE-10 read exists and its transaction shape is the one in 3.2 | *Verified*: BE-10 is merged (#91) | Preflight, first row of section 7 |
 | 4 | `updated_at` changes on any `UPDATE` through the Core or ORM path, through the column's `onupdate=func.now()` | *Assumed* | `test_change_moves_updated_at`, `test_same_values_do_not_touch_updated_at` |
 | 5 | `SELECT ... FOR UPDATE` through SQLAlchemy and psycopg 3 locks the row for the transaction | *Assumed* | Check 4 (the test runs in one session); the lock itself is not tested |
 | 6 | A pydantic model with `strict=True` refuses `"true"` for a `bool` and `null` for a `str` field | *Assumed* | `test_body_shape_is_422` |
 | 7 | An `IntegrityError` on the category foreign key is named `fk_transactions_category_code_categories` by Postgres | *Assumed* from the migration's constraint name | Not tested; the mapping of 3.4 falls back to a plain raise |
+
+## 9. Notes from the implementation
+
+- The rollback: `update_transaction` rolls back before each refusal (transaction not found, unknown category), so the `FOR UPDATE` lock is released at once.
+- `update_transaction` takes `user` as the spec's signature says but does not use it: the route confirms ownership first (step 2).
+- `owned_statement()` and `transaction_view()` are shared with `read_statement`, so the read and the PATCH serialize a line the same way.
+- A body whose fields are all `null`, or that has none, is refused by a model validator (`422 invalid_statement`).
+- The mapping of the category foreign key error (claim 7) is implemented but has no test.

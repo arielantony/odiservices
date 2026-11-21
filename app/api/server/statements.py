@@ -23,11 +23,14 @@ from pydantic import (
     model_validator,
 )
 from sqlalchemy import insert, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from server.db import Category, Statement, Transaction, User
 
 MAX_BODY_BYTES = 512 * 1024
+MAX_PATCH_BYTES = 1024  # PATCH of one transaction (BE-11, spec 3.2)
+CATEGORY_CONSTRAINT = "fk_transactions_category_code_categories"  # base.py naming
 MAX_AMOUNT = Decimal("1000000000000")  # an amount is below 10^12
 CENT = Decimal("0.01")
 SECTIONS = {"compras": "purchases", "internacional": "international", "produtos": "products"}
@@ -48,6 +51,12 @@ REFUSED_TOTAL = (
 # GET /api/statements/{id} (BE-10, spec 3.4): one answer for an unknown, a
 # malformed and another user's id.
 REFUSED_NOT_FOUND = (404, "statement_not_found", "A fatura não foi encontrada.")
+# PATCH .../transactions/{transaction_id} (BE-11, spec 3.4).
+REFUSED_TRANSACTION_NOT_FOUND = (
+    404,
+    "transaction_not_found",
+    "A transação não foi encontrada.",
+)
 
 
 class StatementRefused(Exception):
@@ -141,6 +150,35 @@ def read_payload(raw: bytes) -> StatementPayload:
     return StatementPayload.model_validate(data)
 
 
+class TransactionPatch(BaseModel):
+    """The body of PATCH .../transactions/{transaction_id} (BE-11, spec 3.2). At
+    least one field, none of them null. `doubtful` is not a field: no route
+    changes it."""
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    category_code: str | None = None
+    reviewed: bool | None = None
+
+    @model_validator(mode="after")
+    def some_field_and_no_null(self) -> "TransactionPatch":
+        if not self.model_fields_set:
+            raise ValueError("no field to change")
+        if any(getattr(self, name) is None for name in self.model_fields_set):
+            raise ValueError("a field is null")
+        return self
+
+
+def read_patch(raw: bytes) -> TransactionPatch:
+    """Parse the body. Raises ValueError (bad JSON) or ValidationError (a
+    ValueError too) when the body is not a valid change."""
+    try:
+        data = json.loads(raw)
+    except RecursionError as exc:
+        raise ValueError("nested too deeply") from exc
+    return TransactionPatch.model_validate(data)
+
+
 def lines_total(lines: list[Line]) -> Decimal:
     return sum((line.valor for line in lines), Decimal("0"))
 
@@ -229,6 +267,7 @@ class StatementView(BaseModel):
     created_at: str
     transaction_count: int
     doubtful_count: int
+    pending_review_count: int  # doubtful and not reviewed (BE-11, spec 3.6)
     transactions: list[TransactionView]
 
 
@@ -241,13 +280,33 @@ def utc_text(value: datetime) -> str:
     return value.astimezone(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
 
 
+def transaction_view(item: Transaction) -> TransactionView:
+    return TransactionView(
+        id=str(item.id),
+        item_number=item.item_number,
+        section=item.section,
+        printed_date=item.printed_date,
+        description=item.description,
+        amount=money_text(item.amount),
+        category_code=item.category_code,
+        doubtful=item.doubtful,
+        reviewed=item.reviewed,
+    )
+
+
+def owned_statement(session: Session, user: User, statement_id: UUID) -> Statement | None:
+    """The statement `statement_id` if it belongs to `user`, else None: missing
+    and another user's are the same answer (BE-10, BE-11 step 2)."""
+    return session.scalar(
+        select(Statement).where(Statement.id == statement_id, Statement.user_id == user.id)
+    )
+
+
 def read_statement(session: Session, user: User, statement_id: UUID) -> StatementView | None:
     """The statement `statement_id` and its lines, for `user` only (spec 3.3).
     None when there is no such statement for this user: missing, or another
     user's. The lines are read only after the statement is found."""
-    statement = session.scalar(
-        select(Statement).where(Statement.id == statement_id, Statement.user_id == user.id)
-    )
+    statement = owned_statement(session, user, statement_id)
     if statement is None:
         return None
     transactions = list(
@@ -264,18 +323,47 @@ def read_statement(session: Session, user: User, statement_id: UUID) -> Statemen
         created_at=utc_text(statement.created_at),
         transaction_count=len(transactions),
         doubtful_count=sum(1 for item in transactions if item.doubtful),
-        transactions=[
-            TransactionView(
-                id=str(item.id),
-                item_number=item.item_number,
-                section=item.section,
-                printed_date=item.printed_date,
-                description=item.description,
-                amount=money_text(item.amount),
-                category_code=item.category_code,
-                doubtful=item.doubtful,
-                reviewed=item.reviewed,
-            )
-            for item in transactions
-        ],
+        pending_review_count=sum(
+            1 for item in transactions if item.doubtful and not item.reviewed
+        ),
+        transactions=[transaction_view(item) for item in transactions],
     )
+
+
+def update_transaction(
+    session: Session,
+    user: User,
+    statement_id: UUID,
+    transaction_id: UUID,
+    patch: TransactionPatch,
+) -> TransactionView:
+    """Set the sent fields of one line (BE-11, spec 3.1 steps 6 to 9). The caller
+    has already checked that `statement_id` is `user`'s. Only the values that
+    differ are written: a request that changes nothing executes no UPDATE, so
+    `updated_at` stays. `doubtful` is never written."""
+    item = session.scalar(
+        select(Transaction)
+        .where(Transaction.id == transaction_id, Transaction.statement_id == statement_id)
+        .with_for_update()
+    )
+    if item is None:
+        session.rollback()
+        raise StatementRefused(REFUSED_TRANSACTION_NOT_FOUND)
+    if patch.category_code is not None and session.scalar(
+        select(Category.code).where(Category.code == patch.category_code)
+    ) is None:
+        session.rollback()
+        raise StatementRefused(REFUSED_UNKNOWN_CATEGORY)
+
+    requested = {"category_code": patch.category_code, "reviewed": patch.reviewed}
+    for name, value in requested.items():
+        if value is not None and getattr(item, name) != value:
+            setattr(item, name, value)
+    try:
+        session.commit()
+    except IntegrityError as exc:
+        session.rollback()
+        if getattr(exc.orig.diag, "constraint_name", None) == CATEGORY_CONSTRAINT:
+            raise StatementRefused(REFUSED_UNKNOWN_CATEGORY) from None
+        raise
+    return transaction_view(item)

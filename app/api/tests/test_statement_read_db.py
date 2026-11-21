@@ -101,6 +101,7 @@ def test_get_canonical_statement_in_order(client, engine):
     assert data["total"] == "11906.35"
     assert data["transaction_count"] == 17
     assert data["doubtful_count"] == 2
+    assert data["pending_review_count"] == 2
     lines = data["transactions"]
     assert [line["item_number"] for line in lines] == list(range(1, 18))
     assert [line["description"] for line in lines if line["doubtful"]] == [
