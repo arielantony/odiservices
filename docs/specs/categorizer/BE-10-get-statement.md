@@ -70,7 +70,8 @@ statement data is invalid.
     {"id": "b2d4e9f0-3c1a-4e7b-9d62-8f0a1c5e6b71", "item_number": 1,
      "section": "purchases", "printed_date": "05/09",
      "description": "Distribuidora Exemplo Ltda", "amount": "1250.00",
-     "category_code": "FORNECEDOR", "doubtful": false, "reviewed": false}
+     "category_code": "FORNECEDOR", "doubtful": false, "reviewed": false,
+     "moved_by_user": false}
   ]
 }
 ```
@@ -87,6 +88,9 @@ statement data is invalid.
   `item_number` as stored, `section` in English (`purchases`, `international`,
   `products`), `printed_date`, `description`, `amount`, `category_code`,
   `doubtful` and `reviewed`.
+- `moved_by_user` (a change of BE-13, approved with its spec): a JSON boolean,
+  always present, `true` when `category_code` differs from the category the
+  extraction gave the line. It is derived, not stored (BE-13, spec 3.3).
 - `item_number` is returned as stored. Gaps stay, nothing is renumbered (BE-05
   accepts gaps).
 - `transactions` is ordered by `item_number`, ascending. The unique pair

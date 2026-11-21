@@ -93,10 +93,14 @@ same fields and names as an element of BE-10's `transactions[]`:
 {"id": "d7a1f3c2-5e8b-4a6d-9c10-3b2e7f9a4d55", "item_number": 2,
  "section": "purchases", "printed_date": "06/09",
  "description": "Loja Exemplo", "amount": "20.00",
- "category_code": "OPERACIONAL", "doubtful": true, "reviewed": true}
+ "category_code": "OPERACIONAL", "doubtful": true, "reviewed": true,
+ "moved_by_user": true}
 ```
 
 - `amount` is a decimal string with two places, as in BE-10.
+- `moved_by_user` is added by BE-13 (its spec 3.3): `true` when `category_code`
+  differs from the extraction's category, so the board shows "Movido por você"
+  right after a drag, with no extra request.
 - `updated_at` is not returned, as in BE-10.
 - The response does not carry the statement's counts. After a change the board
   reads `GET /api/statements/{statement_id}` again to refresh its counts.

@@ -175,7 +175,7 @@ def test_update_response_headers():
     data = changed.json()
     assert set(data) == {
         "id", "item_number", "section", "printed_date", "description", "amount",
-        "category_code", "doubtful", "reviewed",
+        "category_code", "doubtful", "reviewed", "moved_by_user",
     }
     assert data["amount"] == "20.00"
     assert data["doubtful"] is True

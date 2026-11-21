@@ -139,6 +139,9 @@ class Transaction(Base):
     category_code: Mapped[str] = mapped_column(
         ForeignKey("categories.code", ondelete="RESTRICT")
     )
+    original_category_code: Mapped[str] = mapped_column(
+        ForeignKey("categories.code", ondelete="RESTRICT")
+    )
     doubtful: Mapped[bool] = mapped_column(
         Boolean, default=False, server_default=text("false")
     )
