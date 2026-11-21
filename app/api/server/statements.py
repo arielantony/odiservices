@@ -5,7 +5,9 @@ it. The field names are the extraction's; the English names of the tables
 Anthropic. Messages never carry a value from the payload.
 """
 
+import base64
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -57,6 +59,13 @@ REFUSED_TRANSACTION_NOT_FOUND = (
     "transaction_not_found",
     "A transação não foi encontrada.",
 )
+# GET /api/statements (BE-06, spec 3.6): the page size and the cursor.
+REFUSED_INVALID_LIMIT = (
+    422,
+    "invalid_limit",
+    "O tamanho da página deve ser um número entre 1 e 100.",
+)
+REFUSED_INVALID_CURSOR = (422, "invalid_cursor", "O cursor da página não é válido.")
 
 
 # The processing status and the failure codes of a statement (BE-07, spec 3.4).
@@ -552,3 +561,57 @@ def read_category_summary(
     if owned_statement(session, user, statement_id) is None:
         return None
     return summary_view(category_totals(session, statement_id))
+
+
+# GET /api/statements (BE-06, spec 3.2 to 3.4): the statements of one user,
+# newest first, one keyset page at a time.
+DEFAULT_LIMIT = 20
+MAX_LIMIT = 100
+MAX_CURSOR_LENGTH = 512
+CURSOR_VERSION = 1
+LIMIT_PATTERN = re.compile(r"[0-9]{1,3}")
+
+
+def parse_limit(values: list[str]) -> int:
+    """The `limit` query parameter: absent is the default; one value of 1 to 100.
+    Anything else raises ValueError (the route answers invalid_limit)."""
+    if not values:
+        return DEFAULT_LIMIT
+    if len(values) != 1 or LIMIT_PATTERN.fullmatch(values[0]) is None:
+        raise ValueError("limit is not a number")
+    limit = int(values[0])
+    if not 1 <= limit <= MAX_LIMIT:
+        raise ValueError("limit is out of range")
+    return limit
+
+
+def encode_cursor(created_at: datetime, statement_id: UUID) -> str:
+    """The opaque cursor of a row: its full-precision created_at (UTC) and id,
+    as URL-safe base64 of UTF-8 JSON, without padding (spec 3.3)."""
+    body = {
+        "v": CURSOR_VERSION,
+        "t": created_at.astimezone(timezone.utc).isoformat(),
+        "i": str(statement_id),
+    }
+    raw = json.dumps(body, separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
+
+
+def parse_cursor(value: str) -> tuple[datetime, UUID]:
+    """The position a cursor names. Every step must hold (spec 3.3): any failure
+    raises ValueError, and nothing from the cursor is echoed."""
+    if len(value) > MAX_CURSOR_LENGTH:
+        raise ValueError("cursor is too long")
+    padded = value + "=" * (-len(value) % 4)
+    raw = base64.b64decode(padded.encode("ascii"), altchars=b"-_", validate=True)
+    data = json.loads(raw.decode("utf-8"))
+    if not isinstance(data, dict) or set(data) != {"v", "t", "i"}:
+        raise ValueError("cursor has the wrong keys")
+    if type(data["v"]) is not int or data["v"] != CURSOR_VERSION:
+        raise ValueError("cursor version is not known")
+    if not isinstance(data["t"], str) or not isinstance(data["i"], str):
+        raise ValueError("cursor values are not text")
+    moment = datetime.fromisoformat(data["t"])
+    if moment.utcoffset() is None:
+        raise ValueError("cursor time has no UTC offset")
+    return moment, UUID(data["i"])
