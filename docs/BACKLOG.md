@@ -214,7 +214,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 |---|---|---|---|---|---|---|
 | BE-10 | Task | Get one statement with its transactions | [Approved](specs/categorizer/BE-10-get-statement.md) | Done | BE-05, BE-24, BE-28, BE-29, BE-30 | [#89], [#91] |
 | BE-11 | Task | Update a transaction's category and reviewed flag | [Approved](specs/categorizer/BE-11-update-transaction.md) | Done | BE-10 | [#92], [#93] |
-| BE-12 | Task | Return a per-category summary for a statement | — | Draft | BE-10 | |
+| BE-12 | Task | Return a per-category summary for a statement | [Approved](specs/categorizer/BE-12-category-summary.md) | Ready | BE-10 | |
 | BE-13 | Task | Record whether a transaction's category was changed by the user | — | Draft | BE-11 | |
 | BE-14 | Task | Export a statement | — | Draft | BE-10 | |
 | BE-15 | Task | Delete a statement and its transactions | — | Draft | BE-10 | |
