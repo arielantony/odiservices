@@ -52,6 +52,8 @@ def test_statements_columns(migrated):
         ("total_lanc_atuais", "numeric", "YES"),
         ("created_at", "timestamp with time zone", "NO"),
         ("updated_at", "timestamp with time zone", "NO"),
+        ("card_name", "text", "YES"),
+        ("card_last4", "character", "YES"),
     ]
 
 

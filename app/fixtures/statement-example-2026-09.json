@@ -1,4 +1,6 @@
 {
+  "cartao_nome": "Cartão Exemplo",
+  "cartao_final": "0000",
   "total_lanc_atuais": 11906.35,
   "lancamentos": [
     {"id": 1, "secao": "compras", "data": "05/09", "descricao": "Distribuidora Exemplo Ltda", "valor": 1250.0, "categoria": "FORNECEDOR", "duvida": false},

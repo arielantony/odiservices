@@ -53,7 +53,7 @@ describe the same data:
 - **Source:** `docs/prototypes/portal/v3-generate.py` (`cards`) is the source.
 
 It lives in `app/fixtures/statement-example-2026-09.json`, in the extraction
-shape without `name` (BE-05), and both `api/` and `web/` tests read it. Changing it means updating the prototype generator and
+shape without `name`; the card keys are optional (BE-05, BE-09), and both `api/` and `web/` tests read it. Changing it means updating the prototype generator and
 the stories in the same change.
 
 Additional fixtures are allowed when a test needs a case the canonical one

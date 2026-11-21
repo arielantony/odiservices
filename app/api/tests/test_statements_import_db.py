@@ -197,3 +197,63 @@ def test_response_has_counts_and_no_description(client, migrated):
     with owner(migrated).connect() as connection:
         stored = connection.execute(text("select id::text from portal.statements")).scalar_one()
     assert data["id"] == stored
+
+
+def card_of(database, statement_id: str) -> tuple:
+    """The card columns of one statement, read as the owner."""
+    with owner(database).connect() as connection:
+        return tuple(
+            connection.execute(
+                text("select card_name, card_last4 from portal.statements where id = :id"),
+                {"id": uuid.UUID(statement_id)},
+            ).one()
+        )
+
+
+def test_card_fields_are_stored(client, migrated):
+    response = post(client, body())
+
+    assert response.status_code == 201
+    assert card_of(migrated, response.json()["id"]) == ("Cartão Exemplo", "0000")
+
+
+def test_card_last4_keeps_leading_zeros(client, migrated):
+    response = post(client, body(cartao_final="0123"))
+
+    assert response.status_code == 201
+    assert card_of(migrated, response.json()["id"]) == ("Cartão Exemplo", "0123")
+
+
+def test_card_fields_absent_store_null(client, migrated):
+    data = body()
+    del data["cartao_nome"]
+    del data["cartao_final"]
+
+    response = post(client, data)
+
+    assert response.status_code == 201
+    assert card_of(migrated, response.json()["id"]) == (None, None)
+
+
+def test_fixture_card_keys_import(client, migrated):
+    token = make_token()
+    response = post(client, body(), token=token)
+
+    assert response.status_code == 201
+    assert set(response.json()) == {"id", "name", "total", "transaction_count", "doubtful_count"}
+    assert card_of(migrated, response.json()["id"]) == ("Cartão Exemplo", "0000")
+    read = client.get(
+        f"/api/statements/{response.json()['id']}", headers={HEADER: token}
+    )
+    assert read.status_code == 200
+    assert read.json()["card_name"] == "Cartão Exemplo"
+    assert read.json()["card_last4"] == "0000"
+    assert read.json()["total"] == "11906.35"
+
+
+def test_card_refusal_stores_nothing(client, migrated):
+    response = post(client, body(cartao_final="00A0"))
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "invalid_statement"
+    assert counts(migrated) == (0, 0)

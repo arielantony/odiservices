@@ -77,7 +77,7 @@ def serving(session):
     return dependency
 
 
-def seeded(lines):
+def seeded(lines, card_name=None, card_last4=None):
     """One statement of FAKE_USER with its lines. `lines` is a list of
     (item_number, description, amount) tuples."""
     statement_id = uuid.uuid4()
@@ -85,6 +85,8 @@ def seeded(lines):
         id=statement_id,
         user_id=FAKE_USER.id,
         name=NAME,
+        card_name=card_name,
+        card_last4=card_last4,
         total_lanc_atuais=sum((Decimal(amount) for _, _, amount in lines), Decimal("0")),
         created_at=datetime(2026, 11, 10, 14, 3, tzinfo=timezone.utc),
     )
@@ -180,6 +182,23 @@ def test_read_logs_carry_no_description(capsys):
     assert str(statement_id) not in output
     assert "Loja Exemplo Sigilo" not in output
     assert "1234.56" not in output
+
+
+def test_read_logs_carry_no_card(capsys):
+    statement_id, session = seeded(
+        [(1, "Loja Exemplo", "1234.56")],
+        card_name="Cartão Sigilo Exemplo",
+        card_last4="9876",
+    )
+    client = TestClient(app_with(serving(session)))
+
+    response = get(client, statement_id)
+    output = capsys.readouterr().out
+
+    assert response.status_code == 200
+    assert response.json()["card_name"] == "Cartão Sigilo Exemplo"
+    assert "Cartão Sigilo Exemplo" not in output
+    assert "9876" not in output
 
 
 def test_no_engine_is_503():

@@ -162,7 +162,7 @@ statements already sent (Categorizer home screen).
 | BE-06 | Task | List the current user's statements, newest first, paginated | [Approved](specs/categorizer/BE-06-list-statements.md) | Ready | BE-24, BE-28, BE-29, BE-09, BE-07 | [#100] |
 | BE-07 | Task | Track each statement's processing status and failure reason | [Approved](specs/categorizer/BE-07-statement-status.md) | Ready | BE-28, BE-10, BE-13, BE-09 | [#99] |
 | BE-08 | Task | Retry a failed extraction | [Approved](specs/categorizer/BE-08-retry-extraction.md) | Ready | BE-03, BE-07, BE-04 | [#105] |
-| BE-09 | Task | Store the card name and last digits of each statement | [Approved](specs/categorizer/BE-09-card-fields.md) | Ready | BE-28, BE-05, BE-10 | [#98] |
+| BE-09 | Task | Store the card name and last digits of each statement | [Approved](specs/categorizer/BE-09-card-fields.md) | In progress | BE-28, BE-05, BE-10 | [#98] |
 
 Notes:
 - BE-03: `ask_pdf.py` is a local CLI today that writes to `outputs/`. To be product-ready, it should run server-side (upload PDF → Claude → import), with `ANTHROPIC_API_KEY` held on the server. The 10 MB limit shown in the prototype must be enforced here too.
