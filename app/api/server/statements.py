@@ -22,7 +22,7 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
-from sqlalchemy import and_, func, insert, select
+from sqlalchemy import and_, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -57,6 +57,26 @@ REFUSED_TRANSACTION_NOT_FOUND = (
     "transaction_not_found",
     "A transação não foi encontrada.",
 )
+
+
+# The processing status and the failure codes of a statement (BE-07, spec 3.4).
+# The codes are checked in SQL by migration 0008; the messages are read after
+# "Falhou: " by the frontend (FE-04).
+STATUSES = ("processing", "ready", "failed")
+FAILURE_MESSAGES = {
+    "invalid_pdf": "PDF ilegível",
+    "extraction_unavailable": "o serviço de leitura está indisponível",
+    "extraction_timeout": "a leitura demorou demais",
+    "extraction_refused": "a leitura da fatura foi recusada",
+    "extraction_truncated": "a leitura da fatura ficou incompleta",
+    "extraction_invalid": "não foi possível ler a fatura",
+    "unknown_category": "há uma categoria desconhecida na fatura",
+    "total_mismatch": "a soma dos lançamentos não confere com o total",
+    "interrupted": "a leitura foi interrompida",
+    "upload_not_available": "o arquivo enviado não está mais disponível",
+    "unknown": "erro inesperado",
+}
+FAILURE_CODES = tuple(FAILURE_MESSAGES)
 
 
 class StatementRefused(Exception):
@@ -273,6 +293,9 @@ class StatementView(BaseModel):
 
     id: str
     name: str
+    status: str  # BE-07, spec 3.3: processing, ready or failed
+    failure_code: str | None  # BE-07: null unless status is failed
+    failure_message: str | None  # BE-07: the pt-BR reason of failure_code
     card_name: str | None  # BE-09, spec 3.4: null when the statement has no card
     card_last4: str | None
     total: str | None
@@ -332,6 +355,11 @@ def read_statement(session: Session, user: User, statement_id: UUID) -> Statemen
     return StatementView(
         id=str(statement.id),
         name=statement.name,
+        status=statement.status,
+        failure_code=statement.failure_code,
+        failure_message=(
+            None if statement.failure_code is None else FAILURE_MESSAGES[statement.failure_code]
+        ),
         card_name=statement.card_name,
         card_last4=statement.card_last4,
         total=None if statement.total_lanc_atuais is None else money_text(statement.total_lanc_atuais),
@@ -480,6 +508,39 @@ def summary_view(rows) -> CategorySummaryView:
             for row in ordered
         ],
     )
+
+
+def set_status(
+    session: Session,
+    statement_id: UUID,
+    status: str,
+    failure_code: str | None = None,
+    *,
+    expected: str | None = None,
+    commit: bool = True,
+) -> bool:
+    """Set the processing status of a statement (BE-07, spec 3.5). Internal: no
+    route calls it. True when a row was updated, False when none matched (a
+    missing id, or a status other than `expected`). The refusals name the
+    argument, never its value. The order of the states is the caller's rule."""
+    if status not in STATUSES:
+        raise ValueError("status is not a known status")
+    if status == "failed" and failure_code is None:
+        raise ValueError("failure_code is required when status is failed")
+    if status != "failed" and failure_code is not None:
+        raise ValueError("failure_code is only set when status is failed")
+    if failure_code is not None and failure_code not in FAILURE_CODES:
+        raise ValueError("failure_code is not a known code")
+
+    statement = update(Statement).where(Statement.id == statement_id)
+    if expected is not None:
+        statement = statement.where(Statement.status == expected)
+    result = session.execute(
+        statement.values(status=status, failure_code=failure_code, updated_at=func.now())
+    )
+    if commit:
+        session.commit()
+    return result.rowcount == 1
 
 
 def read_category_summary(

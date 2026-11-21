@@ -54,6 +54,8 @@ def test_statements_columns(migrated):
         ("updated_at", "timestamp with time zone", "NO"),
         ("card_name", "text", "YES"),
         ("card_last4", "character", "YES"),
+        ("status", "text", "NO"),
+        ("failure_code", "text", "YES"),
     ]
 
 

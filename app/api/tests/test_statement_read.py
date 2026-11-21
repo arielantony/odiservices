@@ -85,6 +85,8 @@ def seeded(lines, card_name=None, card_last4=None):
         id=statement_id,
         user_id=FAKE_USER.id,
         name=NAME,
+        status="ready",
+        failure_code=None,
         card_name=card_name,
         card_last4=card_last4,
         total_lanc_atuais=sum((Decimal(amount) for _, _, amount in lines), Decimal("0")),

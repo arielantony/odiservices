@@ -89,6 +89,21 @@ class Statement(Base):
         CheckConstraint("name <> ''", name="name_not_empty"),
         CheckConstraint("card_name <> ''", name="card_name_not_empty"),
         CheckConstraint("card_last4 ~ '^[0-9]{4}$'", name="card_last4_digits"),
+        # The vocabulary of BE-07 (spec 3.4), also in migration 0008.
+        CheckConstraint(
+            "status in ('processing', 'ready', 'failed')", name="status_known"
+        ),
+        CheckConstraint(
+            "failure_code is null or failure_code in ("
+            "'invalid_pdf', 'extraction_unavailable', 'extraction_timeout', "
+            "'extraction_refused', 'extraction_truncated', 'extraction_invalid', "
+            "'unknown_category', 'total_mismatch', 'interrupted', "
+            "'upload_not_available', 'unknown')",
+            name="failure_code_known",
+        ),
+        CheckConstraint(
+            "(status = 'failed') = (failure_code is not null)", name="failure_consistent"
+        ),
         Index("ix_statements_user_id_created_at", "user_id", text("created_at DESC")),
     )
 
@@ -102,6 +117,10 @@ class Statement(Base):
     total_lanc_atuais: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
     card_name: Mapped[str | None] = mapped_column(Text)
     card_last4: Mapped[str | None] = mapped_column(CHAR(4))
+    status: Mapped[str] = mapped_column(
+        Text, default="ready", server_default=text("'ready'")
+    )
+    failure_code: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
