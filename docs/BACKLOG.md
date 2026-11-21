@@ -162,7 +162,7 @@ statements already sent (Categorizer home screen).
 | BE-06 | Task | List the current user's statements, newest first, paginated | — | Draft | BE-24, BE-28 |
 | BE-07 | Task | Track each statement's processing status and failure reason | — | Draft | BE-28 |
 | BE-08 | Task | Retry a failed extraction | — | Draft | BE-03, BE-07 |
-| BE-09 | Task | Store the card name and last digits of each statement | — | Draft | BE-28 |
+| BE-09 | Task | Store the card name and last digits of each statement | [Approved](specs/categorizer/BE-09-card-fields.md) | Ready | BE-28, BE-05, BE-10 | [#98] |
 
 Notes:
 - BE-03: `ask_pdf.py` is a local CLI today that writes to `outputs/`. To be product-ready, it should run server-side (upload PDF → Claude → import), with `ANTHROPIC_API_KEY` held on the server. The 10 MB limit shown in the prototype must be enforced here too.
@@ -450,3 +450,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#95]: https://github.com/arielantony/odiservices/pull/95
 [#96]: https://github.com/arielantony/odiservices/pull/96
 [#97]: https://github.com/arielantony/odiservices/pull/97
+[#98]: https://github.com/arielantony/odiservices/pull/98
