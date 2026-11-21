@@ -218,7 +218,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-13 | Task | Record whether a transaction's category was changed by the user | [Approved](specs/categorizer/BE-13-moved-by-user.md) | Ready | BE-11 | [#97] |
 | BE-14 | Task | Export a statement | [Approved](specs/categorizer/BE-14-export-statement.md) | Ready | BE-10, BE-13, BE-09, BE-07 | [#101] |
 | BE-15 | Task | Delete a statement and its transactions | [Approved](specs/categorizer/BE-15-delete-statement.md) | Ready | BE-10 | [#102] |
-| BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Ready | BE-30, BE-24 | [#96] |
+| BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Done | BE-30, BE-24 | [#96] |
 
 Notes:
 - BE-10: replaces `/data/result.json` and `/data/extract.json`. It returns one merged shape so the frontend no longer joins two files.
