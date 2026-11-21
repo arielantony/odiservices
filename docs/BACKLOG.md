@@ -216,7 +216,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-11 | Task | Update a transaction's category and reviewed flag | [Approved](specs/categorizer/BE-11-update-transaction.md) | Done | BE-10 | [#92], [#93] |
 | BE-12 | Task | Return a per-category summary for a statement | [Approved](specs/categorizer/BE-12-category-summary.md) | Done | BE-10 | [#94], [#95] |
 | BE-13 | Task | Record whether a transaction's category was changed by the user | [Approved](specs/categorizer/BE-13-moved-by-user.md) | Ready | BE-11 | [#97] |
-| BE-14 | Task | Export a statement | — | Draft | BE-10 | |
+| BE-14 | Task | Export a statement | [Approved](specs/categorizer/BE-14-export-statement.md) | Ready | BE-10 |, BE-13, BE-09, BE-07 | [#101] |
 | BE-15 | Task | Delete a statement and its transactions | — | Draft | BE-10 | |
 | BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Ready | BE-30, BE-24 | [#96] |
 
@@ -453,3 +453,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#98]: https://github.com/arielantony/odiservices/pull/98
 [#99]: https://github.com/arielantony/odiservices/pull/99
 [#100]: https://github.com/arielantony/odiservices/pull/100
+[#101]: https://github.com/arielantony/odiservices/pull/101
