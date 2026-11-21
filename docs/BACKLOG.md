@@ -156,8 +156,8 @@ statements already sent (Categorizer home screen).
 
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
-| BE-03 | Task | Upload a statement PDF and run the extraction server-side | [Approved](specs/categorizer/BE-03-upload-and-extract.md) | Ready | BE-04, BE-05, BE-04, BE-07, BE-05 | [#104] |
-| BE-04 | Task | Do not persist uploaded PDFs, or store them encrypted | [Approved](specs/categorizer/BE-04-upload-retention.md) | Ready | —, BE-07, BE-15 | [#103] |
+| BE-03 | Task | Upload a statement PDF and run the extraction server-side | [Approved](specs/categorizer/BE-03-upload-and-extract.md) | Ready | BE-04, BE-05, BE-07 | [#104] |
+| BE-04 | Task | Do not persist uploaded PDFs, or store them encrypted | [Approved](specs/categorizer/BE-04-upload-retention.md) | Ready | BE-07, BE-15 | [#103] |
 | BE-05 | Task | Import a statement from the extraction JSON | [Approved](specs/categorizer/BE-05-import-statement.md) | Done | BE-24, BE-28, BE-29, BE-30 | [#88], [#90] |
 | BE-06 | Task | List the current user's statements, newest first, paginated | [Approved](specs/categorizer/BE-06-list-statements.md) | Ready | BE-24, BE-28, BE-29, BE-09, BE-07 | [#100] |
 | BE-07 | Task | Track each statement's processing status and failure reason | [Approved](specs/categorizer/BE-07-statement-status.md) | Ready | BE-28, BE-10, BE-13, BE-09 | [#99] |
@@ -216,8 +216,8 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-11 | Task | Update a transaction's category and reviewed flag | [Approved](specs/categorizer/BE-11-update-transaction.md) | Done | BE-10 | [#92], [#93] |
 | BE-12 | Task | Return a per-category summary for a statement | [Approved](specs/categorizer/BE-12-category-summary.md) | Done | BE-10 | [#94], [#95] |
 | BE-13 | Task | Record whether a transaction's category was changed by the user | [Approved](specs/categorizer/BE-13-moved-by-user.md) | Ready | BE-11 | [#97] |
-| BE-14 | Task | Export a statement | [Approved](specs/categorizer/BE-14-export-statement.md) | Ready | BE-10 |, BE-13, BE-09, BE-07 | [#101] |
-| BE-15 | Task | Delete a statement and its transactions | [Approved](specs/categorizer/BE-15-delete-statement.md) | Ready | BE-10 | | [#102] |
+| BE-14 | Task | Export a statement | [Approved](specs/categorizer/BE-14-export-statement.md) | Ready | BE-10, BE-13, BE-09, BE-07 | [#101] |
+| BE-15 | Task | Delete a statement and its transactions | [Approved](specs/categorizer/BE-15-delete-statement.md) | Ready | BE-10 | [#102] |
 | BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Ready | BE-30, BE-24 | [#96] |
 
 Notes:
