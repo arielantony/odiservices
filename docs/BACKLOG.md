@@ -160,7 +160,7 @@ statements already sent (Categorizer home screen).
 | BE-04 | Task | Do not persist uploaded PDFs, or store them encrypted | — | Draft | — |
 | BE-05 | Task | Import a statement from the extraction JSON | [Approved](specs/categorizer/BE-05-import-statement.md) | Done | BE-24, BE-28, BE-29, BE-30 | [#88], [#90] |
 | BE-06 | Task | List the current user's statements, newest first, paginated | — | Draft | BE-24, BE-28 |
-| BE-07 | Task | Track each statement's processing status and failure reason | — | Draft | BE-28 |
+| BE-07 | Task | Track each statement's processing status and failure reason | [Approved](specs/categorizer/BE-07-statement-status.md) | Ready, BE-10, BE-13, BE-09 | BE-28 |
 | BE-08 | Task | Retry a failed extraction | — | Draft | BE-03, BE-07 |
 | BE-09 | Task | Store the card name and last digits of each statement | — | Draft | BE-28 |
 
