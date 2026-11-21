@@ -218,7 +218,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-13 | Task | Record whether a transaction's category was changed by the user | — | Draft | BE-11 | |
 | BE-14 | Task | Export a statement | — | Draft | BE-10 | |
 | BE-15 | Task | Delete a statement and its transactions | — | Draft | BE-10 | |
-| BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Ready | BE-30, BE-24 | |
+| BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Ready | BE-30, BE-24 | [#96] |
 
 Notes:
 - BE-10: replaces `/data/result.json` and `/data/extract.json`. It returns one merged shape so the frontend no longer joins two files.
@@ -448,3 +448,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#93]: https://github.com/arielantony/odiservices/pull/93
 [#94]: https://github.com/arielantony/odiservices/pull/94
 [#95]: https://github.com/arielantony/odiservices/pull/95
+[#96]: https://github.com/arielantony/odiservices/pull/96
