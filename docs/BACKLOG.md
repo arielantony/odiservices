@@ -215,7 +215,7 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | BE-10 | Task | Get one statement with its transactions | [Approved](specs/categorizer/BE-10-get-statement.md) | Done | BE-05, BE-24, BE-28, BE-29, BE-30 | [#89], [#91] |
 | BE-11 | Task | Update a transaction's category and reviewed flag | [Approved](specs/categorizer/BE-11-update-transaction.md) | Done | BE-10 | [#92], [#93] |
 | BE-12 | Task | Return a per-category summary for a statement | [Approved](specs/categorizer/BE-12-category-summary.md) | Done | BE-10 | [#94], [#95] |
-| BE-13 | Task | Record whether a transaction's category was changed by the user | [Approved](specs/categorizer/BE-13-moved-by-user.md) | In progress | BE-11 | [#97] |
+| BE-13 | Task | Record whether a transaction's category was changed by the user | [Approved](specs/categorizer/BE-13-moved-by-user.md) | In progress | BE-11 | [#97], [#108] |
 | BE-14 | Task | Export a statement | [Approved](specs/categorizer/BE-14-export-statement.md) | Ready | BE-10, BE-13, BE-09, BE-07 | [#101] |
 | BE-15 | Task | Delete a statement and its transactions | [Approved](specs/categorizer/BE-15-delete-statement.md) | Ready | BE-10 | [#102] |
 | BE-16 | Task | Provide display labels for the categories | [Approved](specs/categorizer/BE-16-category-labels.md) | Done | BE-30, BE-24 | [#96], [#107] |
@@ -459,3 +459,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#104]: https://github.com/arielantony/odiservices/pull/104
 [#105]: https://github.com/arielantony/odiservices/pull/105
 [#107]: https://github.com/arielantony/odiservices/pull/107
+[#108]: https://github.com/arielantony/odiservices/pull/108
