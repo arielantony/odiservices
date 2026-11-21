@@ -65,6 +65,7 @@ statement data is invalid.
   "created_at": "2026-11-10T14:03:00Z",
   "transaction_count": 17,
   "doubtful_count": 2,
+  "pending_review_count": 2,
   "transactions": [
     {"id": "b2d4e9f0-3c1a-4e7b-9d62-8f0a1c5e6b71", "item_number": 1,
      "section": "purchases", "printed_date": "05/09",
@@ -76,7 +77,8 @@ statement data is invalid.
 
 - The header fields have the names of BE-05's `201` response (`id`, `name`,
   `total`, `transaction_count`, `doubtful_count`), so the import and the read
-  share one shape.
+  share one shape. `pending_review_count` is added by BE-11 (its spec 3.6): the
+  lines with `doubtful` true and `reviewed` false. `doubtful_count` is unchanged.
 - `total` is a decimal string, or `null` when the row has none. BE-28 allows it;
   BE-05 always stores one.
 - Money is a decimal string with two places, from `numeric(14,2)`: `"1250.00"`,
@@ -168,7 +170,7 @@ checked through the test client, with the Access verifier faked.
 | 1 | `cd app && make test-api` | All pass. The `db` tests are deselected (`pytest.ini`) |
 | 2 | `cd app && make db-up && make test-db` | All pass, including `test_statement_read_db.py` |
 | 3 | `cd app/api && .venv/bin/python -m pytest tests/test_statement_read.py -v` | All pass: `test_read_requires_access`, `test_malformed_id_is_404_not_422`, `test_read_response_headers`, `test_read_logs_carry_no_description`, `test_no_engine_is_503`, `test_query_error_is_503_without_details` |
-| 4 | `cd app/api && PORTAL_DATABASE_URL=postgresql+psycopg://odiservices@127.0.0.1:55432/odiservices .venv/bin/python -m pytest -m db tests/test_statement_read_db.py -v` | All pass: `test_get_canonical_statement_in_order` (17 lines, `item_number` 1 to 17, `total` `"11906.35"`, `doubtful_count` 2), `test_gaps_and_money_are_kept_as_stored`, `test_other_users_statement_is_identical_to_missing`, `test_null_total_is_returned_as_null` |
+| 4 | `cd app/api && PORTAL_DATABASE_URL=postgresql+psycopg://odiservices@127.0.0.1:55432/odiservices .venv/bin/python -m pytest -m db tests/test_statement_read_db.py -v` | All pass: `test_get_canonical_statement_in_order` (17 lines, `item_number` 1 to 17, `total` `"11906.35"`, `doubtful_count` 2, `pending_review_count` 2), `test_gaps_and_money_are_kept_as_stored`, `test_other_users_statement_is_identical_to_missing`, `test_null_total_is_returned_as_null` |
 
 ## 5. Tests
 
@@ -196,7 +198,7 @@ about them.
 
 | Test | Asserts |
 |---|---|
-| `test_get_canonical_statement_in_order` | `200`; `name`; `total` `"11906.35"`; 17 transactions in `item_number` order 1 to 17; `doubtful_count` 2, on "Software Gestão Teste" and "Compra Não Identificada"; `reviewed` false everywhere; codes as in the fixture; `created_at` ends in `Z` and parses as a UTC datetime |
+| `test_get_canonical_statement_in_order` | `200`; `name`; `total` `"11906.35"`; 17 transactions in `item_number` order 1 to 17; `doubtful_count` 2 and `pending_review_count` 2, on "Software Gestão Teste" and "Compra Não Identificada"; `reviewed` false everywhere; codes as in the fixture; `created_at` ends in `Z` and parses as a UTC datetime |
 | `test_gaps_and_money_are_kept_as_stored` | `item_number` 1, 2, 5 come back as stored; amounts `"10.00"`, `"20.00"`, `"-5.50"`; `total` `"24.50"` |
 | `test_other_users_statement_is_identical_to_missing` | The second user gets `404` for the first user's id, with the same status, body bytes and headers as for a random uuid4, except `X-Request-Id`, which the request log sets on every response (`server/request_log.py`). The first user gets `200` |
 | `test_null_total_is_returned_as_null` | A statement inserted through the ORM with no total gives `"total": null`, `transaction_count` 0 and `transactions` `[]` |
