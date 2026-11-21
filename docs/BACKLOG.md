@@ -160,7 +160,7 @@ statements already sent (Categorizer home screen).
 | BE-04 | Task | Do not persist uploaded PDFs, or store them encrypted | [Approved](specs/categorizer/BE-04-upload-retention.md) | Ready | BE-07, BE-15 | [#103] |
 | BE-05 | Task | Import a statement from the extraction JSON | [Approved](specs/categorizer/BE-05-import-statement.md) | Done | BE-24, BE-28, BE-29, BE-30 | [#88], [#90] |
 | BE-06 | Task | List the current user's statements, newest first, paginated | [Approved](specs/categorizer/BE-06-list-statements.md) | Ready | BE-24, BE-28, BE-29, BE-09, BE-07 | [#100] |
-| BE-07 | Task | Track each statement's processing status and failure reason | [Approved](specs/categorizer/BE-07-statement-status.md) | Ready | BE-28, BE-10, BE-13, BE-09 | [#99] |
+| BE-07 | Task | Track each statement's processing status and failure reason | [Approved](specs/categorizer/BE-07-statement-status.md) | In progress | BE-28, BE-10, BE-13, BE-09 | [#99], [#110] |
 | BE-08 | Task | Retry a failed extraction | [Approved](specs/categorizer/BE-08-retry-extraction.md) | Ready | BE-03, BE-07, BE-04 | [#105] |
 | BE-09 | Task | Store the card name and last digits of each statement | [Approved](specs/categorizer/BE-09-card-fields.md) | In progress | BE-28, BE-05, BE-10 | [#98], [#109] |
 
@@ -461,3 +461,4 @@ BE-14, BE-15, BE-16 and QA-03. Added later: BE-32 (from the BE-01 spec) and BE-3
 [#107]: https://github.com/arielantony/odiservices/pull/107
 [#108]: https://github.com/arielantony/odiservices/pull/108
 [#109]: https://github.com/arielantony/odiservices/pull/109
+[#110]: https://github.com/arielantony/odiservices/pull/110
