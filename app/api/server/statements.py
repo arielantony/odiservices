@@ -22,7 +22,7 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
-from sqlalchemy import insert, select
+from sqlalchemy import and_, func, insert, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -367,3 +367,112 @@ def update_transaction(
             raise StatementRefused(REFUSED_UNKNOWN_CATEGORY) from None
         raise
     return transaction_view(item)
+
+
+class CategoryTotalView(BaseModel):
+    """One category of a statement, as GET .../summary returns it (BE-12, spec
+    3.2). Money is a decimal string with two places; share is an integer."""
+
+    category_code: str
+    position: int
+    total: str
+    transaction_count: int
+    pending_review_count: int
+    share: int | None
+
+
+class CategorySummaryView(BaseModel):
+    """The per-category summary of one statement (BE-12, spec 3.2)."""
+
+    lines_total: str
+    positive_total: str
+    categories: list[CategoryTotalView]
+
+
+@dataclass(frozen=True)
+class CategoryRow:
+    code: str
+    position: int
+    total: Decimal
+    count: int
+    pending: int
+
+
+def category_totals(session: Session, statement_id: UUID) -> list:
+    """One row per category, with its total, line count and pending count for the
+    statement (spec 3.3). The statement filter is in the join, so a category with
+    no lines still has its row."""
+    return session.execute(
+        select(
+            Category.code,
+            Category.position,
+            func.coalesce(func.sum(Transaction.amount), 0),
+            func.count(Transaction.id),
+            func.count(Transaction.id).filter(
+                Transaction.doubtful.is_(True), Transaction.reviewed.is_(False)
+            ),
+        )
+        .select_from(Category)
+        .outerjoin(
+            Transaction,
+            and_(
+                Transaction.category_code == Category.code,
+                Transaction.statement_id == statement_id,
+            ),
+        )
+        .group_by(Category.code, Category.position)
+    ).all()
+
+
+def summary_view(rows) -> CategorySummaryView:
+    """The categories ordered by total, descending, ties by position ascending, with
+    the shares by the largest-remainder rule (spec 3.3). `rows` holds
+    (code, position, total, count, pending); the work is over at most ten rows."""
+    ordered = sorted(
+        (
+            CategoryRow(code, position, Decimal(total), int(count), int(pending))
+            for code, position, total, count, pending in rows
+        ),
+        key=lambda row: (-row.total, row.position),
+    )
+    positive = [row for row in ordered if row.total > 0]
+    positive_total = sum((row.total for row in positive), Decimal("0"))
+
+    shares: dict[str, int] = {}
+    if positive_total > 0:
+        exact = {row.code: row.total * 100 / positive_total for row in positive}
+        floors = {code: int(value) for code, value in exact.items()}
+        remainders = {code: value - floors[code] for code, value in exact.items()}
+        deficit = 100 - sum(floors.values())
+        by_remainder = sorted(
+            positive, key=lambda row: (-remainders[row.code], row.position)
+        )
+        extra = {row.code for row in by_remainder[:deficit]}
+        shares = {code: floor + (code in extra) for code, floor in floors.items()}
+
+    return CategorySummaryView(
+        lines_total=money_text(sum((row.total for row in ordered), Decimal("0"))),
+        positive_total=money_text(positive_total),
+        categories=[
+            CategoryTotalView(
+                category_code=row.code,
+                position=row.position,
+                total=money_text(row.total),
+                transaction_count=row.count,
+                pending_review_count=row.pending,
+                share=shares.get(row.code),
+            )
+            for row in ordered
+        ],
+    )
+
+
+def read_category_summary(
+    session: Session, user: User, statement_id: UUID
+) -> CategorySummaryView | None:
+    """The per-category summary of `statement_id`, for `user` only (spec 3.5). None
+    when there is no such statement for this user. The totals are read only after
+    the statement is found."""
+    if owned_statement(session, user, statement_id) is None:
+        return None
+    return summary_view(category_totals(session, statement_id))
