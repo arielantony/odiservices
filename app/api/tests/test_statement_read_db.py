@@ -98,6 +98,8 @@ def test_get_canonical_statement_in_order(client, engine):
     assert response.status_code == 200
     data = response.json()
     assert data["name"] == NAME
+    assert data["card_name"] == "Cartão Exemplo"
+    assert data["card_last4"] == "0000"
     assert data["total"] == "11906.35"
     assert data["transaction_count"] == 17
     assert data["doubtful_count"] == 2
@@ -143,6 +145,19 @@ def test_other_users_statement_is_identical_to_missing(client, engine):
     }
     assert without_id(other) == without_id(missing)
     assert get(client, imported.id, owner_headers).status_code == 200
+
+
+def test_statement_without_card_reads_null(client, engine):
+    user_id, headers = person(client)
+    data_without_card = {"name": NAME, **extract()}
+    del data_without_card["cartao_nome"]
+    del data_without_card["cartao_final"]
+    imported = import_for(engine, user_id, data_without_card)
+
+    data = get(client, imported.id, headers).json()
+
+    assert data["card_name"] is None
+    assert data["card_last4"] is None
 
 
 def test_null_total_is_returned_as_null(client, engine):

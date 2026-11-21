@@ -37,6 +37,8 @@ def test_fixture_validates():
     assert len(model.lancamentos) == 17
     assert lines_total(model.lancamentos) == model.total_lanc_atuais == Decimal("11906.35")
     assert sum(line.duvida for line in model.lancamentos) == 2
+    assert model.cartao_nome == "Cartão Exemplo"
+    assert model.cartao_final == "0000"
 
 
 def test_unknown_field_is_refused():
@@ -155,3 +157,43 @@ def test_amounts_are_read_as_decimals():
 
     assert [line.valor for line in model.lancamentos] == [Decimal("0.1"), Decimal("0.2")]
     assert lines_total(model.lancamentos) == model.total_lanc_atuais == Decimal("0.3")
+
+
+def test_card_keys_are_optional():
+    data = body()
+    del data["cartao_nome"]
+    del data["cartao_final"]
+
+    model = parse(data)
+
+    assert model.cartao_nome is None
+    assert model.cartao_final is None
+
+
+def test_null_card_keys_are_accepted():
+    model = parse(body(cartao_nome=None, cartao_final=None))
+
+    assert model.cartao_nome is None
+    assert model.cartao_final is None
+
+
+def test_card_last4_must_be_four_digits():
+    for value in ("0000", "0123"):
+        assert parse(body(cartao_final=value)).cartao_final == value
+
+    for value in ("000", "00000", "00a0", "0000 ", 0):
+        with pytest.raises(ValidationError):
+            parse(body(cartao_final=value))
+
+
+def test_card_name_bounds():
+    assert parse(body(cartao_nome="x" * 60)).cartao_nome == "x" * 60
+
+    with pytest.raises(ValidationError):
+        parse(body(cartao_nome="x" * 61))
+
+    for value in ("   ", ""):
+        with pytest.raises(ValidationError):
+            parse(body(cartao_nome=value))
+
+    assert parse(body(cartao_nome="  Cartão Exemplo  ")).cartao_nome == "Cartão Exemplo"

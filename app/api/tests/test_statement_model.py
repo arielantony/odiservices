@@ -3,7 +3,7 @@
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import Numeric
+from sqlalchemy import CHAR, Numeric, Text
 
 from server.db import Base, Statement
 
@@ -39,3 +39,24 @@ def test_statement_total_is_numeric_and_nullable():
     assert Decimal("11906.35") == Statement(
         user_id=uuid.uuid4(), name=NAME, total_lanc_atuais=Decimal("11906.35")
     ).total_lanc_atuais
+
+
+def test_card_columns_are_declared():
+    name = Statement.__table__.c.card_name
+    last4 = Statement.__table__.c.card_last4
+    assert isinstance(name.type, Text) and name.nullable is True
+    assert isinstance(last4.type, CHAR) and last4.type.length == 4 and last4.nullable is True
+
+
+def test_repr_does_not_show_card():
+    statement = Statement(
+        id=uuid.UUID("6f1c0e2a-9b7d-4c1e-8a55-2d3f4b6a7c10"),
+        user_id=uuid.uuid4(),
+        name=NAME,
+        card_name="Cartão Sigilo Exemplo",
+        card_last4="9876",
+    )
+    text = repr(statement)
+    assert str(statement.id) in text
+    assert "Sigilo" not in text
+    assert "9876" not in text

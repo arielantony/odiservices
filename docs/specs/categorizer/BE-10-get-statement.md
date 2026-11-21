@@ -264,3 +264,5 @@ database, no deploy.
 
 - `uuid.UUID` also accepts braces, a `urn:uuid:` prefix and unhyphenated hex. They resolve to the same statement, for its owner only, so they are not treated as malformed. Anything else is a 404.
 - `read_statement` returns `None` for a missing or another user's statement; the route maps it to the 404.
+
+**Amendment (BE-09, 2026-11-21).** The header of `GET /api/statements/{statement_id}` gains `card_name` and `card_last4` (strings, or `null` when the statement was imported without a card), after `name`. The change is additive; the rest of this spec stands. The card is stored by BE-09 (migration `0007`), and no log carries it.

@@ -130,6 +130,12 @@ class StatementPayload(BaseModel):
     ]
     total_lanc_atuais: Money
     lancamentos: list[Line] = Field(min_length=1, max_length=500)
+    # The card (BE-09, spec 3.1): optional, absent and null mean the same.
+    cartao_nome: Annotated[
+        str | None,
+        StringConstraints(strip_whitespace=True, min_length=1, max_length=60),
+    ] = None
+    cartao_final: Annotated[str | None, StringConstraints(pattern=r"^[0-9]{4}$")] = None
 
     @model_validator(mode="after")
     def ids_are_unique(self) -> "StatementPayload":
@@ -208,6 +214,8 @@ def import_statement(session: Session, user: User, payload: StatementPayload) ->
             user_id=user.id,
             name=payload.name,
             total_lanc_atuais=payload.total_lanc_atuais,
+            card_name=payload.cartao_nome,
+            card_last4=payload.cartao_final,
         )
         session.add(statement)
         session.flush()
@@ -265,6 +273,8 @@ class StatementView(BaseModel):
 
     id: str
     name: str
+    card_name: str | None  # BE-09, spec 3.4: null when the statement has no card
+    card_last4: str | None
     total: str | None
     created_at: str
     transaction_count: int
@@ -322,6 +332,8 @@ def read_statement(session: Session, user: User, statement_id: UUID) -> Statemen
     return StatementView(
         id=str(statement.id),
         name=statement.name,
+        card_name=statement.card_name,
+        card_last4=statement.card_last4,
         total=None if statement.total_lanc_atuais is None else money_text(statement.total_lanc_atuais),
         created_at=utc_text(statement.created_at),
         transaction_count=len(transactions),

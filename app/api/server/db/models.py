@@ -5,6 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import (
+    CHAR,
     Boolean,
     CheckConstraint,
     DateTime,
@@ -86,6 +87,8 @@ class Statement(Base):
     __tablename__ = "statements"
     __table_args__ = (
         CheckConstraint("name <> ''", name="name_not_empty"),
+        CheckConstraint("card_name <> ''", name="card_name_not_empty"),
+        CheckConstraint("card_last4 ~ '^[0-9]{4}$'", name="card_last4_digits"),
         Index("ix_statements_user_id_created_at", "user_id", text("created_at DESC")),
     )
 
@@ -97,6 +100,8 @@ class Statement(Base):
     )
     name: Mapped[str] = mapped_column(Text)
     total_lanc_atuais: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
+    card_name: Mapped[str | None] = mapped_column(Text)
+    card_last4: Mapped[str | None] = mapped_column(CHAR(4))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
