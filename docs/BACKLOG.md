@@ -190,12 +190,12 @@ distribution, lanes, moves, confirmations, undo, export and delete.
 | ID | Type | Item | Spec | Status | Depends on | PRs |
 |---|---|---|---|---|---|---|
 | FE-06 | Story | [Statement summary](stories/board/FE-06-statement-summary.feature) | — | Draft | BE-10, BE-09, FE-01 |
-| FE-07 | Story | [Spending distribution](stories/board/FE-07-spending-distribution.feature) | — | Draft | BE-12 |
-| FE-08 | Story | [Category lanes and cards](stories/board/FE-08-category-lanes.feature) | — | Draft | BE-10, BE-13, BE-16 |
-| FE-09 | Story | [Move a transaction by dragging](stories/board/FE-09-move-by-drag.feature) | — | Draft | BE-11 |
+| FE-07 | Story | [Spending distribution](stories/board/FE-07-spending-distribution.feature) | — | Draft | BE-11, BE-12, BE-16 |
+| FE-08 | Story | [Category lanes and cards](stories/board/FE-08-category-lanes.feature) | — | Draft | BE-10, BE-12, BE-13, BE-16 |
+| FE-09 | Story | [Move a transaction by dragging](stories/board/FE-09-move-by-drag.feature) | — | Draft | BE-11, BE-13 |
 | FE-10 | Story | [Confirm a doubtful transaction](stories/board/FE-10-confirm-doubtful-transaction.feature) | — | Draft | BE-11 |
 | FE-11 | Story | [Filter by description](stories/board/FE-11-filter-by-description.feature) | — | Draft | — |
-| FE-12 | Story | [Undo the last change](stories/board/FE-12-undo-last-change.feature) | — | Draft | BE-11 |
+| FE-12 | Story | [Undo the last change](stories/board/FE-12-undo-last-change.feature) | — | Draft | BE-11, BE-13 |
 | FE-13 | Story | [Export as JSON](stories/board/FE-13-export-json.feature) | — | Draft | BE-14 |
 | FE-15 | Story | Review doubts one by one ("Revisar 2 dúvidas", key `R`) | — | Needs prototype | BE-11 |
 | FE-16 | Story | Move with the keyboard and multi-select | — | Needs prototype | BE-11 |
