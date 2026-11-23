@@ -166,4 +166,5 @@ def test_no_route_writes_status():
         ("PATCH", "/api/statements/{statement_id}/transactions/{transaction_id}"),
         ("GET", "/api/statements/{statement_id}/summary"),
         ("GET", "/api/statements/{statement_id}/export"),  # BE-14: read-only
+        ("POST", "/api/statements/{statement_id}/retry"),  # BE-08: failed -> processing, then extract
     }

@@ -41,7 +41,7 @@ def check_processing_limit(session: Session, user: User, *, settings: Settings |
         .where(
             Statement.user_id == user.id,
             Statement.status == "processing",
-            Statement.created_at < func.now() - STALE_AFTER,
+            Statement.updated_at < func.now() - STALE_AFTER,
         )
         .values(status="failed", failure_code="interrupted", updated_at=func.now())
     )
