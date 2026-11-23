@@ -2,6 +2,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
+from cryptography.fernet import Fernet
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
@@ -67,8 +68,19 @@ class Settings(BaseSettings):
     # Postgres (BE-26): postgresql+psycopg://USER@HOST:PORT/DATABASE.
     # The error messages never include the value.
     database_url: SecretStr | None = Field(None, alias="PORTAL_DATABASE_URL")
+    # Fernet key for the statement uploads (BE-04). Unset is allowed: only the
+    # upload storage then fails, with upload_key_missing.
+    upload_encryption_key: SecretStr | None = Field(
+        None, alias="PORTAL_UPLOAD_ENCRYPTION_KEY"
+    )
 
-    @field_validator("access_team_domain", "access_aud", "database_url", mode="before")
+    @field_validator(
+        "access_team_domain",
+        "access_aud",
+        "database_url",
+        "upload_encryption_key",
+        mode="before",
+    )
     @classmethod
     def blank_is_unset(cls, value: object) -> object:
         # A copied .env.example has these variables with no value.
@@ -79,6 +91,19 @@ class Settings(BaseSettings):
     def database_url_is_valid(cls, value: SecretStr | None) -> SecretStr | None:
         if value is not None:
             validate_database_url(value.get_secret_value(), "PORTAL_DATABASE_URL")
+        return value
+
+    @field_validator("upload_encryption_key", mode="after")
+    @classmethod
+    def upload_key_is_valid(cls, value: SecretStr | None) -> SecretStr | None:
+        # The message names the variable and never the value.
+        if value is not None:
+            try:
+                Fernet(value.get_secret_value())
+            except (ValueError, TypeError):
+                raise ValueError(
+                    "PORTAL_UPLOAD_ENCRYPTION_KEY is not a valid Fernet key"
+                ) from None
         return value
 
     @model_validator(mode="after")
