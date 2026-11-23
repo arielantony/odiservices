@@ -163,4 +163,5 @@ def test_no_route_writes_status():
         ("GET", "/api/statements/{statement_id}"),
         ("PATCH", "/api/statements/{statement_id}/transactions/{transaction_id}"),
         ("GET", "/api/statements/{statement_id}/summary"),
+        ("GET", "/api/statements/{statement_id}/export"),  # BE-14: read-only
     }
