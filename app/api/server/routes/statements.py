@@ -6,7 +6,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from sqlalchemy.orm import Session
@@ -30,6 +30,7 @@ from server.statements import (
     parse_cursor,
     parse_limit,
     read_category_summary,
+    read_export,
     read_patch,
     read_payload,
     read_statement_page,
@@ -231,3 +232,36 @@ async def get_category_summary(
     if view is None:
         return refusal_response(REFUSED_NOT_FOUND)
     return JSONResponse(view.model_dump(), headers={"Cache-Control": "no-store"})
+
+
+@router.get("/api/statements/{statement_id}/export")
+async def export_statement(
+    statement_id: str,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+) -> Response:
+    """The statement as the JSON file that POST /api/statements imports (BE-14).
+    Read as a string, so a malformed id is the same 404 as an unknown one (spec
+    3.1). The money is written by hand, never by a JSON encoder (spec 3.3)."""
+    try:
+        parsed = uuid.UUID(statement_id)
+    except ValueError:
+        return refusal_response(REFUSED_NOT_FOUND)
+    try:
+        body = await run_in_threadpool(read_export, session, user, parsed)
+    except StatementRefused as exc:
+        return refusal_response(exc.refusal)
+    except DBAPIError as exc:
+        # The class name only: a driver message can hold the host (spec 3.6).
+        log_event("WARNING", "database_error", error=type(exc).__name__)
+        raise AccessError(*DATABASE_UNAVAILABLE) from None
+    if body is None:
+        return refusal_response(REFUSED_NOT_FOUND)
+    return Response(
+        content=body,
+        media_type="application/json; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="fatura.json"',
+            "Cache-Control": "no-store",
+        },
+    )

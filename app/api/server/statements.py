@@ -66,6 +66,12 @@ REFUSED_INVALID_LIMIT = (
     "O tamanho da página deve ser um número entre 1 e 100.",
 )
 REFUSED_INVALID_CURSOR = (422, "invalid_cursor", "O cursor da página não é válido.")
+# GET .../export (BE-14, spec 3.5): a statement BE-05 could not have stored.
+REFUSED_NOT_EXPORTABLE = (
+    409,
+    "statement_not_exportable",
+    "Esta fatura não pode ser exportada: ela não tem lançamentos ou um total.",
+)
 
 
 # The processing status and the failure codes of a statement (BE-07, spec 3.4).
@@ -718,3 +724,77 @@ def read_statement_page(
         last = kept[-1]
         next_cursor = encode_cursor(last.created_at, last.id)
     return StatementPageView(items=[list_item_view(row) for row in kept], next_cursor=next_cursor)
+
+
+# GET /api/statements/{id}/export (BE-14, spec 3.2 to 3.3): the statement as the
+# file that POST /api/statements (BE-05) imports. The inverse of SECTIONS, built
+# from it so the two maps cannot drift.
+SECTIONS_OUT = {english: portuguese for portuguese, english in SECTIONS.items()}
+
+
+def export_text(value: str) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def render_export(
+    name: str,
+    total: Decimal,
+    lines,
+    *,
+    card_name: str | None = None,
+    card_last4: str | None = None,
+) -> bytes:
+    """The export file of spec 3.3, as text: money is an unquoted JSON number, so
+    BE-05 reads it as a Decimal. `lines` are stored transactions. Pure: no
+    database. The card keys are written only when the statement has them (BE-14
+    amendment)."""
+    head = [f'"name": {export_text(name)}']
+    if card_name is not None:
+        head.append(f'"cartao_nome": {export_text(card_name)}')
+    if card_last4 is not None:
+        head.append(f'"cartao_final": {export_text(card_last4)}')
+    head.append(f'"total_lanc_atuais": {money_text(total)}')
+    items = [
+        f'{{"id": {item.item_number}, "secao": {export_text(SECTIONS_OUT[item.section])}, '
+        f'"data": {export_text(item.printed_date)}, '
+        f'"descricao": {export_text(item.description)}, '
+        f'"valor": {money_text(item.amount)}, '
+        f'"categoria": {export_text(item.category_code)}, '
+        f'"duvida": {"true" if item.doubtful else "false"}}}'
+        for item in lines
+    ]
+    body = "{" + ", ".join(head) + ', "lancamentos": [' + ",\n  ".join(items) + "]}"
+    return body.encode("utf-8")
+
+
+def read_export(session: Session, user: User, statement_id: UUID) -> bytes | None:
+    """The export file of `statement_id`, for `user` only (spec 3.2). None when
+    there is no such statement for this user. Refuses (StatementRefused, 409) a
+    statement that BE-05 could not have stored: not ready, no total, no line, or
+    a sum that does not match the total. The lines are read only after the
+    statement is found."""
+    statement = owned_statement(session, user, statement_id)
+    if statement is None:
+        return None
+    transactions = list(
+        session.scalars(
+            select(Transaction)
+            .where(Transaction.statement_id == statement.id)
+            .order_by(Transaction.item_number)
+        )
+    )
+    if (
+        statement.status != "ready"
+        or statement.total_lanc_atuais is None
+        or not transactions
+        or sum((item.amount for item in transactions), Decimal("0"))
+        != statement.total_lanc_atuais
+    ):
+        raise StatementRefused(REFUSED_NOT_EXPORTABLE)
+    return render_export(
+        statement.name,
+        statement.total_lanc_atuais,
+        transactions,
+        card_name=statement.card_name,
+        card_last4=statement.card_last4,
+    )
