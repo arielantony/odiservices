@@ -24,7 +24,7 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
-from sqlalchemy import and_, func, insert, select, update
+from sqlalchemy import and_, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -615,3 +615,106 @@ def parse_cursor(value: str) -> tuple[datetime, UUID]:
     if moment.utcoffset() is None:
         raise ValueError("cursor time has no UTC offset")
     return moment, UUID(data["i"])
+
+
+class StatementListItemView(BaseModel):
+    """One statement of the list (BE-06, spec 3.2 and its amendment). The header
+    fields and their types are BE-10's, so the list and the read share one shape."""
+
+    id: str
+    name: str
+    status: str  # BE-07
+    failure_code: str | None  # BE-07
+    failure_message: str | None  # BE-07
+    card_name: str | None  # BE-09
+    card_last4: str | None  # BE-09
+    total: str | None
+    created_at: str
+    transaction_count: int
+    pending_review_count: int
+
+
+class StatementPageView(BaseModel):
+    """One page of statements, newest first (BE-06, spec 3.2)."""
+
+    items: list[StatementListItemView]
+    next_cursor: str | None
+
+
+def list_item_view(row) -> StatementListItemView:
+    return StatementListItemView(
+        id=str(row.id),
+        name=row.name,
+        status=row.status,
+        failure_code=row.failure_code,
+        failure_message=(
+            None if row.failure_code is None else FAILURE_MESSAGES[row.failure_code]
+        ),
+        card_name=row.card_name,
+        card_last4=row.card_last4,
+        total=None if row.total_lanc_atuais is None else money_text(row.total_lanc_atuais),
+        created_at=utc_text(row.created_at),
+        transaction_count=row.transaction_count,
+        pending_review_count=row.pending_review_count,
+    )
+
+
+def read_statement_page(
+    session: Session, user: User, limit: int, after: tuple[datetime, UUID] | None
+) -> StatementPageView:
+    """The page of `user`'s statements after `after` (spec 3.4). The page is
+    limited before the join, so the counts run over the page's lines only, and
+    one statement reads the page and its counts. Fetches limit + 1 rows: the
+    extra one only decides next_cursor. Never None: an empty page is an answer."""
+    page = select(
+        Statement.id,
+        Statement.name,
+        Statement.total_lanc_atuais,
+        Statement.card_name,
+        Statement.card_last4,
+        Statement.status,
+        Statement.failure_code,
+        Statement.created_at,
+    ).where(Statement.user_id == user.id)
+    if after is not None:
+        moment, last_id = after
+        page = page.where(
+            or_(
+                Statement.created_at < moment,
+                and_(Statement.created_at == moment, Statement.id < last_id),
+            )
+        )
+    page = page.order_by(Statement.created_at.desc(), Statement.id.desc())
+    page = page.limit(limit + 1).subquery("page")
+
+    columns = [
+        page.c.id,
+        page.c.name,
+        page.c.total_lanc_atuais,
+        page.c.card_name,
+        page.c.card_last4,
+        page.c.status,
+        page.c.failure_code,
+        page.c.created_at,
+    ]
+    rows = list(
+        session.execute(
+            select(
+                *columns,
+                func.count(Transaction.id).label("transaction_count"),
+                func.count(Transaction.id)
+                .filter(Transaction.doubtful.is_(True), Transaction.reviewed.is_(False))
+                .label("pending_review_count"),
+            )
+            .select_from(page)
+            .outerjoin(Transaction, Transaction.statement_id == page.c.id)
+            .group_by(*columns)
+            .order_by(page.c.created_at.desc(), page.c.id.desc())
+        ).all()
+    )
+    kept = rows[:limit]
+    next_cursor = None
+    if len(rows) > limit:
+        last = kept[-1]
+        next_cursor = encode_cursor(last.created_at, last.id)
+    return StatementPageView(items=[list_item_view(row) for row in kept], next_cursor=next_cursor)

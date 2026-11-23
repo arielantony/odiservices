@@ -19,15 +19,20 @@ from server.statements import (
     MAX_BODY_BYTES,
     MAX_PATCH_BYTES,
     REFUSED_INVALID,
+    REFUSED_INVALID_CURSOR,
+    REFUSED_INVALID_LIMIT,
     REFUSED_NOT_FOUND,
     REFUSED_TOO_LARGE,
     REFUSED_TRANSACTION_NOT_FOUND,
     StatementRefused,
     import_statement,
     owned_statement,
+    parse_cursor,
+    parse_limit,
     read_category_summary,
     read_patch,
     read_payload,
+    read_statement_page,
     read_statement,
     refusal_response,
     update_transaction,
@@ -88,6 +93,38 @@ async def create_statement(
         status_code=201,
         headers={"Cache-Control": "no-store"},
     )
+
+
+@router.get("/api/statements")
+async def list_statements(
+    request: Request,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+) -> JSONResponse:
+    """One page of the person's statements, newest first (BE-06). The query is
+    read by hand, so a bad limit or cursor is invalid_limit or invalid_cursor, not
+    the 422 of main.py. The limit is checked before the cursor, and neither reaches
+    the database when it is refused."""
+    try:
+        limit = parse_limit(request.query_params.getlist("limit"))
+    except ValueError:
+        return refusal_response(REFUSED_INVALID_LIMIT)
+    cursors = request.query_params.getlist("cursor")
+    after = None
+    if cursors:
+        if len(cursors) != 1:
+            return refusal_response(REFUSED_INVALID_CURSOR)
+        try:
+            after = parse_cursor(cursors[0])
+        except ValueError:
+            return refusal_response(REFUSED_INVALID_CURSOR)
+    try:
+        view = await run_in_threadpool(read_statement_page, session, user, limit, after)
+    except DBAPIError as exc:
+        # The class name only: a driver message can hold the host.
+        log_event("WARNING", "database_error", error=type(exc).__name__)
+        raise AccessError(*DATABASE_UNAVAILABLE) from None
+    return JSONResponse(view.model_dump(), headers={"Cache-Control": "no-store"})
 
 
 @router.get("/api/statements/{statement_id}")

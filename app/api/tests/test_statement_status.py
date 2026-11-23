@@ -159,6 +159,7 @@ def test_no_route_writes_status():
 
     assert pairs == {
         ("POST", "/api/statements"),
+        ("GET", "/api/statements"),  # BE-06: the list, no status written
         ("GET", "/api/statements/{statement_id}"),
         ("PATCH", "/api/statements/{statement_id}/transactions/{transaction_id}"),
         ("GET", "/api/statements/{statement_id}/summary"),
