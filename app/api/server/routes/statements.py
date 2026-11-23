@@ -4,7 +4,7 @@ parsed, and a body that fails its model reaches the handler in main.py."""
 
 import uuid
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from pydantic import ValidationError
@@ -15,6 +15,7 @@ from starlette.concurrency import run_in_threadpool
 from server.access import AccessError
 from server.db import User
 from server.db.session import DATABASE_UNAVAILABLE, get_session
+from server.extraction import ExtractionClient, run_extraction
 from server.statements import (
     MAX_BODY_BYTES,
     MAX_PATCH_BYTES,
@@ -39,6 +40,9 @@ from server.statements import (
     refusal_response,
     update_transaction,
 )
+from server.retry import claim_retry
+from server.routes.uploads import REFUSED_EXTRACTION_UNAVAILABLE, app_settings, upload_extractor
+from server.settings import Settings
 from server.users import current_user, log_event
 
 router = APIRouter()
@@ -291,4 +295,44 @@ async def export_statement(
             "Content-Disposition": 'attachment; filename="fatura.json"',
             "Cache-Control": "no-store",
         },
+    )
+
+
+@router.post("/api/statements/{statement_id}/retry", status_code=202)
+async def retry_statement(
+    statement_id: str,
+    request: Request,
+    background: BackgroundTasks,
+    settings: Settings = Depends(app_settings),
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+    client: ExtractionClient | None = Depends(upload_extractor),
+) -> JSONResponse:
+    """Put a failed statement back to processing and start its extraction (BE-08).
+    Read as a string, so a malformed id is the same 404 as an unknown one. Both keys
+    are needed, as for an upload (BE-03, amendment 2): nothing is claimed without them."""
+    try:
+        parsed = uuid.UUID(statement_id)
+    except ValueError:
+        return refusal_response(REFUSED_NOT_FOUND)
+    if client is None or settings.upload_encryption_key is None:
+        return refusal_response(REFUSED_EXTRACTION_UNAVAILABLE)
+    try:
+        claimed = await run_in_threadpool(claim_retry, session, user, parsed, settings=settings)
+    except StatementRefused as exc:
+        return refusal_response(exc.refusal)
+    except DBAPIError as exc:
+        if isinstance(exc, IntegrityError):
+            raise
+        # The class name only: a driver message can hold the host.
+        log_event("WARNING", "database_error", error=type(exc).__name__)
+        raise AccessError(*DATABASE_UNAVAILABLE) from None
+    log_event("INFO", "statement_retry_started", statement_id=str(claimed), user_id=str(user.id))
+    background.add_task(
+        run_extraction, request.app.state.engine, claimed, client, settings.anthropic_model
+    )
+    return JSONResponse(
+        {"id": str(claimed), "status": "processing"},
+        status_code=202,
+        headers={"Cache-Control": "no-store"},
     )

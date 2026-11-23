@@ -116,14 +116,26 @@ def add_user(migrated, subject: str, email: str) -> uuid.UUID:
         ).scalar_one()
 
 
-def add_statement(migrated, user_id: uuid.UUID, status: str, age: timedelta) -> None:
+def add_statement(
+    migrated,
+    user_id: uuid.UUID,
+    status: str,
+    age: timedelta,
+    updated_age: timedelta | None = None,
+) -> None:
     with owner(migrated).begin() as connection:
         connection.execute(
             text(
-                "insert into portal.statements (user_id, name, status, created_at) "
-                "values (:user, 'Fatura de teste', :status, now() - :age)"
+                "insert into portal.statements "
+                "(user_id, name, status, created_at, updated_at) "
+                "values (:user, 'Fatura de teste', :status, now() - :age, now() - :updated)"
             ),
-            {"user": user_id, "status": status, "age": age},
+            {
+                "user": user_id,
+                "status": status,
+                "age": age,
+                "updated": age if updated_age is None else updated_age,
+            },
         )
 
 
@@ -182,6 +194,20 @@ def test_stale_processing_is_interrupted(engine, migrated):
     rows = statement_rows(migrated)
     assert rows[0].status == "failed"
     assert rows[0].failure_code == "interrupted"
+
+
+def test_recently_retried_statement_is_not_swept(engine, migrated):
+    # A retry bumps updated_at, not created_at: the sweep must go by updated_at.
+    user_id = add_user(migrated, "sub-retry", "retry@exemplo.com")
+    add_statement(
+        migrated, user_id, "processing", timedelta(hours=2), updated_age=timedelta(minutes=1)
+    )
+    client, _ = make_client(engine, fixture_text())
+
+    response = upload(client)
+
+    assert response.status_code == 202
+    assert statement_rows(migrated)[0].status == "processing"
 
 
 def test_lock_serialises_the_count(engine, migrated):
