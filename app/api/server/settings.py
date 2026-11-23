@@ -73,12 +73,25 @@ class Settings(BaseSettings):
     upload_encryption_key: SecretStr | None = Field(
         None, alias="PORTAL_UPLOAD_ENCRYPTION_KEY"
     )
+    # The extraction of a statement PDF (BE-03). Unset is allowed: uploads then
+    # answer 503 and no row is created.
+    anthropic_api_key: SecretStr | None = Field(None, alias="PORTAL_ANTHROPIC_API_KEY")
+    anthropic_model: str = Field(
+        "claude-sonnet-5-5", alias="PORTAL_ANTHROPIC_MODEL", min_length=1
+    )
+    statement_max_bytes: int = Field(
+        10485760, alias="PORTAL_STATEMENT_MAX_BYTES", ge=1, le=10485760
+    )
+    max_processing_statements: int = Field(
+        2, alias="PORTAL_MAX_PROCESSING_STATEMENTS", ge=1, le=10
+    )
 
     @field_validator(
         "access_team_domain",
         "access_aud",
         "database_url",
         "upload_encryption_key",
+        "anthropic_api_key",
         mode="before",
     )
     @classmethod
