@@ -159,6 +159,7 @@ def test_no_route_writes_status():
 
     assert pairs == {
         ("POST", "/api/statements"),
+        ("POST", "/api/statements/upload"),  # BE-03: the upload, a new statement in processing
         ("GET", "/api/statements"),  # BE-06: the list, no status written
         ("GET", "/api/statements/{statement_id}"),
         ("DELETE", "/api/statements/{statement_id}"),  # BE-15: removes the statement, no status

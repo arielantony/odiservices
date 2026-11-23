@@ -80,7 +80,8 @@ statement name.
 
 The uploaded file name (`UploadFile.filename`) is never stored and never
 logged (BACKEND_GUIDELINES, Logging, and BE-21). The file's bytes are never
-written to disk: the request is read in memory, bounded by the limits above.
+written to disk: the request is read in memory, bounded by the limits above,
+and parsed with python-multipart's low-level parser (see Amendments, 2026-11-22).
 
 ### 3.2 Errors
 
@@ -458,7 +459,7 @@ before this item starts.
 | 1 | BE-04 provides `store_upload(session, statement_id, pdf)`, `load_upload(session, statement_id) -> bytes \| None` and `wipe_upload(session, statement_id)`, in the same transaction as the caller | *Assumed*: BE-04 is Draft, with no spec. The names are proposed here and BE-04's spec must match them, or this spec is updated | Section 5.3 `test_upload_creates_processing_row_and_blob`; BE-04's spec is checked against this section when it is written |
 | 2 | BE-07 provides `statements.status` (`processing`, `ready`, `failed`) and `failure_code` with the codes of 3.6 | *Assumed*: BE-07 is Draft. The codes are proposed here | Section 5.1 `test_run_extraction_total_mismatch_is_failed_and_keeps_blob` and the codes list in 3.6 |
 | 3 | `anthropic==2.6.0` has `messages.stream(..., output_config=...)` and `get_final_message()`, as `ask_pdf.py` uses them with the version the owner has | *Assumed* | Step 1 smoke test: `cd app/api && .venv/bin/python -c "import inspect,anthropic;print('output_config' in inspect.signature(anthropic.Anthropic(api_key='x').messages.stream).parameters)"` prints `True`. No network |
-| 4 | Starlette 1.10.0 `Request.form(max_part_size=...)` bounds a part, and `UploadFile` reads bytes without a file on disk | *Assumed* | Step 2 smoke test, and `test_oversized_chunked_body_is_413` |
+| 4 | python-multipart 0.0.33 (`MultipartParser`, low-level callbacks) parses the body in memory, with no spool to disk (replaces the Starlette form assumption, see Amendments) | *Verified* in the installed package; the spool of Starlette's form parser is the reason | Section 5.2 `test_upload_does_not_spool_to_disk` and `test_oversized_chunked_body_is_413` |
 | 5 | The API runs as one uvicorn worker per container, so `BackgroundTasks` and the in-memory client run in that process | *Assumed* | Step 2: `grep -n "workers\|CMD" app/api/Dockerfile` shows no `--workers` above 1 |
 | 6 | `pg_advisory_xact_lock` needs no grant for `app_backend` | *Assumed* from the Postgres documentation (the advisory lock functions are not table privileges) | Section 5.3 `test_lock_serialises_the_count`, run as `app_backend` |
 | 7 | A background job that opens its own session from the engine works after the response is sent | *Assumed*, and the design does not rely on the request's session | Section 5.3 `test_upload_creates_processing_row_and_blob` (the job runs after the `202`) |
@@ -486,3 +487,60 @@ before this item starts.
 - A statement can be deleted (BE-15) while its job runs. `run_extraction` reads the row first; a missing row ends the job with no error, no status write and no log of values. Add `test_job_ends_quietly_when_the_row_is_gone` to section 5.1.
 - The failure vocabulary is the one of BE-07 section 3.4 (eleven codes, amended to include the codes of 3.6).
 - `set_status(..., commit=False)` is used for the status change inside the job's transaction (BE-07, amended).
+
+## Amendments during implementation (2026-11-22)
+
+Decided by the owner's delegate and recorded here before step 2 merges.
+
+1. **Multipart parsing (3.1, section 8 claim 4).** Starlette's form parser
+   spools a file part larger than 1 MB to a temporary file
+   (`starlette/formparsers.py`, `MultiPartParser.spool_max_size`), and
+   `Request.form()` has no argument to prevent it. The route therefore reads
+   the body with a byte counter over `request.stream()`, refuses above
+   `PORTAL_STATEMENT_MAX_BYTES` plus 64 KiB with `413` (with or without a
+   `Content-Length`; the header is checked first), and parses it with
+   python-multipart's low-level `MultipartParser` callbacks into memory.
+   `Request.form()`, `FormParser`, `File` and `UploadFile` are not used. The
+   part's own size above `PORTAL_STATEMENT_MAX_BYTES` is `413` too.
+2. **Check 2 (3.1).** Both `PORTAL_ANTHROPIC_API_KEY` and
+   `PORTAL_UPLOAD_ENCRYPTION_KEY` must be set; otherwise `503
+   extraction_unavailable`, with nothing read and no row created. The
+   `upload_key_missing` and `upload_too_large` codes are therefore not reachable
+   from the route. Any other `UploadError` from `store_upload` maps to `503
+   extraction_unavailable`, and `database_unavailable` to `503
+   database_unavailable`.
+3. **Settings and the extraction client (3.7).** The route reads
+   `request.app.state.settings` through `app_settings(request)`. The dependency
+   `upload_extractor(settings)` in `server/routes/uploads.py` wraps
+   `get_extraction_client(settings)`, and the tests override `upload_extractor`.
+   The signature of `extraction.py` is unchanged.
+4. **`check_processing_limit(session, user, *, settings=None)` (3.5).** The
+   settings are passed by keyword, as `store_upload` does (BE-04). The limit is
+   read from them.
+5. **The sweep is committed before the 429 (3.5).** The stale sweep and the
+   count run in the request's transaction. On a refusal the transaction is
+   committed (the sweep persists, no row is created) and then the `429` is
+   raised. On success the caller inserts and commits, so the lock lasts through
+   the insert.
+6. **The lock key (3.5).** `pg_advisory_xact_lock(hashtextextended(<user id
+   text>, 0))`, one bigint key per person. `test_lock_serialises_the_count` is
+   deterministic: a connection holds the key, another connection's
+   `pg_try_advisory_xact_lock` returns false, the holder commits, and then the
+   other gets true. The test uses the production key function.
+7. **Test file names.** The database tests are `tests/test_upload_route_db.py`,
+   since BE-04 owns `tests/test_uploads_db.py`. The verification rows that name
+   `test_upload_db.py` and `test_uploads_db.py` refer to this file. The route
+   tests are `tests/test_uploads_route.py`, as the spec lists.
+8. **The background job's blob key (3.6).** `run_extraction` has no settings
+   argument, so it loads the blob with the global settings (BE-04's default).
+   In production the route's settings and the global settings come from the same
+   environment. The database tests set `PORTAL_UPLOAD_ENCRYPTION_KEY` for the
+   job.
+9. **Route set (section 5.1, `test_no_route_writes_status`).**
+   `("POST", "/api/statements/upload")` is added to the pinned set in
+   `tests/test_statement_status.py`. `tests/test_access_routes.py` needed no
+   change: its protected-route test covers the new route.
+10. **Total mismatch in the database (section 5.3).**
+    `test_failed_extraction_keeps_blob_and_retry_data` is the case the owner
+    asked for: the fake client returns a sum one cent off, the statement ends
+    `failed` with `total_mismatch`, and the blob row stays.
