@@ -5,3 +5,5 @@ pyjwt[crypto]
 sqlalchemy
 psycopg[binary]
 cryptography
+anthropic
+python-multipart

@@ -14,7 +14,7 @@ from server.access import (
 )
 from server.db import build_engine
 from server.request_log import RequestLogMiddleware
-from server.routes import categories, health, me, session, statements
+from server.routes import categories, health, me, session, statements, uploads
 from server.security_headers import SecurityHeadersMiddleware
 from server.settings import Settings, get_settings
 from server.statements import REFUSED_INVALID, refusal_response
@@ -87,6 +87,7 @@ def create_app(
     app.include_router(health.router)
     app.include_router(session.router)
     app.include_router(me.router)
+    app.include_router(uploads.router)
     app.include_router(statements.router)
     app.include_router(categories.router)
     return app

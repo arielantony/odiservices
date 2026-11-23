@@ -233,10 +233,9 @@ class Imported:
     doubtful_count: int
 
 
-def import_statement(session: Session, user: User, payload: StatementPayload) -> Imported:
-    """Store the statement and its transactions for `user`, all or nothing.
-    The category check reads the table (spec 3.2, rule 8); the sum check comes
-    after it (rule 9)."""
+def check_payload(session: Session, payload: StatementPayload) -> None:
+    """Rules 8 and 9 of BE-05 (spec 3.4): the categories, read from the table, then
+    the sum. Raises StatementRefused. Writes nothing."""
     codes = set(session.scalars(select(Category.code)))
     lines = payload.lancamentos
     if any(line.categoria not in codes for line in lines):
@@ -244,6 +243,44 @@ def import_statement(session: Session, user: User, payload: StatementPayload) ->
     if lines_total(lines) != payload.total_lanc_atuais:
         raise StatementRefused(REFUSED_TOTAL)
 
+
+def store_lines(session: Session, statement: Statement, payload: StatementPayload) -> Imported:
+    """Set the statement's total and insert its transactions, in one insert. Does
+    not commit: the caller owns the transaction (spec 3.4)."""
+    lines = payload.lancamentos
+    statement.total_lanc_atuais = payload.total_lanc_atuais
+    session.execute(
+        insert(Transaction),
+        [
+            {
+                "statement_id": statement.id,
+                "item_number": line.id,
+                "section": SECTIONS[line.secao],
+                "printed_date": line.data,
+                "description": line.descricao,
+                "amount": line.valor,
+                "category_code": line.categoria,
+                "original_category_code": line.categoria,
+                "doubtful": line.duvida,
+                "reviewed": False,
+            }
+            for line in lines
+        ],
+    )
+    return Imported(
+        id=statement.id,
+        name=payload.name,
+        total=payload.total_lanc_atuais,
+        transaction_count=len(lines),
+        doubtful_count=sum(line.duvida for line in lines),
+    )
+
+
+def import_statement(session: Session, user: User, payload: StatementPayload) -> Imported:
+    """Store the statement and its transactions for `user`, all or nothing.
+    The category check reads the table (spec 3.2, rule 8); the sum check comes
+    after it (rule 9)."""
+    check_payload(session, payload)
     try:
         statement = Statement(
             user_id=user.id,
@@ -254,36 +291,12 @@ def import_statement(session: Session, user: User, payload: StatementPayload) ->
         )
         session.add(statement)
         session.flush()
-        statement_id = statement.id
-        session.execute(
-            insert(Transaction),
-            [
-                {
-                    "statement_id": statement_id,
-                    "item_number": line.id,
-                    "section": SECTIONS[line.secao],
-                    "printed_date": line.data,
-                    "description": line.descricao,
-                    "amount": line.valor,
-                    "category_code": line.categoria,
-                    "original_category_code": line.categoria,
-                    "doubtful": line.duvida,
-                    "reviewed": False,
-                }
-                for line in lines
-            ],
-        )
+        imported = store_lines(session, statement, payload)
         session.commit()
     except Exception:
         session.rollback()
         raise
-    return Imported(
-        id=statement_id,
-        name=payload.name,
-        total=payload.total_lanc_atuais,
-        transaction_count=len(lines),
-        doubtful_count=sum(line.duvida for line in lines),
-    )
+    return imported
 
 
 class TransactionView(BaseModel):

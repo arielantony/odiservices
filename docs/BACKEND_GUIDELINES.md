@@ -104,7 +104,10 @@ app/api/
 │   ├── settings.py      # Settings, get_settings()
 │   ├── request_log.py   # request log middleware
 │   ├── statements.py    # statement import (BE-05): models, checks, storage
-│   └── routes/          # one module per area, each with an APIRouter
+│   ├── extraction.py    # extraction of a statement PDF (BE-03): client, parsing, background job
+│   ├── uploads_limits.py # per-person limit of statements in processing (BE-03)
+│   ├── prompts/         # prompt texts sent to the model (BE-03)
+│   └── routes/          # one module per area, each with an APIRouter (uploads.py: BE-03)
 └── tests/               # one test file per module or item
 ```
 
