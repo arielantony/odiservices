@@ -224,6 +224,8 @@ Every error from the API uses one format, which the frontend client
 - **Uploaded PDFs and extracted transactions are sensitive.** They are never
   written to the repo, `input/` and `outputs/` are never served, and they
   never enter the Docker image.
+- An uploaded PDF is kept only as an encrypted blob (BE-04), and only while its
+  statement is not `ready`.
 - **Anthropic and other APIs** are called only from the server, with keys
   held in settings.
 

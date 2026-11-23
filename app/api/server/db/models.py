@@ -12,6 +12,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     Numeric,
     Text,
     UniqueConstraint,
@@ -182,3 +183,28 @@ class Transaction(Base):
     def __repr__(self) -> str:
         # The id only: the description names merchants.
         return f"<Transaction {self.id}>"
+
+
+class StatementUpload(Base):
+    """The encrypted PDF of a statement that is not ready (BE-04). A Fernet token
+    kept only while its statement is not `ready`; the caller wipes it. The row
+    goes with its statement (ON DELETE CASCADE)."""
+
+    __tablename__ = "statement_uploads"
+    __table_args__ = (
+        CheckConstraint(
+            "octet_length(ciphertext) > 0", name="ciphertext_not_empty"
+        ),
+    )
+
+    statement_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("statements.id", ondelete="CASCADE"), primary_key=True
+    )
+    ciphertext: Mapped[bytes] = mapped_column(LargeBinary)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+    def __repr__(self) -> str:
+        # The id only: the bytes are the sensitive part.
+        return f"<StatementUpload {self.statement_id}>"

@@ -15,6 +15,7 @@ def clean_environment(monkeypatch):
     monkeypatch.delenv("PORTAL_ACCESS_TEAM_DOMAIN", raising=False)
     monkeypatch.delenv("PORTAL_ACCESS_AUD", raising=False)
     monkeypatch.delenv("PORTAL_DATABASE_URL", raising=False)
+    monkeypatch.delenv("PORTAL_UPLOAD_ENCRYPTION_KEY", raising=False)
 
 
 def load() -> Settings:
@@ -53,6 +54,23 @@ def test_error_does_not_echo_value(monkeypatch):
         load()
 
     assert "staging-secret-value" not in str(error.value)
+
+
+def test_upload_key_is_optional():
+    settings = load()
+
+    assert settings.upload_encryption_key is None
+
+
+def test_invalid_upload_key_names_the_variable_only(monkeypatch):
+    value = "not-a-fernet-key-secret"
+    monkeypatch.setenv("PORTAL_UPLOAD_ENCRYPTION_KEY", value)
+
+    with pytest.raises(ValidationError) as error:
+        load()
+
+    assert "PORTAL_UPLOAD_ENCRYPTION_KEY" in str(error.value)
+    assert value not in str(error.value)
 
 
 def test_env_example_lists_every_field():

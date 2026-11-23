@@ -4,3 +4,4 @@ pydantic-settings
 pyjwt[crypto]
 sqlalchemy
 psycopg[binary]
+cryptography
