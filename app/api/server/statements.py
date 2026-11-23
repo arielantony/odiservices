@@ -24,7 +24,7 @@ from pydantic import (
     StringConstraints,
     model_validator,
 )
-from sqlalchemy import and_, func, insert, or_, select, update
+from sqlalchemy import and_, delete, func, insert, or_, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -798,3 +798,24 @@ def read_export(session: Session, user: User, statement_id: UUID) -> bytes | Non
         card_name=statement.card_name,
         card_last4=statement.card_last4,
     )
+
+
+def delete_statement(session: Session, user: User, statement_id: UUID) -> bool:
+    """Delete `statement_id` for `user` only (BE-15, spec 3.3). One DELETE is the
+    ownership check and the delete together. The lines go with the statement by
+    ON DELETE CASCADE, in the same transaction. True when a row was deleted; False
+    when none matched (missing, already deleted, or another user's)."""
+    try:
+        result = session.execute(
+            delete(Statement)
+            .where(Statement.id == statement_id, Statement.user_id == user.id)
+            .execution_options(synchronize_session=False)
+        )
+        if result.rowcount == 1:
+            session.commit()
+            return True
+        session.rollback()
+        return False
+    except Exception:
+        session.rollback()
+        raise
