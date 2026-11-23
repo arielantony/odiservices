@@ -25,6 +25,7 @@ from server.statements import (
     REFUSED_TOO_LARGE,
     REFUSED_TRANSACTION_NOT_FOUND,
     StatementRefused,
+    delete_statement,
     import_statement,
     owned_statement,
     parse_cursor,
@@ -149,6 +150,32 @@ async def get_statement(
     if view is None:
         return refusal_response(REFUSED_NOT_FOUND)
     return JSONResponse(view.model_dump(), headers={"Cache-Control": "no-store"})
+
+
+@router.delete("/api/statements/{statement_id}")
+async def remove_statement(
+    statement_id: str,
+    user: User = Depends(current_user),
+    session: Session = Depends(get_session),
+) -> Response:
+    """Delete one statement of the person and its lines (BE-15). Read as a string,
+    so a malformed id is the same 404 as an unknown one (spec 3.1). The body is
+    never read."""
+    try:
+        parsed = uuid.UUID(statement_id)
+    except ValueError:
+        return refusal_response(REFUSED_NOT_FOUND)
+    try:
+        deleted = await run_in_threadpool(delete_statement, session, user, parsed)
+    except DBAPIError as exc:
+        if isinstance(exc, IntegrityError):
+            raise
+        # The class name only: a driver message can hold the host (spec 3.6).
+        log_event("WARNING", "database_error", error=type(exc).__name__)
+        raise AccessError(*DATABASE_UNAVAILABLE) from None
+    if not deleted:
+        return refusal_response(REFUSED_NOT_FOUND)
+    return Response(status_code=204, headers={"Cache-Control": "no-store"})
 
 
 @router.patch("/api/statements/{statement_id}/transactions/{transaction_id}")
